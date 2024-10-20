@@ -121,7 +121,7 @@ export const startQueuedGame = async () => {
                         inline: true
                     },
                     {
-                        name: "Next game:",
+                        name: "Next deployment:",
                         value: `📅 <t:${Math.round(client.nextGame.getTime() / 1000)}:d>\n🕒 <t:${Math.round(client.nextGame.getTime() / 1000)}:t>`,
                     }
                 ]);
