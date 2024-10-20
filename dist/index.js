@@ -10,32 +10,43 @@ import fs from "fs";
 import { startQueuedGame } from "./utils/startQueuedGame.js";
 // Define a new class that extends Client
 class CustomClient extends Client {
-    commands = new Collection();
-    cooldowns = new Collection();
-    slashCommands = new Collection();
-    selectMenus = new Collection();
-    modals = new Collection();
-    contextMenus = new Collection();
-    buttons = new Collection();
-    nextGame;
-    interval;
+  commands = new Collection();
+  cooldowns = new Collection();
+  slashCommands = new Collection();
+  selectMenus = new Collection();
+  modals = new Collection();
+  contextMenus = new Collection();
+  buttons = new Collection();
+  nextGame;
+  interval;
 }
 // Initialize the extended client
 export const client = new CustomClient({
-    intents: [IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.MessageContent, IntentsBitField.Flags.GuildMembers, IntentsBitField.Flags.GuildVoiceStates],
-    partials: [Partials.Message, Partials.GuildMember, Partials.Channel, Partials.Reaction, Partials.User]
+  intents: [
+    IntentsBitField.Flags.Guilds,
+    IntentsBitField.Flags.GuildMessages,
+    IntentsBitField.Flags.MessageContent,
+    IntentsBitField.Flags.GuildMembers,
+    IntentsBitField.Flags.GuildVoiceStates,
+  ],
+  partials: [
+    Partials.Message,
+    Partials.GuildMember,
+    Partials.Channel,
+    Partials.Reaction,
+    Partials.User,
+  ],
 });
 const deploymentTime = fs.readFileSync("./deploymentTime.txt", "utf-8");
 export const getDeploymentTime = () => {
-    return Number(deploymentTime);
+  return Number(deploymentTime);
 };
 export const setDeploymentTime = (time) => {
-    fs.writeFileSync("./deploymentTime.txt", time, "utf-8");
-    client.interval.unref();
-    client.interval = setInterval(startQueuedGame, getDeploymentTime());
+  fs.writeFileSync("./deploymentTime.txt", time, "utf-8");
+  client.interval.unref();
+  client.interval = setInterval(startQueuedGame, Number(time));
 };
-if (database.isInitialized)
-    log("Successfully connected to the database");
+if (database.isInitialized) log("Successfully connected to the database");
 idkHowToCallThisHandler.init();
 eventHandler.function();
 // Catching all the errors
