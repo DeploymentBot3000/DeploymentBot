@@ -37,8 +37,9 @@ export const client = new CustomClient({
     Partials.User,
   ],
 });
-const deploymentTime = fs.readFileSync("./deploymentTime.txt", "utf-8");
+
 export const getDeploymentTime = () => {
+  const deploymentTime = fs.readFileSync("./deploymentTime.txt", "utf-8");
   return Number(deploymentTime);
 };
 export const setDeploymentTime = (time) => {
