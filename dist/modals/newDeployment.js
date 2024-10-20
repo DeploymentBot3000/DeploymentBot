@@ -1,0 +1,142 @@
+import { ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
+import Modal from "../classes/Modal.js";
+import LatestInput from "../tables/LatestInput.js";
+import { buildButton, buildEmbed } from "../utils/configBuilders.js";
+import date from "date-and-time";
+import config from "../config.js";
+import Deployment from "../tables/Deployment.js";
+import Signups from "../tables/Signups.js";
+export default new Modal({
+    id: "newDeployment",
+    func: async function ({ interaction }) {
+        const title = interaction.fields.getTextInputValue("title");
+        const difficulty = interaction.fields.getTextInputValue("difficulty");
+        const description = interaction.fields.getTextInputValue("description");
+        const startTime = interaction.fields.getTextInputValue("startTime");
+        const startRegex = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(\d{1,2}) UTC[+-]\d{1,2}(:30)?$/;
+        if (!startRegex.test(startTime)) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC+X`");
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
+            if (latestInput) {
+                latestInput.title = title;
+                latestInput.difficulty = difficulty;
+                latestInput.description = description;
+                await latestInput.save();
+            }
+            else {
+                await LatestInput.insert({
+                    userId: interaction.user.id,
+                    title,
+                    difficulty,
+                    description
+                });
+            }
+            return;
+        }
+        const startTimeFormatted = startTime.replace(/UTC([+-])(\d{1,2}):?(\d{2})?/, (_, sign, hourOffset, minuteOffset = "00") => {
+            return `UTC${sign}${hourOffset.padStart(2, "0")}${minuteOffset.padStart(2, "0")}`.replace(/:/g, "");
+        });
+        const startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTCZ");
+        if (startDate.getTime() < Date.now()) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription("Start time cannot be in the past");
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
+            if (latestInput) {
+                latestInput.title = title;
+                latestInput.difficulty = difficulty;
+                latestInput.description = description;
+                await latestInput.save();
+            }
+            else {
+                await LatestInput.insert({
+                    userId: interaction.user.id,
+                    title,
+                    difficulty,
+                    description
+                });
+            }
+            return;
+        }
+        const row = new ActionRowBuilder().addComponents(new StringSelectMenuBuilder().setPlaceholder("Select a channel").setCustomId("channel").addOptions(config.channels.map(channel => ({
+            label: channel.name,
+            value: `${channel.channel}-${Math.random() * 1000}`,
+            emoji: channel.emoji
+        }))));
+        await interaction.reply({ components: [row], ephemeral: true });
+        const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
+        if (latestInput)
+            await latestInput.remove();
+        const selectMenuResponse = await interaction.channel.awaitMessageComponent({
+            filter: i => i.user.id === interaction.user.id && i.customId === "channel",
+            time: 60000
+        }).catch(() => null);
+        if (!selectMenuResponse) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription("Channel selection timed out");
+            await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
+            return;
+        }
+        const successEmbed = buildEmbed({ preset: "success" })
+            .setDescription("Deployment created successfully");
+        await selectMenuResponse.update({ embeds: [successEmbed], components: [] });
+        const channel = config.channels.find(channel => channel.channel === selectMenuResponse.values[0].split("-")[0]);
+        const offenseRole = config.roles.find(role => role.name === "Offense");
+        const embed = new EmbedBuilder()
+            .setTitle(title)
+            .addFields([
+            {
+                name: "Event Info:",
+                value: `📅 <t:${Math.round(startDate.getTime() / 1000)}:d>\n🕒 <t:${Math.round(startDate.getTime() / 1000)}:t> - <t:${Math.round((startDate.getTime() + 7200000) / 1000)}:t>`
+            },
+            {
+                name: "Description:",
+                value: description
+            },
+            {
+                name: "Signups:",
+                value: `${offenseRole.emoji} <@${interaction.user.id}>`,
+                inline: true
+            },
+            {
+                name: "Backups:",
+                value: "` - `",
+                inline: true
+            }
+        ])
+            .setColor("Green")
+            .setFooter({ text: `Sign ups: 1/4 ~ Backups: 0/4` })
+            .setTimestamp(startDate.getTime());
+        const ch = await interaction.client.channels.fetch(channel.channel).catch(() => null);
+        const rows = [
+            new ActionRowBuilder().addComponents(new StringSelectMenuBuilder().setPlaceholder("Select a role to sign up...").setCustomId("signup").addOptions(...config.roles.map(role => ({
+                label: role.name,
+                value: role.name,
+                emoji: role.emoji || undefined
+            })), {
+                label: "Backup",
+                value: "backup",
+                emoji: config.backupEmoji
+            })),
+            new ActionRowBuilder().addComponents(buildButton("editDeployment"), buildButton("deleteDeployment"))
+        ];
+        const msg = await ch.send({ content: `@here <@${interaction.user.id}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
+        const deployment = await Deployment.create({
+            channel: channel.channel,
+            message: msg.id,
+            user: interaction.user.id,
+            title,
+            difficulty,
+            description,
+            startTime: startDate.getTime(),
+            endTime: startDate.getTime() + 7200000
+        }).save();
+        await Signups.insert({
+            deploymentId: deployment.id,
+            userId: interaction.user.id,
+            role: "Offense"
+        });
+    }
+});
