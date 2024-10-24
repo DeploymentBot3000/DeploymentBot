@@ -115,6 +115,7 @@ export default new Button({
             }
 
             deployment.startTime = startDate.getTime();
+            deployment.endTime = startDate.getTime() + 7200000;
         }
 
         await deployment.save();

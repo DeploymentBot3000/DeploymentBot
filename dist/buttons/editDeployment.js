@@ -74,6 +74,7 @@ export default new Button({
                 return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
             }
             deployment.startTime = startDate.getTime();
+            deployment.endTime = startDate.getTime() + 7200000;
         }
         await deployment.save();
         const successEmbed = buildEmbed({ preset: "success" })
