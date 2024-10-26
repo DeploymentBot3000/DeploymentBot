@@ -16,7 +16,7 @@ import Button from "./classes/Button.js";
 import Modal from "./classes/Modal.js";
 import ContextMenu from "./classes/ContextMenu.js";
 import Command from "./classes/Command.js";
-import fs from "fs";
+import fs from "fs/promises";
 import { startQueuedGame } from "./utils/startQueuedGame.js";
 
 // Define a new class that extends Client
@@ -38,19 +38,19 @@ export const client = new CustomClient({
     partials: [Partials.Message, Partials.GuildMember, Partials.Channel, Partials.Reaction, Partials.User]
 });
 
-
-const deploymentTime = fs.readFileSync("./deploymentTime.txt", "utf-8");
-
-export const getDeploymentTime = () => {
+export const getDeploymentTime = async () => {
+    const deploymentTime = await fs.readFile("./deploymentTime.txt", "utf-8");
     return Number(deploymentTime);
 };
 
-export const setDeploymentTime = (time: string) => {
-    fs.writeFileSync("./deploymentTime.txt", time, "utf-8");
+export const setDeploymentTime = async (time: string) => {
+    await fs.writeFile("./deploymentTime.txt", time, "utf-8");
 
-    client.interval.unref();
+    clearInterval(client.interval);
 
-    client.interval = setInterval(startQueuedGame, Number(time));
+    client.interval = setInterval(() => {
+        startQueuedGame(Number(time));
+    }, Number(time));
 };
 
 if (database.isInitialized) log("Successfully connected to the database");

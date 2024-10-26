@@ -1,8 +1,8 @@
 export default {
-    token: "na",
+    token: "na", // Bot token - you can access it from the Discord Developer Portal: https://discord.com/developers/applications
     prefix: "-",
     debugMode: true,
-    resetDatabase: true, 
+    resetDatabase: true, // Clears out the database on every restart - only enable for the first time
     database: {
         type: "mysql",
         host: "na",
@@ -13,6 +13,7 @@ export default {
     },
     departureChannel: "1297304177021685821",
     vcCategory: "1297303880706818109",
+    loggingChannel: "1297709020534013953",
     backupEmoji: "<:Backup:1289325583905456251>",
     editEmoji: "🔧",
     roles: [

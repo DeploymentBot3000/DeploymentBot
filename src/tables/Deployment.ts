@@ -28,4 +28,13 @@ export default class Deployment extends BaseEntity {
 
     @Column({ type: "bigint" })
     endTime: number;
+
+    @Column({ nullable: true })
+    noticeSent: boolean;
+
+    @Column({ nullable: true })
+    started: boolean;
+
+    @Column({ default: false })
+    deleted: boolean;
 }

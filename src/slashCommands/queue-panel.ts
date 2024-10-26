@@ -9,10 +9,14 @@ export default new Slashcommand({
     name: "queue-panel",
     description: "Send the queue panel",
     cooldown: 0,
-    permissions: ["Administrator"],
+    permissions: ["ManageRoles"],
     requiredRoles: [],
     options: [],
     func: async function({ interaction }) {
+        if (!interaction.memberPermissions.has("ManageRoles")) {
+            return interaction.reply({ content: "You don't have permission to use this command.", ephemeral: true });
+        }
+        
         const queue = await Queue.find();
         const hosts = queue.filter(q => q.host);
         const players = queue.filter(q => !q.host);

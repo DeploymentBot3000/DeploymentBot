@@ -18,6 +18,9 @@ let Deployment = class Deployment extends BaseEntity {
     description;
     startTime;
     endTime;
+    noticeSent;
+    started;
+    deleted;
 };
 __decorate([
     PrimaryGeneratedColumn(),
@@ -55,6 +58,18 @@ __decorate([
     Column({ type: "bigint" }),
     __metadata("design:type", Number)
 ], Deployment.prototype, "endTime", void 0);
+__decorate([
+    Column({ nullable: true }),
+    __metadata("design:type", Boolean)
+], Deployment.prototype, "noticeSent", void 0);
+__decorate([
+    Column({ nullable: true }),
+    __metadata("design:type", Boolean)
+], Deployment.prototype, "started", void 0);
+__decorate([
+    Column({ default: false }),
+    __metadata("design:type", Boolean)
+], Deployment.prototype, "deleted", void 0);
 Deployment = __decorate([
     Entity()
 ], Deployment);

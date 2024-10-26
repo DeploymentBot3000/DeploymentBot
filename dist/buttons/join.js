@@ -32,7 +32,7 @@ export default new Button({
                 inline: true
             },
             {
-                name: "Next deployment:",
+                name: "Next game:",
                 value: `📅 <t:${Math.round(client.nextGame.getTime() / 1000)}:d>\n🕒 <t:${Math.round(client.nextGame.getTime() / 1000)}:t>`,
             }
         ]);

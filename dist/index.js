@@ -6,7 +6,7 @@ import { Client, Collection, IntentsBitField, Partials } from "discord.js";
 import eventHandler from "./handlers/eventHandler.js";
 import idkHowToCallThisHandler from "./handlers/interactionHandler.js";
 import database from "./handlers/databaseHandler.js";
-import fs from "fs";
+import fs from "fs/promises";
 import { startQueuedGame } from "./utils/startQueuedGame.js";
 // Define a new class that extends Client
 class CustomClient extends Client {
@@ -25,14 +25,16 @@ export const client = new CustomClient({
     intents: [IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.MessageContent, IntentsBitField.Flags.GuildMembers, IntentsBitField.Flags.GuildVoiceStates],
     partials: [Partials.Message, Partials.GuildMember, Partials.Channel, Partials.Reaction, Partials.User]
 });
-const deploymentTime = fs.readFileSync("./deploymentTime.txt", "utf-8");
-export const getDeploymentTime = () => {
+export const getDeploymentTime = async () => {
+    const deploymentTime = await fs.readFile("./deploymentTime.txt", "utf-8");
     return Number(deploymentTime);
 };
-export const setDeploymentTime = (time) => {
-    fs.writeFileSync("./deploymentTime.txt", time, "utf-8");
-    client.interval.unref();
-    client.interval = setInterval(startQueuedGame, Number(time));
+export const setDeploymentTime = async (time) => {
+    await fs.writeFile("./deploymentTime.txt", time, "utf-8");
+    clearInterval(client.interval);
+    client.interval = setInterval(() => {
+        startQueuedGame(Number(time));
+    }, Number(time));
 };
 if (database.isInitialized)
     log("Successfully connected to the database");
