@@ -20,7 +20,7 @@ export default class Deployment extends BaseEntity {
     @Column()
     difficulty: string;
 
-    @Column()
+    @Column({ type: 'text' })
     description: string;
 
     @Column({ type: "bigint" })
@@ -37,4 +37,7 @@ export default class Deployment extends BaseEntity {
 
     @Column({ default: false })
     deleted: boolean;
+
+    @Column({ default: false })
+    edited: boolean;
 }
