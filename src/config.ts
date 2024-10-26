@@ -104,7 +104,7 @@ export default {
         deploymentsCommand: {
             title: {
                 default: "⚠️・Upcoming Deployments・⚠️",
-                noDeployments: "✅ | No Upcoming Deployments"
+                noDeployments: "⛔┃No Upcoming Deployments"
             },
             footer: {
                 text: '101st "Hell" Battalion',
