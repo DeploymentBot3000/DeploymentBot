@@ -99,6 +99,13 @@ export default {
             title: "Hot Drop Queue",
             description: "If you are interested in hosting a hot drop deployment, please click on **HOST**🚀\nIf you are interested in joining a hot drop deployment, please click on **JOIN**📝\n\Don't forget to leave the queue if you are no longer available for a hot drop, by clicking **LEAVE**🚫\n\n\n🚨🚨🚨\nAfter being deployed, you have **15 MINUTES** to join the correct voice channel!\n🚨🚨🚨\n\nHot drop deployments are urgent deployments, where random divers from the Queue Panel get selected at the listed interval of time below and sent to their hellpods!",
             color: "#00ffff"
+        },
+        deploymentsCommand: {
+            title: "⚠️・Upcoming Deployments・⚠️",
+            footer: {
+                text: '101st "Hell" Battalion',
+                image: "https://cdn.discordapp.com/attachments/1224638196902531082/1280659026610491485/MOSHED-2024-9-2-22-45-12.gif"
+            }
         }
     },
     buttons: {
