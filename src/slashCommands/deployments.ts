@@ -59,13 +59,13 @@ const getStatusEmoji = (assignment: string): string => {
 
 // Function to create the embed message
 const buildDeploymentsEmbed = async (user: string): Promise<EmbedBuilder> => {
+    const deployments = await getUserDeployments(user);
+
     // Create the embed
     const embed = new EmbedBuilder()
-        .setTitle(Config.embeds.deploymentsCommand.title)
+        .setTitle(deployments.length == 0 ? Config.embeds.deploymentsCommand.title.noDeployments : Config.embeds.deploymentsCommand.title.default)
         .setColor(0xb60000)
         .setTimestamp(DateTime.now().toJSDate());
-
-    const deployments = await getUserDeployments(user);
 
     deployments.forEach(deployment => {
         const title = deployment.title;
@@ -75,8 +75,8 @@ const buildDeploymentsEmbed = async (user: string): Promise<EmbedBuilder> => {
 
         // Add field to the embed
         embed.addFields({
-            name: '',
-            value: `${getStatusEmoji(assignment)} ᲼**Operation:** ${title} | **Time:** <t:${time}:t> | **Assignment:** ${assignment.charAt(0).toUpperCase() + assignment.slice(1)} | [🔗](https://discord.com/channels/1297687820021792849/1299122351291629599/${link})`
+            name: '\u200B',
+            value: `${getStatusEmoji(assignment)} ᲼**Operation:** ${title} | **Time:** <t:${Math.round(time / 1000)}:t> | **Assignment:** ${assignment.charAt(0).toUpperCase() + assignment.slice(1)} | [🔗](https://discord.com/channels/1297687820021792849/1299122351291629599/${link})`
         });
     });
 

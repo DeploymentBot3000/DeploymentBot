@@ -11,6 +11,7 @@ export default {
         password: "na",
         database: "na"
     },
+    guildId: 1218615560049397770,
     departureChannel: "1297304177021685821",
     vcCategory: "1297303880706818109",
     loggingChannel: "1297709020534013953",
@@ -101,7 +102,10 @@ export default {
             color: "#00ffff"
         },
         deploymentsCommand: {
-            title: "⚠️・Upcoming Deployments・⚠️",
+            title: {
+                default: "⚠️・Upcoming Deployments・⚠️",
+                noDeployments: "✅ | No Upcoming Deployments"
+            },
             footer: {
                 text: '101st "Hell" Battalion',
                 image: "https://cdn.discordapp.com/attachments/1224638196902531082/1280659026610491485/MOSHED-2024-9-2-22-45-12.gif"
