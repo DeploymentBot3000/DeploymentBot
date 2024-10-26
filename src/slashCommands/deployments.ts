@@ -27,6 +27,7 @@ interface assignedDeployment {
     id: number;
     title: string;
     time: number;
+    channel: string;
     assignment: string;
 }
 
@@ -42,6 +43,7 @@ const getUserDeployments = async (userID: string): Promise<assignedDeployment[]>
                 id: deployment[0].id,
                 title: deployment[0].title,
                 time: deployment[0].startTime,
+                channel: deployment[0].channel,
                 assignment: signup.userId === deployment[0].user ? 'leader' : 'primary'
             });
         }
@@ -55,6 +57,7 @@ const getUserDeployments = async (userID: string): Promise<assignedDeployment[]>
                 id: deployment[0].id,
                 title: deployment[0].title,
                 time: deployment[0].startTime,
+                channel: deployment[0].channel,
                 assignment: 'backup'
             });
         }
@@ -87,7 +90,7 @@ const buildDeploymentsEmbed = async (user: string): Promise<EmbedBuilder> => {
         const title = deployment.title;
         const time = deployment.time;
         const assignment = deployment.assignment;
-        const link = `https://discord.com/channels/${Config.guildId}/${Config.channels[0].channel}/${deployment.id}`;
+        const link = `https://discord.com/channels/${Config.guildId}/${deployment.channel}/${deployment.id}`;
 
         // Add field to the embed
         embed.addFields({
