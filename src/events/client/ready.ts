@@ -74,8 +74,9 @@ export default {
 		const checkDeployments = async () => {
 			const deployments = await Deployment.find();
 			const deploymentsNoNotice = deployments.filter(d => !d.noticeSent);
-			const unstartedDeployments = deployments.filter(d => !d.started && d.startTime <= Date.now());
-			const deploymentsToDelete = deployments.filter(d => d.started && !d.deleted && Date.now() > d.startTime + 2 * 60 * 60 * 1000);
+			const unstartedDeployments = deployments.filter((d: Deployment) => !d.started && d.startTime <= Date.now());
+			const deploymentsToEdit = deployments.filter((d: Deployment) => d.started && !d.edited && Date.now() > d.startTime + 15 * 60 * 1000);
+			const deploymentsToDelete = deployments.filter((d: Deployment) => d.edited && !d.deleted && Date.now() > d.startTime + 2 * 60 * 60 * 1000);
 			
 			for (const deployment of deploymentsNoNotice) {
 				if (deployment.startTime - await getDeploymentTime() < Date.now()) {
@@ -139,6 +140,28 @@ export default {
 				await message.edit({ embeds: [startedEmbed], components: rows }).catch(() => null);
 
 				deployment.started = true;
+				await deployment.save();
+			}
+
+			for (const deployment of deploymentsToEdit) {
+				const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
+				const message = await channel.messages.fetch(deployment.message).catch(() => null);
+
+				if (!message) continue;
+
+				const editedEmbed = buildEmbed({ 
+					preset: "deploymentInProgress", 
+					placeholders: { 
+						title: deployment.title,
+						difficulty: deployment.difficulty,
+						user: deployment.user,
+						// Add other relevant properties from deployment as needed
+					} 
+				});
+
+				await message.edit({ embeds: [editedEmbed], components: [] }).catch(() => null);
+
+				deployment.edited = true;
 				await deployment.save();
 			}
 
