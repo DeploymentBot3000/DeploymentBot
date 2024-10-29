@@ -100,7 +100,7 @@ export default new Slashcommand({
     func: async function({ interaction }) {
         // User input
         const requestedStart = interaction.options.getString("start_time");
-        const requestedEnd = interaction.options.getString("end_time") || "";
+        const requestedEnd = interaction.options.getString("end_time");
         const timeZone = interaction.options.getString("time_zone");
 
         // Validate time format (HH:MM, 24-hour)
