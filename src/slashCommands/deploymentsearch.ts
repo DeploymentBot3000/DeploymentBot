@@ -142,9 +142,9 @@ export default new Slashcommand({
         });
 
         const end = DateTime.fromFormat(requestedEnd, 'HH:mm', { zone: timeZone }).set({
-            year: requestedEnd ? now.year : maxTime.year,
-            month: requestedEnd ? now.month : maxTime.month,
-            day: requestedEnd ? now.day : maxTime.day
+            year: requestedEnd && requestedEnd < now ? now.year : maxTime.year,
+            month: requestedEnd && requestedEnd < now ? now.month : maxTime.month,
+            day: requestedEnd && requestedEnd < now ? now.day : maxTime.day
         });
 
         // Ensure times are within 24-hour range from now
