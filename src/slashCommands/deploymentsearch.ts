@@ -141,6 +141,7 @@ export default new Slashcommand({
                 month: maxTime.month,
                 day: maxTime.day
             })
+        console.log(end);
 
         // Ensure times are within 24-hour range from now
         if (start < now || start > maxTime || end > maxTime) {
