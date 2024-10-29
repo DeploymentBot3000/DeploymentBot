@@ -91,7 +91,7 @@ const buildDeploymentsEmbed = async (start: number, end: number): Promise<Hacked
 };
 
 export default new Slashcommand({
-    name: "deployments",
+    name: "filterdeployments",
     description: "Lists your upcoming deployments!",
     cooldown: 0,
     permissions: [],
