@@ -107,14 +107,23 @@ export default new Slashcommand({
         const timeRegex = /^([01][0-9]|2[0-3]):([0-5][0-9])$/;
         const timezoneRegex = /^UTC([+-](0?[0-9]|1[0-4])(:([0-5][0-9]))?)$/;
         if (!timeRegex.test(requestedStart) || (requestedEnd && !timeRegex.test(requestedEnd))) {
-            await interaction.reply({ embeds: [buildEmbed({ preset: "error", name: "Error: Invalid Time Format", placeholders: { title: "Error: Invalid Time Format", description: "Please use HH:MM format." }})], ephemeral: true });
-            console.log("Time issue");
+            await interaction.reply({ embeds: [buildEmbed({
+                        preset: "error",
+                        name: "Error: Invalid Time Format",
+                    })
+                    .setTitle("Error: Invalid Time Format")
+                    .setDescription("\"Please use HH:MM format.\"")],
+                ephemeral: true });
             return;
         }
         if(!timezoneRegex.test(timeZone)) {
-            await interaction.reply({ embeds: [buildEmbed({ preset: "error", name: "Error: Invalid Timezone Format", placeholders: { description: "Please use UTC+-HH:MM format." }})], ephemeral: true });
-            console.log("Zone issue");
-            console.log(timeZone);
+            await interaction.reply({ embeds: [buildEmbed({
+                        preset: "error",
+                        name: "Error: Invalid Time Zone Format",
+                    })
+                    .setTitle("Error: Invalid Time Zone Format")
+                    .setDescription("\"Please use UTC+- HH:mm format.\"")],
+                ephemeral: true });
             return;
         }
 
@@ -144,7 +153,13 @@ export default new Slashcommand({
 
         // Ensure times are within 24-hour range from now
         if (start < now || start > maxTime || end > maxTime) {
-            await interaction.reply({ embeds: [buildEmbed({ preset: "error", name: "Error: Time Out of Range", placeholders: { description: "Please select a time within 24 hours from now." }})], ephemeral: true });
+            await interaction.reply({ embeds: [buildEmbed({
+                        preset: "error",
+                        name: "Error: Time Out of Range",
+                    })
+                    .setTitle("Error: Time Out of Range")
+                    .setDescription("\"Please select a time within 24 hours from now.\"")],
+                ephemeral: true });
             return;
         }
 
