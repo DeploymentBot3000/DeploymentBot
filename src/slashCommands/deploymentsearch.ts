@@ -105,7 +105,7 @@ export default new Slashcommand({
 
         // User input
         const requestedStart = interaction.options.getString("start_time");
-        const requestedEnd = interaction.options.getString("end_time");
+        const requestedEnd = interaction.options.getString("end_time") || "";
         const timeZone = interaction.options.getString("time_zone");
 
         // Validate time format (HH:MM, 24-hour)
@@ -141,7 +141,7 @@ export default new Slashcommand({
             day: now.day
         });
 
-        const end = DateTime.fromFormat(requestedEnd, 'HH:mm', { zone: timeZone }).set({
+        const end = DateTime.fromFormat(requestedEnd ? requestedEnd : `${maxTime.get("hour")}:${maxTime.get("minute")}`, 'HH:mm', { zone: timeZone }).set({
             year: requestedEnd && requestedEnd < now ? now.year : maxTime.year,
             month: requestedEnd && requestedEnd < now ? now.month : maxTime.month,
             day: requestedEnd && requestedEnd < now ? now.day : maxTime.day
