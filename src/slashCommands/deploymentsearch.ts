@@ -110,7 +110,7 @@ export default new Slashcommand({
 
         // Validate time format (HH:MM, 24-hour)
         const timeRegex = /^([01][0-9]|2[0-3]):([0-5][0-9])$/;
-        const timezoneRegex = /^UTC([+-](0[0-9]|1[0-4]):?([0-5][0-9])?)?$/;
+        const timezoneRegex = /^UTC([+-](0?[0-9]|1[0-4])(:([0-5][0-9]))?)$/;
         if (!timeRegex.test(requestedStart) || (requestedEnd && !timeRegex.test(requestedEnd))) {
             await interaction.reply({ embeds: [buildEmbed({ preset: "error", name: "Error: Invalid Time Format", placeholders: { title: "Error: Invalid Time Format", description: "Please use HH:MM format." }})], ephemeral: true });
             console.log("Time issue");
