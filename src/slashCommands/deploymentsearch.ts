@@ -67,11 +67,7 @@ const buildDeploymentsEmbed = async (start: number, end: number): Promise<Hacked
         // Add field to the embed
         embed.addFields({
             name: `🚨${deployment.title}`,
-            value: `**🕛Drop Time:** <t:${Math.round(deployment.time / 1000)}:t>\n
-                    **🪖Drop Leader:** <@${deployment.leader}>\n
-                    **🟢Primary Divers:** ${deployment.primaries}/4\n
-                    **🔵Backup Divers:** ${deployment.backups}/4\n
-                    **🔗Signup Link:** [Click me](${link})`,
+            value: `**🕛Drop Time:** <t:${Math.round(deployment.time / 1000)}:t>\n**🪖Drop Leader:** <@${deployment.leader}>\n**🟢Primary Divers:** ${deployment.primaries}/4\n**🔵Backup Divers:** ${deployment.backups}/4\n**🔗Signup Link:** [Click me](${link})`,
             inline: true
         });
 
@@ -96,27 +92,38 @@ export default new Slashcommand({
     cooldown: 0,
     permissions: [],
     requiredRoles: [{ role: "Verified", required: true }],
-    options: [{ name: "start_time", type: ApplicationCommandOptionType.String, description: "Enter your desired start time", required: true },
-              { name: "end_time", type: ApplicationCommandOptionType.String, description: "Enter your desired end time", required: false }],
+    options: [
+        { name: "start_time", type: ApplicationCommandOptionType.String, description: "Enter your desired start time (HH:MM, 24-hour format)", required: true },
+        { name: "end_time", type: ApplicationCommandOptionType.String, description: "Enter your desired end time (HH:MM, 24-hour format)", required: false },
+        { name: "time_zone", type: ApplicationCommandOptionType.String, description: "Enter your time zone (e.g., America/New_York)", required: true }
+    ],
     func: async function({ interaction }) {
-        const startTimeString = interaction.options.getString("start_time");
-        const endTimeString = interaction.options.getString("end_time");
+        const requestedStart = interaction.options.getString("start_time");
+        const requestedEnd = interaction.options.getString("end_time") || requestedStart; // Default end time to start time if not provided
+        const timeZone = interaction.options.getString("time_zone");
 
         // Validate time format (HH:MM, 24-hour)
         const timeRegex = /^([01][0-9]|2[0-3]):([0-5][0-9])$/;
-        if (!timeRegex.test(startTimeString) || (endTimeString && !timeRegex.test(endTimeString))) {
-            console.log("Error: Invalid Time format!");
+        if (!timeRegex.test(requestedStart) || (requestedEnd && !timeRegex.test(requestedEnd))) {
             await interaction.reply({ embeds: [buildEmbed({ preset: "error", name: "Error: Invalid Time Format", placeholders: { description: "Please use HH:MM format." }})], ephemeral: true });
             return;
         }
 
-        // Parse start and end times into today’s date
-        const now = new Date();
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...startTimeString.split(':').map(Number));
-        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...endTimeString.split(':').map(Number));
+        // Parse start and end times into DateTime objects in the specified time zone
+        const now = DateTime.now().setZone(timeZone);
+        const start = DateTime.fromFormat(requestedStart, 'HH:mm', { zone: timeZone }).set({
+            year: now.year,
+            month: now.month,
+            day: now.day
+        });
+        const end = DateTime.fromFormat(requestedEnd, 'HH:mm', { zone: timeZone }).set({
+            year: now.year,
+            month: now.month,
+            day: now.day
+        });
 
-        // Calculate 24 hours ahead
-        const maxTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        // Calculate 24 hours ahead in the specified time zone
+        const maxTime = now.plus({ hours: 24 });
 
         // Ensure times are within 24-hour range from now
         if (start < now || start > maxTime || end > maxTime) {
@@ -126,7 +133,7 @@ export default new Slashcommand({
         }
 
         // Generate the embed based on valid time inputs
-        const embed = await buildDeploymentsEmbed(start.getTime(), end.getTime());
+        const embed = await buildDeploymentsEmbed(start.toMillis(), end.toMillis());
         await interaction.reply({ embeds: [embed], ephemeral: true });
     }
 });
