@@ -94,8 +94,8 @@ export default new Slashcommand({
     requiredRoles: [{ role: "Verified", required: true }],
     options: [
         { name: "start_time", type: ApplicationCommandOptionType.String, description: "Enter your desired start time (HH:MM, 24-hour format)", required: true },
-        { name: "end_time", type: ApplicationCommandOptionType.String, description: "Enter your desired end time (HH:MM, 24-hour format)", required: false },
-        { name: "time_zone", type: ApplicationCommandOptionType.String, description: "Enter your time zone (e.g., America/New_York)", required: true }
+        { name: "time_zone", type: ApplicationCommandOptionType.String, description: "Enter your time zone (e.g., America/New_York)", required: true },
+        { name: "end_time", type: ApplicationCommandOptionType.String, description: "Enter your desired end time (HH:MM, 24-hour format)", required: false }
     ],
     func: async function({ interaction }) {
         const requestedStart = interaction.options.getString("start_time");
