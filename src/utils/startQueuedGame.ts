@@ -32,7 +32,7 @@ export const startQueuedGame = async (deploymentTime: number) => {
     }
 
     // Read the deployment interval from the file
-    const deploymentIntervalPath = path.join('..', '..', 'deploymentTime.txt');
+    const deploymentIntervalPath = path.join(__dirname, '..', '..', 'deploymentTime.txt');
     const deploymentIntervalMs = parseInt(await fs.readFile(deploymentIntervalPath, 'utf-8'), 10);
     console.log(`Deployment interval read from file: ${deploymentIntervalMs} ms`);
 
