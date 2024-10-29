@@ -119,6 +119,7 @@ export default new Slashcommand({
         if(!timezoneRegex.test(timeZone)) {
             await interaction.reply({ embeds: [buildEmbed({ preset: "error", name: "Error: Invalid Timezone Format", placeholders: { description: "Please use UTC+-HH:MM format." }})], ephemeral: true });
             console.log("Zone issue");
+            console.log(timeZone);
             return;
         }
 
