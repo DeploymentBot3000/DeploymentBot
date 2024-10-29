@@ -56,7 +56,7 @@ const buildDeploymentsEmbed = async (start: number, end: number): Promise<Hacked
 
     // Create the embed
     const embed = new HackedEmbedBuilder()
-        .setTitle("🗓️Deployments from TIME to TIME")
+        .setTitle(`🗓️Deployments from <t:${Math.round(start / 1000)}:t> to <t:${Math.round(end / 1000)}:t>`)
         .setColor(0xb60000)
         .setTimestamp(DateTime.now().toJSDate());
 
@@ -67,7 +67,7 @@ const buildDeploymentsEmbed = async (start: number, end: number): Promise<Hacked
         // Add field to the embed
         embed.addFields({
             name: `🚨${deployment.title}`,
-            value: `**🕛Drop Time:** ${deployment.time}\n
+            value: `**🕛Drop Time:** <t:${Math.round(deployment.time / 1000)}:t>\n
                     **🪖Drop Leader:** ${deployment.leader}\n
                     **🟢Primary Divers:** ${deployment.primaries}/4\n
                     **🔵Backup Divers:** ${deployment.backups}/4\n
@@ -91,25 +91,41 @@ const buildDeploymentsEmbed = async (start: number, end: number): Promise<Hacked
 };
 
 export default new Slashcommand({
-    name: "filterdeployments",
-    description: "Lists your upcoming deployments!",
+    name: "deploymentsearch",
+    description: "Search for today's upcoming deployments!",
     cooldown: 0,
     permissions: [],
     requiredRoles: [{ role: "Verified", required: true }],
     options: [{ name: "start_time", type: ApplicationCommandOptionType.String, description: "Enter your desired start time", required: true },
               { name: "end_time", type: ApplicationCommandOptionType.String, description: "Enter your desired end time", required: false }],
     func: async function({ interaction }) {
-        const startTime = interaction.options.getString("start_time");
-        const endTime = interaction.options.getString("end_time");
-        const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4} ([01][0-9]|2[0-3]):([0-5][0-9])$/;
-        if(!dateRegex.test(startTime) && !dateRegex.test(endTime)) {
-            await interaction.reply({ embeds: [buildEmbed({ preset: "error" })], ephemeral: true });
+        const startTimeString = interaction.options.getString("start_time");
+        const endTimeString = interaction.options.getString("end_time");
+
+        // Validate time format (HH:MM, 24-hour)
+        const timeRegex = /^([01][0-9]|2[0-3]):([0-5][0-9])$/;
+        if (!timeRegex.test(startTimeString) || (endTimeString && !timeRegex.test(endTimeString))) {
+            console.log("Error: Invalid Time format!");
+            await interaction.reply({ embeds: [buildEmbed({ preset: "error", name: "Error: Invalid Time Format", placeholders: { description: "Please use HH:MM format." }})], ephemeral: true });
             return;
         }
-        const user = interaction.user.id;
-        const embed = await buildDeploymentsEmbed(
-            Math.floor(new Date(startTime).getTime() / 1000),
-            Math.floor(new Date(endTime).getTime() / 1000)); // Await the async embed function
+
+        // Parse start and end times into today’s date
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...startTimeString.split(':').map(Number));
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...endTimeString.split(':').map(Number));
+
+        // Calculate 24 hours ahead
+        const maxTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+        // Ensure times are within 24-hour range from now
+        if (start < now || start > maxTime || end > maxTime) {
+            await interaction.reply({ embeds: [buildEmbed({ preset: "error", name: "Error: Time Out of Range", placeholders: { description: "Please select a time within 24 hours from now." }})], ephemeral: true });
+            return;
+        }
+
+        // Generate the embed based on valid time inputs
+        const embed = await buildDeploymentsEmbed(start.getTime(), end.getTime());
         await interaction.reply({ embeds: [embed], ephemeral: true });
     }
 });
