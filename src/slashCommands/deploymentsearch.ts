@@ -136,10 +136,12 @@ export default new Slashcommand({
             day: requestedEnd && requestedEnd < now ? now.day : maxTime.day
         });
 
+        console.log(end);
+        console.log(`${maxTime.get("hour")}:${maxTime.get("minute")}`);
+
         // Ensure times are within 24-hour range from now
         if (start < now || start > maxTime || end > maxTime) {
             await interaction.reply({ embeds: [buildEmbed({ preset: "error", name: "Error: Time Out of Range", placeholders: { description: "Please select a time within 24 hours from now." }})], ephemeral: true });
-            console.log(`Start: ${start}\n`, `End: ${end}\n`, `Maxtime: ${maxTime}\n`, `Now: ${now}`);
             return;
         }
 
