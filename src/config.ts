@@ -11,7 +11,7 @@ export default {
         password: "na",
         database: "na"
     },
-    guildId: 1218615560049397770,
+    guildId: "1218615560049397770",
     departureChannel: "1297304177021685821",
     vcCategory: "1297303880706818109",
     loggingChannel: "1297709020534013953",
