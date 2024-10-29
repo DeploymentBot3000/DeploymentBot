@@ -68,7 +68,7 @@ const buildDeploymentsEmbed = async (start: number, end: number): Promise<Hacked
         embed.addFields({
             name: `🚨${deployment.title}`,
             value: `**🕛Drop Time:** <t:${Math.round(deployment.time / 1000)}:t>\n
-                    **🪖Drop Leader:** ${deployment.leader}\n
+                    **🪖Drop Leader:** <@${deployment.leader}>\n
                     **🟢Primary Divers:** ${deployment.primaries}/4\n
                     **🔵Backup Divers:** ${deployment.backups}/4\n
                     **🔗Signup Link:** [Click me](${link})`,
