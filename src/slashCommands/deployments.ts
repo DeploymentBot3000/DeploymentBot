@@ -9,7 +9,7 @@ import HackedEmbedBuilder from "../classes/HackedEmbedBuilder.js";
 
 // Interface to define deployments a user is assigned to without al the bloat
 interface assignedDeployment {
-    id: number;
+    message: string;
     title: string;
     time: number;
     channel: string;
@@ -25,7 +25,7 @@ const getUserDeployments = async (userID: string): Promise<assignedDeployment[]>
         const deployment = await Deployment.find({ where: { id: signup.deploymentId } });
         if (deployment[0]) {
             deployments.push({
-                id: deployment[0].id,
+                message: deployment[0].message,
                 title: deployment[0].title,
                 time: deployment[0].startTime,
                 channel: deployment[0].channel,
@@ -39,7 +39,7 @@ const getUserDeployments = async (userID: string): Promise<assignedDeployment[]>
         const deployment = await Deployment.find({ where: { id: backup.deploymentId } });
         if (deployment[0]) {
             deployments.push({
-                id: deployment[0].id,
+                message: deployment[0].message,
                 title: deployment[0].title,
                 time: deployment[0].startTime,
                 channel: deployment[0].channel,
@@ -75,7 +75,7 @@ const buildDeploymentsEmbed = async (user: string): Promise<EmbedBuilder> => {
         const title = deployment.title;
         const time = deployment.time;
         const assignment = deployment.assignment;
-        const link = `https://discord.com/channels/${Config.guildId}/${deployment.channel}/${deployment.id}`;
+        const link = `https://discord.com/channels/${Config.guildId}/${deployment.channel}/${deployment.message}`;
 
         // Add field to the embed
         embed.addFields({
