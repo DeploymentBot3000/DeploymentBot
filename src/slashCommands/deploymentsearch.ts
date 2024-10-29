@@ -131,7 +131,7 @@ export default new Slashcommand({
         // Get the time in mils and pass to the search function
 
         // Parse start and end times into DateTime objects in the specified time zone
-        const now:DateTime = DateTime.now({ zone: timeZone });
+        const now:DateTime = DateTime.now().setZone(timeZone);
         // Calculate 24 hours ahead in the specified time zone
         const maxTime:DateTime = now.plus({ days: 1 });
 
