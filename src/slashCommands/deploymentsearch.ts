@@ -100,7 +100,7 @@ export default new Slashcommand({
     func: async function({ interaction }) {
         // User input
         const requestedStart = interaction.options.getString("start_time");
-        const requestedEnd = interaction.options.getString("end_time");
+        const requestedEnd = interaction.options.getString("end_time") || "";
         const timeZone = interaction.options.getString("time_zone");
 
         // Validate time format (HH:MM, 24-hour)
@@ -130,19 +130,17 @@ export default new Slashcommand({
             day: now.day
         });
 
-        let end = requestedEnd ? DateTime.fromFormat(requestedEnd, { zone: timeZone }).set({
+        let end = requestedEnd ? DateTime.fromFormat(requestedEnd,'HH:mm', { zone: timeZone }).set({
             year: now.year,
             month: now.month,
             day: now.day
         }) : maxTime;
-        console.log(end);
         if(requestedEnd && (end < start && end < maxTime))
             end = end.set({
                 year: maxTime.year,
                 month: maxTime.month,
                 day: maxTime.day
-            })
-        console.log(end);
+            });
 
         // Ensure times are within 24-hour range from now
         if (start < now || start > maxTime || end > maxTime) {
