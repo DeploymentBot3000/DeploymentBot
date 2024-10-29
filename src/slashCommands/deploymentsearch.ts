@@ -66,7 +66,7 @@ const buildDeploymentsEmbed = async (start: number, end: number): Promise<Hacked
 
         // Add field to the embed
         embed.addFields({
-            name: `🚨 ${deployment.title}`,
+            name: `🚨 ᲼${deployment.title}`,
             value: `**🕛 ᲼Drop Time:** <t:${Math.round(deployment.time / 1000)}:t>\n**🪖 ᲼Drop Leader:** <@${deployment.leader}>\n**🟢 ᲼Primary Divers:** ${deployment.primaries}/4\n**🔵 ᲼Backup Divers:** ${deployment.backups}/4\n**🔗 ᲼Signup Link:** [Click me](${link})`,
             inline: true
         });
@@ -94,7 +94,7 @@ export default new Slashcommand({
     requiredRoles: [{ role: "Verified", required: true }],
     options: [
         { name: "start_time", type: ApplicationCommandOptionType.String, description: "Enter your desired start time (HH:MM, 24-hour format)", required: true },
-        { name: "time_zone", type: ApplicationCommandOptionType.String, description: "Enter your time zone (e.g., America/New_York)", required: true },
+        { name: "time_zone", type: ApplicationCommandOptionType.String, description: "Enter your time zone (e.g., UTC±HH:MM)", required: true },
         { name: "end_time", type: ApplicationCommandOptionType.String, description: "Enter your desired end time (HH:MM, 24-hour format)", required: false }
     ],
     func: async function({ interaction }) {
@@ -122,7 +122,7 @@ export default new Slashcommand({
                         name: "Error: Invalid Time Zone Format",
                     })
                     .setTitle("Error: Invalid Time Zone Format")
-                    .setDescription("\"Please use UTC+- HH:mm format.\"")],
+                    .setDescription("\"Please use UTC±HH:mm format.\"")],
                 ephemeral: true });
             return;
         }
