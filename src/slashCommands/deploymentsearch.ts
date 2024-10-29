@@ -56,7 +56,7 @@ const buildDeploymentsEmbed = async (start: number, end: number): Promise<Hacked
 
     // Create the embed
     const embed = new HackedEmbedBuilder()
-        .setTitle(`🗓️Deployments from <t:${Math.round(start / 1000)}:t> to <t:${Math.round(end / 1000)}:t>`)
+        .setTitle(`🗓️・Deployments from <t:${Math.round(start / 1000)}:t> to <t:${Math.round(end / 1000)}:t>`)
         .setColor(0xb60000)
         .setTimestamp(DateTime.now().toJSDate());
 
@@ -66,8 +66,8 @@ const buildDeploymentsEmbed = async (start: number, end: number): Promise<Hacked
 
         // Add field to the embed
         embed.addFields({
-            name: `🚨${deployment.title}`,
-            value: `**🕛Drop Time:** <t:${Math.round(deployment.time / 1000)}:t>\n**🪖Drop Leader:** <@${deployment.leader}>\n**🟢Primary Divers:** ${deployment.primaries}/4\n**🔵Backup Divers:** ${deployment.backups}/4\n**🔗Signup Link:** [Click me](${link})`,
+            name: `🚨 ᲼${deployment.title}`,
+            value: `**🕛 ᲼Drop Time:** <t:${Math.round(deployment.time / 1000)}:t>\n**🪖 ᲼Drop Leader:** <@${deployment.leader}>\n**🟢 ᲼Primary Divers:** ${deployment.primaries}/4\n**🔵 ᲼Backup Divers:** ${deployment.backups}/4\n**🔗 ᲼Signup Link:** [Click me](${link})`,
             inline: true
         });
 
@@ -98,11 +98,6 @@ export default new Slashcommand({
         { name: "end_time", type: ApplicationCommandOptionType.String, description: "Enter your desired end time (HH:MM, 24-hour format)", required: false }
     ],
     func: async function({ interaction }) {
-        // User input ✅
-        // Take in start time end time and timezone. ✅
-        // Check to see if times and zone entered are of valid form ✅
-        // Handle any errors ✅
-
         // User input
         const requestedStart = interaction.options.getString("start_time");
         const requestedEnd = interaction.options.getString("end_time") || "";
@@ -123,15 +118,9 @@ export default new Slashcommand({
             return;
         }
 
-        //Logic
-        // Get the start datetime
-        // Get the end datetime - If no end time set it to 24 hours from the time the command was run
-        // if the end time is less than the start time assume they mean for the next day and set the date to the next day
-        // Check that the start time isn't in the past, the end time isn't outside of the 24 hour window, check that the start time isn't outside the 24 hour window
-        // Get the time in mils and pass to the search function
-
         // Parse start and end times into DateTime objects in the specified time zone
         const now:DateTime = DateTime.now().setZone(timeZone);
+
         // Calculate 24 hours ahead in the specified time zone
         const maxTime:DateTime = now.plus({ days: 1 });
 
