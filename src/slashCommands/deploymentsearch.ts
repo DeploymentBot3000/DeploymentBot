@@ -135,6 +135,7 @@ export default new Slashcommand({
             month: now.month,
             day: now.day
         }) : maxTime;
+        console.log(end);
         if(requestedEnd && (end < start && end < maxTime))
             end = end.set({
                 year: maxTime.year,
