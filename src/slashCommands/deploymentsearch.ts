@@ -130,14 +130,17 @@ export default new Slashcommand({
             day: now.day
         });
 
-        const end = DateTime.fromFormat(requestedEnd ? requestedEnd : `${maxTime.get("hour")}:${maxTime.get("minute")}`, 'HH:mm', { zone: timeZone }).set({
-            year: requestedEnd && requestedEnd < now ? now.year : maxTime.year,
-            month: requestedEnd && requestedEnd < now ? now.month : maxTime.month,
-            day: requestedEnd && requestedEnd < now ? now.day : maxTime.day
-        });
-
-        console.log(end);
-        console.log(`${maxTime.get("hour")}:${maxTime.get("minute")}`);
+        let end = requestedEnd ? DateTime.fromFormat(requestedEnd, { zone: timeZone }).set({
+            year: now.year,
+            month: now.month,
+            day: now.day
+        }) : maxTime;
+        if(requestedEnd && (end < start && end < maxTime))
+            end = end.set({
+                year: maxTime.year,
+                month: maxTime.month,
+                day: maxTime.day
+            })
 
         // Ensure times are within 24-hour range from now
         if (start < now || start > maxTime || end > maxTime) {
