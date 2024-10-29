@@ -76,6 +76,8 @@ const buildDeploymentsEmbed = async (user: string): Promise<EmbedBuilder> => {
         const time = deployment.time;
         const assignment = deployment.assignment;
         const link = `https://discord.com/channels/${Config.guildId}/${deployment.channel}/${deployment.message}`;
+        console.log(link);
+        console.log(Config.guildId);
 
         // Add field to the embed
         embed.addFields({
