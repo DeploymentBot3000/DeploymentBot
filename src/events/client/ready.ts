@@ -179,13 +179,11 @@ export default {
 				await deployment.save();
 			}
 
-			const deleteMeAt = await DateTime.now().plus({ hours: -2 }).toMillis();
-			console.log(deleteMeAt);
 			const deploymentsToDelete = await Deployment.find({
 				where: {
 					edited: true,
 					deleted: false,
-					startTime: LessThanOrEqual(deleteMeAt)
+					startTime: LessThanOrEqual(DateTime.now().plus({ hours: 2 }).toMillis())
 				}
 			});
 			//
