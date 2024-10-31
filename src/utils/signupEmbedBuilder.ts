@@ -6,6 +6,7 @@ import { EmbedBuilder, ColorResolvable } from "discord.js";
 
 
 export async function buildDeploymentEmbed(deployment: InstanceType<typeof Deployment>, color: ColorResolvable = "Green") {
+    console.log('Building deployment embed with color:', color);
     const signups = await Signups.find({ where: { deploymentId: deployment.id } });
     const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
