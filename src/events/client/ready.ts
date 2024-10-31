@@ -157,27 +157,27 @@ export default {
 				}
 			});
 
-			for (const deployment of deploymentsToEdit) {
-				const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
-				const message = await channel.messages.fetch(deployment.message).catch(() => null);
-
-				if (!message) continue;
-
-				const editedEmbed = buildEmbed({ 
-					preset: "deploymentInProgress", 
-					placeholders: { 
-						title: deployment.title,
-						difficulty: deployment.difficulty,
-						user: deployment.user,
-						// Add other relevant properties from deployment as needed
-					} 
-				});
-
-				await message.edit({ embeds: [editedEmbed], components: [] }).catch(() => null);
-
-				deployment.edited = true;
-				await deployment.save();
-			}
+			// for (const deployment of deploymentsToEdit) {
+			// 	const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
+			// 	const message = await channel.messages.fetch(deployment.message).catch(() => null);
+			//
+			// 	if (!message) continue;
+			//
+			// 	const editedEmbed = buildEmbed({
+			// 		preset: "deploymentInProgress",
+			// 		placeholders: {
+			// 			title: deployment.title,
+			// 			difficulty: deployment.difficulty,
+			// 			user: deployment.user,
+			// 			// Add other relevant properties from deployment as needed
+			// 		}
+			// 	});
+			//
+			// 	await message.edit({ embeds: [editedEmbed], components: [] }).catch(() => null);
+			//
+			// 	deployment.edited = true;
+			// 	await deployment.save();
+			// }
 
 			// const deploymentsToDelete = await Deployment.find({
 			// 	where: {
@@ -196,7 +196,11 @@ export default {
 			// 	deployment.deleted = true;
 			// 	await deployment.save();
 			// }
+			console.log(DateTime.now)
+			console.log(unstartedDeployments)
+			console.log(deploymentsToEdit)
 		};
+
 
 		await checkDeployments();
 		setInterval(checkDeployments, 60000);
