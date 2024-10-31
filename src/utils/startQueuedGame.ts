@@ -1,4 +1,5 @@
 import { ChannelType, GuildTextBasedChannel, User, GuildMember, PermissionFlagsBits, TextChannel } from "discord.js";
+import { fileURLToPath } from 'url';
 import { client, getDeploymentTime } from "../index.js";
 import Queue from "../tables/Queue.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
@@ -32,7 +33,9 @@ export const startQueuedGame = async (deploymentTime: number) => {
     }
 
     // Read the deployment interval from the file
-    const deploymentIntervalPath = path.join('C:', 'Users', 'TheEp', 'Downloads', 'deployment bot', 'deploymentTime.txt');
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const deploymentIntervalPath = path.join(__dirname, '..', '..', 'deploymentTime.txt');
     const deploymentIntervalMs = parseInt(await fs.readFile(deploymentIntervalPath, 'utf-8'), 10);
     console.log(`Deployment interval read from file: ${deploymentIntervalMs} ms`);
 
@@ -107,7 +110,7 @@ export const startQueuedGame = async (deploymentTime: number) => {
                         deny: ["ViewChannel"]
                     },
                     {
-                        id: "1222689125761552394",
+                        id: config.verifiedRoleId,
                         allow: ["ViewChannel"],
                         deny: ["Connect"]
                     },
