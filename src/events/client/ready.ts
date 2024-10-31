@@ -144,8 +144,7 @@ export default {
 					} 
 				});
 
-				//await message.edit({ embeds: [startedEmbed], components: rows }).catch(() => null);
-				await message.edit({ content: "Deployment has started" }).catch(err => console.error("Message edit error:", err));
+				await message.edit({ content: "**This deployment has started!", embeds: [startedEmbed], components: rows }).catch(() => null);
 
 				deployment.started = true;
 				await deployment.save();
