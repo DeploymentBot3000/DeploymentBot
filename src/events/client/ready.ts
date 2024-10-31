@@ -179,23 +179,23 @@ export default {
 				await deployment.save();
 			}
 
-			const deploymentsToDelete = await Deployment.find({
-				where: {
-					edited: true,
-					startTime: LessThanOrEqual(DateTime.now().plus({ hours: 2 }).toMillis())
-				}
-			});
-
-			for (const deployment of deploymentsToDelete) {
-				const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
-				const message = await channel.messages.fetch(deployment.message).catch(() => null);
-
-				if (message) {
-					await message.delete().catch(() => null);
-				}
-				deployment.deleted = true;
-				await deployment.save();
-			}
+			// const deploymentsToDelete = await Deployment.find({
+			// 	where: {
+			// 		edited: true,
+			// 		startTime: LessThanOrEqual(DateTime.now().plus({ hours: 2 }).toMillis())
+			// 	}
+			// });
+			//
+			// for (const deployment of deploymentsToDelete) {
+			// 	const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
+			// 	const message = await channel.messages.fetch(deployment.message).catch(() => null);
+			//
+			// 	if (message) {
+			// 		await message.delete().catch(() => null);
+			// 	}
+			// 	deployment.deleted = true;
+			// 	await deployment.save();
+			// }
 		};
 
 		await checkDeployments();
