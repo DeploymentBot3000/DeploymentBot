@@ -12,12 +12,12 @@ import Deployment from "../../tables/Deployment.js";
 import { ActionRowBuilder, ButtonBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, User } from "discord.js";
 import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
-import { buildButton, buildEmbed } from "../../utils/configBuilders.js";
 import VoiceChannel from "../../tables/VoiceChannel.js";
 import { startQueuedGame } from "../../utils/startQueuedGame.js";
 import {LessThanOrEqual, MoreThanOrEqual} from 'typeorm';
 import {DateTime} from 'luxon';
 import cron from 'node-cron';
+import { buildDeploymentEmbed } from "../../utils/signupEmbedBuilder.js"
 
 interface Command {
 	name: string;
@@ -114,6 +114,8 @@ export default {
 
 				if (!message) continue;
 
+				const embed = await buildDeploymentEmbed(deployment, "Red");
+
 				await message.edit({ content: "<:hellpod:1301464931794685973> **This deployment has started!** <:hellpod:1301464931794685973>", components: [] }).catch(err => console.error("Message edit error:", err));
 
 				deployment.started = true;
@@ -177,6 +179,6 @@ export default {
 		};
 
 		await clearExpiredVCs();
-		setInterval(clearExpiredVCs, 60000);
+		cron.schedule("* * * * *", clearExpiredVCs)
 	},
 } as any;
