@@ -72,29 +72,15 @@ export default {
 			.catch((err) => console.log(err));
 
 		const checkDeployments = async () => {
-			const deployments = await Deployment.find();
-			const deploymentsNoNotice = deployments.filter(d => !d.noticeSent);
+			const deploymentsNoNotice = await Deployment.find({
+				where: {
+					noticeSent: false
+				}
+			})
 			const unstartedDeployments = await Deployment.find({
 				where: {
 					started: false,
-					startTime: LessThanOrEqual(DateTime.utc().toMillis()),
-				}
-			});
-			console.log(DateTime.utc().toMillis())
-			console.log(DateTime.now().toMillis())
-			console.log(deployments[0]);
-			console.log(unstartedDeployments);
-			const deploymentsToEdit = await Deployment.find({
-				where: {
-					started: true,
-					edited: false,
-					startTime: LessThanOrEqual(DateTime.utc().toMillis())
-				}
-			});
-			const deploymentsToDelete = await Deployment.find({
-				where: {
-					edited: true,
-					startTime: LessThanOrEqual(DateTime.utc().plus({ hours: 2 }).toMillis())
+					startTime: LessThanOrEqual(DateTime.now().toMillis()),
 				}
 			});
 
@@ -163,6 +149,14 @@ export default {
 				await deployment.save();
 			}
 
+			const deploymentsToEdit = await Deployment.find({
+				where: {
+					started: true,
+					edited: false,
+					startTime: LessThanOrEqual(DateTime.now().toMillis())
+				}
+			});
+
 			for (const deployment of deploymentsToEdit) {
 				const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
 				const message = await channel.messages.fetch(deployment.message).catch(() => null);
@@ -184,6 +178,13 @@ export default {
 				deployment.edited = true;
 				await deployment.save();
 			}
+
+			const deploymentsToDelete = await Deployment.find({
+				where: {
+					edited: true,
+					startTime: LessThanOrEqual(DateTime.now().plus({ hours: 2 }).toMillis())
+				}
+			});
 
 			for (const deployment of deploymentsToDelete) {
 				const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
