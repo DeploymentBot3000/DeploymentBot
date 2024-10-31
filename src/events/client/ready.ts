@@ -182,6 +182,7 @@ export default {
 			const deploymentsToDelete = await Deployment.find({
 				where: {
 					edited: true,
+					deleted: false,
 					startTime: LessThanOrEqual(DateTime.now().plus({ hours: 2 }).toMillis())
 				}
 			});
