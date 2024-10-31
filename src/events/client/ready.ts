@@ -114,10 +114,7 @@ export default {
 
 				if (!message) continue;
 
-				console.log('Deployment found:', deployment.id);
 				const embed = await buildDeploymentEmbed(deployment, "Red");
-				console.log('Resulting embed color:', embed.data.color);
-
 
 				await message.edit({ content: "<:hellpod:1301464931794685973> **This deployment has started!** <:hellpod:1301464931794685973>", components: [] }).catch(err => console.error("Message edit error:", err));
 
@@ -184,7 +181,7 @@ export default {
 		client.on('voiceStateUpdate', async (oldState, newState) => {
 			const channel:Promise<VoiceChannel[]> = VoiceChannel.find({
 				where: {
-					channel: oldState.channel.toString(),
+					channel: oldState.channel.id,
 					expires: LessThanOrEqual(DateTime.now().toMillis())
 				}
 			});
