@@ -16,6 +16,7 @@ import { buildButton, buildEmbed } from "../../utils/configBuilders.js";
 import VoiceChannel from "../../tables/VoiceChannel.js";
 import { startQueuedGame } from "../../utils/startQueuedGame.js";
 import {LessThanOrEqual, MoreThanOrEqual} from 'typeorm';
+import {DateTime} from 'luxon';
 
 interface Command {
 	name: string;
@@ -73,14 +74,27 @@ export default {
 		const checkDeployments = async () => {
 			const deployments = await Deployment.find();
 			const deploymentsNoNotice = deployments.filter(d => !d.noticeSent);
-			const unstartedDeployments = await Deployment.find({ where: {
+			const unstartedDeployments = await Deployment.find({
+				where: {
 					started: false,
-					startTime: LessThanOrEqual(Date.now()),
-				}});
-			console.log(unstartedDeployments);
-			const deploymentsToEdit = deployments.filter((d: Deployment) => d.started && !d.edited && Date.now() > d.startTime + 15 * 60 * 1000);
-			const deploymentsToDelete = deployments.filter((d: Deployment) => d.edited && !d.deleted && Date.now() > d.startTime + 2 * 60 * 60 * 1000);
-			
+					startTime: LessThanOrEqual(DateTime.now()),
+				}
+			});
+			const deploymentsToEdit = await Deployment.find({
+				where: {
+					started: true,
+					edited: false,
+					startTime: LessThanOrEqual(DateTime.now())
+
+				}
+			});
+			const deploymentsToDelete = await Deployment.find({
+				where: {
+					edited: true,
+					startTime: LessThanOrEqual(DateTime.now().plus({ hours: 2 }))
+				}
+			});
+
 			for (const deployment of deploymentsNoNotice) {
 				if (deployment.startTime - await getDeploymentTime() < Date.now()) {
 					const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null) as GuildTextBasedChannel;

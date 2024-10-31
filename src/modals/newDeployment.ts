@@ -170,7 +170,10 @@ export default new Modal({
             description,
             startTime: startDate.getTime(),
             endTime: startDate.getTime() + 7200000,
-            started: false
+            started: false,
+            deleted: false,
+            edited: false,
+            noticeSent: false
         }).save();
 
         await Signups.insert({
