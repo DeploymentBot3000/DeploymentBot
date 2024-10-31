@@ -136,9 +136,10 @@ export default {
 
 				const startedEmbed = buildEmbed({
 					name: "Deployment has started!",
-					preset: "deploymentStarted", 
+					preset: "default",
 					placeholders: {
 						title: deployment.title,
+						description: deployment.description,
 						difficulty: deployment.difficulty,
 						user: deployment.user,
 						// Add other relevant properties from deployment as needed
