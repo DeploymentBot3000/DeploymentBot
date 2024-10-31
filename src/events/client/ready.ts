@@ -17,6 +17,7 @@ import VoiceChannel from "../../tables/VoiceChannel.js";
 import { startQueuedGame } from "../../utils/startQueuedGame.js";
 import {LessThanOrEqual, MoreThanOrEqual} from 'typeorm';
 import {DateTime} from 'luxon';
+import cron from 'node-cron';
 
 interface Command {
 	name: string;
@@ -149,64 +150,28 @@ export default {
 				await deployment.save();
 			}
 
-			const deploymentsToEdit = await Deployment.find({
+			const deploymentsToDelete = await Deployment.find({
 				where: {
-					started: true,
-					edited: false,
-					startTime: LessThanOrEqual(DateTime.now().toMillis())
+					deleted: false,
+					endTime: LessThanOrEqual(DateTime.now().toMillis())
 				}
 			});
 
-			for (const deployment of deploymentsToEdit) {
+			for (const deployment of deploymentsToDelete) {
 				const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
 				const message = await channel.messages.fetch(deployment.message).catch(() => null);
 
-				if (!message) continue;
-
-				const editedEmbed = buildEmbed({
-					preset: "deploymentInProgress",
-					placeholders: {
-						title: deployment.title,
-						difficulty: deployment.difficulty,
-						user: deployment.user,
-						// Add other relevant properties from deployment as needed
-					}
-				});
-
-				await message.edit({ embeds: [editedEmbed], components: [] }).catch(() => null);
-
-				deployment.edited = true;
+				if (message) {
+					await message.delete().catch(() => null);
+				}
+				deployment.deleted = true;
 				await deployment.save();
 			}
-
-			const deploymentsToDelete = await Deployment.find({
-				where: {
-					edited: true,
-					deleted: false,
-					startTime: LessThanOrEqual(DateTime.now().plus({ hours: 2 }).toMillis())
-				}
-			});
-			//
-			// for (const deployment of deploymentsToDelete) {
-			// 	const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
-			// 	const message = await channel.messages.fetch(deployment.message).catch(() => null);
-			//
-			// 	if (message) {
-			// 		await message.delete().catch(() => null);
-			// 	}
-			// 	deployment.deleted = true;
-			// 	await deployment.save();
-			// }
-			console.log(DateTime.now())
-			console.log(unstartedDeployments)
-			console.log(deploymentsToEdit)
-			console.log(deploymentsToDelete[0].startTime)
-			console.log(DateTime.now().plus({ hours: -2 }).toMillis())
 		};
 
 
 		await checkDeployments();
-		setInterval(checkDeployments, 60000);
+		cron.schedule('* * * * *', checkDeployments);
 
 		const deploymentTime = await getDeploymentTime();
 		await startQueuedGame(deploymentTime);
