@@ -179,6 +179,7 @@ export default {
 		// };
 
 		client.on('voiceStateUpdate', async (oldState, newState) => {
+			console.log("HELLO THIS WORKS OMG");
 			const channel:Promise<VoiceChannel[]> = VoiceChannel.find({
 				where: {
 					channel: oldState.channel.id,
@@ -186,8 +187,8 @@ export default {
 				}
 			});
 
-			if(newState.channel.members.size == 0)
-				await newState.channel.delete().catch(() => null);
+			if(channel[0].members.size() == 0)
+				await channel[0].delete(() => null);
 		});
 
 		// await clearExpiredVCs();
