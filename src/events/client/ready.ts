@@ -77,21 +77,20 @@ export default {
 			const unstartedDeployments = await Deployment.find({
 				where: {
 					started: false,
-					startTime: LessThanOrEqual(DateTime.now()),
+					startTime: LessThanOrEqual(DateTime.now().toMillis()),
 				}
 			});
 			const deploymentsToEdit = await Deployment.find({
 				where: {
 					started: true,
 					edited: false,
-					startTime: LessThanOrEqual(DateTime.now())
-
+					startTime: LessThanOrEqual(DateTime.now().toMillis())
 				}
 			});
 			const deploymentsToDelete = await Deployment.find({
 				where: {
 					edited: true,
-					startTime: LessThanOrEqual(DateTime.now().plus({ hours: 2 }))
+					startTime: LessThanOrEqual(DateTime.now().plus({ hours: 2 }).toMillis())
 				}
 			});
 
