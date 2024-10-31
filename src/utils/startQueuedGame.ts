@@ -110,7 +110,7 @@ export const startQueuedGame = async (deploymentTime: number) => {
                         deny: ["ViewChannel"]
                     },
                     {
-                        id: "1300670595918332007",
+                        id: config.verifiedRoleId,
                         allow: ["ViewChannel"],
                         deny: ["Connect"]
                     },
