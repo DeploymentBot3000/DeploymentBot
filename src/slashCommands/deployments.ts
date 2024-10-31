@@ -5,26 +5,11 @@ import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Config from "../config.js";
-
-// "Hacked" the embed builder to bypass name empty string restrictions
-class HackedEmbedBuilder extends EmbedBuilder {
-    addFields(...fields) {
-        // Map over fields and remove the validation on the `name` field
-        fields = fields.map(field => ({
-            name: field.name ?? '', // Allow empty string as a valid `name` field
-            value: field.value || '\u200B', // Ensure `value` is not empty, fallback to zero-width space
-            inline: field.inline || false,
-        }));
-
-        // Pass modified fields to the parent class's `addFields` method without triggering validation
-        this.data.fields = (this.data.fields || []).concat(fields);
-        return this;
-    }
-}
+import HackedEmbedBuilder from "../classes/HackedEmbedBuilder.js";
 
 // Interface to define deployments a user is assigned to without al the bloat
 interface assignedDeployment {
-    id: number;
+    message: string;
     title: string;
     time: number;
     channel: string;
@@ -40,7 +25,7 @@ const getUserDeployments = async (userID: string): Promise<assignedDeployment[]>
         const deployment = await Deployment.find({ where: { id: signup.deploymentId } });
         if (deployment[0]) {
             deployments.push({
-                id: deployment[0].id,
+                message: deployment[0].message,
                 title: deployment[0].title,
                 time: deployment[0].startTime,
                 channel: deployment[0].channel,
@@ -54,7 +39,7 @@ const getUserDeployments = async (userID: string): Promise<assignedDeployment[]>
         const deployment = await Deployment.find({ where: { id: backup.deploymentId } });
         if (deployment[0]) {
             deployments.push({
-                id: deployment[0].id,
+                message: deployment[0].message,
                 title: deployment[0].title,
                 time: deployment[0].startTime,
                 channel: deployment[0].channel,
@@ -90,7 +75,7 @@ const buildDeploymentsEmbed = async (user: string): Promise<EmbedBuilder> => {
         const title = deployment.title;
         const time = deployment.time;
         const assignment = deployment.assignment;
-        const link = `https://discord.com/channels/${Config.guildId}/${deployment.channel}/${deployment.id}`;
+        const link = `https://discord.com/channels/${Config.guildId}/${deployment.channel}/${deployment.message}`;
 
         // Add field to the embed
         embed.addFields({
