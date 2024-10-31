@@ -142,7 +142,7 @@ export default {
 						description: deployment.description,
 						difficulty: deployment.difficulty,
 						user: deployment.user,
-						// Add other relevant properties from deployment as needed
+						description: `The deployment "${deployment.title}" has started!`
 					} 
 				});
 
