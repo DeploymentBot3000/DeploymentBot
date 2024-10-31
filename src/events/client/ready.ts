@@ -12,11 +12,10 @@ import Deployment from "../../tables/Deployment.js";
 import { ActionRowBuilder, ButtonBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, User } from "discord.js";
 import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
-import Queue from "../../tables/Queue.js";
-import QueueStatusMsg from "../../tables/QueueStatusMsg.js";
 import { buildButton, buildEmbed } from "../../utils/configBuilders.js";
 import VoiceChannel from "../../tables/VoiceChannel.js";
 import { startQueuedGame } from "../../utils/startQueuedGame.js";
+import {LessThanOrEqual, MoreThanOrEqual} from 'typeorm';
 
 interface Command {
 	name: string;
@@ -74,7 +73,11 @@ export default {
 		const checkDeployments = async () => {
 			const deployments = await Deployment.find();
 			const deploymentsNoNotice = deployments.filter(d => !d.noticeSent);
-			const unstartedDeployments = deployments.filter((d: Deployment) => !d.started && d.startTime <= Date.now());
+			const unstartedDeployments = await Deployment.find({ where: {
+					started: false,
+					startTime: LessThanOrEqual(Date.now()),
+				}});
+			console.log(unstartedDeployments);
 			const deploymentsToEdit = deployments.filter((d: Deployment) => d.started && !d.edited && Date.now() > d.startTime + 15 * 60 * 1000);
 			const deploymentsToDelete = deployments.filter((d: Deployment) => d.edited && !d.deleted && Date.now() > d.startTime + 2 * 60 * 60 * 1000);
 			
