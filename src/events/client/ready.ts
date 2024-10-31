@@ -183,7 +183,7 @@ export default {
 				where: {
 					edited: true,
 					deleted: false,
-					startTime: LessThanOrEqual(DateTime.now().plus({ hours: -2 }).toMillis())
+					startTime: LessThanOrEqual(DateTime.now().plus({ hours: 2 }).toMillis())
 				}
 			});
 			//
@@ -201,7 +201,7 @@ export default {
 			console.log(unstartedDeployments)
 			console.log(deploymentsToEdit)
 			console.log(deploymentsToDelete[0].startTime)
-			console.log(DateTime.now().plus({ hours: 2 }).toMillis())
+			console.log(DateTime.now().plus({ hours: -2 }).toMillis())
 		};
 
 
