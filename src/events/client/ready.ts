@@ -196,7 +196,7 @@ export default {
 			// 	deployment.deleted = true;
 			// 	await deployment.save();
 			// }
-			console.log(DateTime.now)
+			console.log(DateTime.now())
 			console.log(unstartedDeployments)
 			console.log(deploymentsToEdit)
 		};
