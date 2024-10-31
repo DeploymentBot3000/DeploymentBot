@@ -114,38 +114,7 @@ export default {
 
 				if (!message) continue;
 
-				const rows = [
-					new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-						new StringSelectMenuBuilder().setPlaceholder("Deployment has started").setCustomId("signup").addOptions(
-							...config.roles.map(role => ({
-								label: role.name,
-								value: role.name,
-								emoji: role.emoji || undefined
-							})),
-							{
-								label: "Backup",
-								value: "backup",
-								emoji: config.backupEmoji
-							}
-						).setDisabled(true)),
-					new ActionRowBuilder<ButtonBuilder>().addComponents(
-						buildButton("editDeployment").setDisabled(true),
-						buildButton("deleteDeployment").setDisabled(true)
-					)
-				];
-
-				const startedEmbed = buildEmbed({
-					name: "Deployment has started!",
-					preset: "default",
-					placeholders: {
-						title: deployment.title,
-						description: deployment.description,
-						difficulty: deployment.difficulty,
-						user: deployment.user,
-					} 
-				});
-
-				await message.edit({ content: "**This deployment has started!**", components: [] }).catch(err => console.error("Message edit error:", err));
+				await message.edit({ content: "<:hellpod:1301464931794685973> **This deployment has started!** <:hellpod:1301464931794685973>", components: [] }).catch(err => console.error("Message edit error:", err));
 
 				deployment.started = true;
 				await deployment.save();
