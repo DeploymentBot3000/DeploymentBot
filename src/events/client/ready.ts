@@ -200,7 +200,8 @@ export default {
 			console.log(DateTime.now())
 			console.log(unstartedDeployments)
 			console.log(deploymentsToEdit)
-			console.log(deploymentsToDelete)
+			console.log(deploymentsToDelete[0].startTime)
+			console.log(DateTime.now().plus({ hours: 2 }).toMillis())
 		};
 
 
