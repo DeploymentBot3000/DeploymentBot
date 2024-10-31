@@ -80,6 +80,9 @@ export default {
 					startTime: LessThanOrEqual(DateTime.utc().toMillis()),
 				}
 			});
+			console.log(DateTime.utc().toMillis())
+			console.log(DateTime.now().toMillis())
+			console.log(deployments[0]);
 			console.log(unstartedDeployments);
 			const deploymentsToEdit = await Deployment.find({
 				where: {
