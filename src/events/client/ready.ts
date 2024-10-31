@@ -136,7 +136,8 @@ export default {
 
 				const startedEmbed = buildEmbed({ 
 					preset: "deploymentStarted", 
-					placeholders: { 
+					placeholders: {
+						name: "Deployment has started!",
 						title: deployment.title,
 						difficulty: deployment.difficulty,
 						user: deployment.user,
@@ -144,7 +145,7 @@ export default {
 					} 
 				});
 
-				await message.edit({ content: "**This deployment has started!", components: rows }).catch(err => console.error("Message edit error:", err));
+				await message.edit({ content: "**This deployment has started!", embeds: [startedEmbed], components: rows }).catch(err => console.error("Message edit error:", err));
 
 				deployment.started = true;
 				await deployment.save();
