@@ -169,7 +169,8 @@ export default new Modal({
             difficulty,
             description,
             startTime: startDate.getTime(),
-            endTime: startDate.getTime() + 7200000
+            endTime: startDate.getTime() + 7200000,
+            started: false
         }).save();
 
         await Signups.insert({
