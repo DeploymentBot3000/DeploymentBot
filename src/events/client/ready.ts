@@ -183,7 +183,7 @@ export default {
 				where: {
 					edited: true,
 					deleted: false,
-					startTime: LessThanOrEqual(DateTime.now().plus({ hours: -2 }).toMillis())
+					startTime: LessThanOrEqual(await DateTime.now().plus({ hours: -2 }).toMillis())
 				}
 			});
 			//
