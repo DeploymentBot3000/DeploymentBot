@@ -114,7 +114,10 @@ export default {
 
 				if (!message) continue;
 
+				console.log('Deployment found:', deployment.id);
 				const embed = await buildDeploymentEmbed(deployment, "Red");
+				console.log('Resulting embed color:', embed.data.color);
+
 
 				await message.edit({ content: "<:hellpod:1301464931794685973> **This deployment has started!** <:hellpod:1301464931794685973>", components: [] }).catch(err => console.error("Message edit error:", err));
 
@@ -157,28 +160,40 @@ export default {
 			client.nextGame = new Date(Date.now() + deploymentTime);
 		}
 
-		const clearExpiredVCs = async () => {
-			const vcs = await VoiceChannel.find();
+		// const clearExpiredVCs = async () => {
+		// 	const vcs = await VoiceChannel.find();
+		//
+		// 	for (const vc of vcs) {
+		// 		if (vc.expires < Date.now()) {
+		// 			const channel = await client.channels.fetch(vc.channel).catch(() => null) as GuildTextBasedChannel;
+		// 			if (!channel) {
+		// 				await vc.remove();
+		// 				return;
+		// 			}
+		//
+		// 			if (channel.type !== ChannelType.GuildVoice) return;
+		//
+		// 			if (channel.members.size > 0) return;
+		//
+		// 			await channel.delete().catch(() => null);
+		// 			await vc.remove();
+		// 		}
+		// 	}
+		// };
 
-			for (const vc of vcs) {
-				if (vc.expires < Date.now()) {
-					const channel = await client.channels.fetch(vc.channel).catch(() => null) as GuildTextBasedChannel;
-					if (!channel) {
-						await vc.remove();
-						return;
-					}
-
-					if (channel.type !== ChannelType.GuildVoice) return;
-
-					if (channel.members.size > 0) return;
-
-					await channel.delete().catch(() => null);
-					await vc.remove();
+		client.on('voiceStateUpdate', async (oldState, newState) => {
+			const channel:Promise<VoiceChannel[]> = VoiceChannel.find({
+				where: {
+					channel: oldState.channel.toString(),
+					expires: LessThanOrEqual(DateTime.now().toMillis())
 				}
-			}
-		};
+			});
 
-		await clearExpiredVCs();
-		cron.schedule("* * * * *", clearExpiredVCs)
+			if(newState.channel.members.size == 0)
+				await newState.channel.delete().catch(() => null);
+		});
+
+		// await clearExpiredVCs();
+		// cron.schedule("* * * * *", clearExpiredVCs)
 	},
 } as any;
