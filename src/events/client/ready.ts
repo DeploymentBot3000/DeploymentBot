@@ -180,6 +180,7 @@ export default {
 			}
 
 			const deleteMeAt = await DateTime.now().plus({ hours: -2 }).toMillis();
+			console.log(deleteMeAt);
 			const deploymentsToDelete = await Deployment.find({
 				where: {
 					edited: true,
