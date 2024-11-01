@@ -187,17 +187,21 @@ export default {
 		// };
 
 		client.on('voiceStateUpdate', async (oldState, newState) => {
-			const channelId = oldState.channelId || newState.channelId;
+			const channel = oldState.channel || newState.channel;
+			console.log("Run outer!")
+
+			if(!(channel.parent.id == '1300649179294470194')) return;
+
+			console.log("Running Inner!");
+
 			const vc = await VoiceChannel.findOne({
 				where: {
-					channel: channelId || "",
+					channel: channel.id,
 					expires: LessThanOrEqual(DateTime.now().toMillis())
 				}
 			});
 
 			if (!vc) return;
-
-			const channel = await client.channels.fetch(channelId).catch(() => null) as BaseGuildVoiceChannel;
 
 			if(!channel.members.size) {
 				await channel.delete().catch(() => null);
