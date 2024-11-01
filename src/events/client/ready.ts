@@ -179,15 +179,14 @@ export default {
 		// };
 
 		client.on('voiceStateUpdate', async (oldState, newState) => {
-			console.log("HELLO THIS WORKS OMG");
 			const channel:Promise<VoiceChannel[]> = VoiceChannel.find({
 				where: {
-					channel: oldState.channel.id,
+					channel: oldState.channelId,
 					expires: LessThanOrEqual(DateTime.now().toMillis())
 				}
 			});
 
-			if(channel[0].members.size() == 0)
+			if(channel[0] && channel[0].members.size() == 0)
 				await channel[0].delete(() => null);
 		});
 
