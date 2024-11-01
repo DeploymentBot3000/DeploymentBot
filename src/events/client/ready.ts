@@ -9,14 +9,23 @@ import { REST } from "@discordjs/rest";
 import { ChannelType, Routes } from "discord-api-types/v10";
 import { convertURLs } from "../../utils/windowsUrlConvertor.js";
 import Deployment from "../../tables/Deployment.js";
-import { ActionRowBuilder, ButtonBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, User } from "discord.js";
+import {
+	ActionRowBuilder,
+	BaseGuildVoiceChannel,
+	ButtonBuilder,
+	GuildTextBasedChannel,
+	StringSelectMenuBuilder,
+	User
+} from "discord.js";
 import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
-import Queue from "../../tables/Queue.js";
-import QueueStatusMsg from "../../tables/QueueStatusMsg.js";
-import { buildButton, buildEmbed } from "../../utils/configBuilders.js";
 import VoiceChannel from "../../tables/VoiceChannel.js";
 import { startQueuedGame } from "../../utils/startQueuedGame.js";
+import {LessThanOrEqual, MoreThanOrEqual} from 'typeorm';
+import {DateTime} from 'luxon';
+import cron from 'node-cron';
+import { buildDeploymentEmbed } from "../../utils/signupEmbedBuilder.js"
+import contextMenuInteraction from "./contextMenuInteraction.js";
 
 interface Command {
 	name: string;
@@ -72,12 +81,18 @@ export default {
 			.catch((err) => console.log(err));
 
 		const checkDeployments = async () => {
-			const deployments = await Deployment.find();
-			const deploymentsNoNotice = deployments.filter(d => !d.noticeSent);
-			const unstartedDeployments = deployments.filter((d: Deployment) => !d.started && d.startTime <= Date.now());
-			const deploymentsToEdit = deployments.filter((d: Deployment) => d.started && !d.edited && Date.now() > d.startTime + 15 * 60 * 1000);
-			const deploymentsToDelete = deployments.filter((d: Deployment) => d.edited && !d.deleted && Date.now() > d.startTime + 2 * 60 * 60 * 1000);
-			
+			const deploymentsNoNotice = await Deployment.find({
+				where: {
+					noticeSent: false
+				}
+			})
+			const unstartedDeployments = await Deployment.find({
+				where: {
+					started: false,
+					startTime: LessThanOrEqual(DateTime.now().toMillis()),
+				}
+			});
+
 			for (const deployment of deploymentsNoNotice) {
 				if (deployment.startTime - await getDeploymentTime() < Date.now()) {
 					const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null) as GuildTextBasedChannel;
@@ -107,63 +122,20 @@ export default {
 
 				if (!message) continue;
 
-				const rows = [
-					new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-						new StringSelectMenuBuilder().setPlaceholder("Deployment has started").setCustomId("signup").addOptions(
-							...config.roles.map(role => ({
-								label: role.name,
-								value: role.name,
-								emoji: role.emoji || undefined
-							})),
-							{
-								label: "Backup",
-								value: "backup",
-								emoji: config.backupEmoji
-							}
-						).setDisabled(true)),
-					new ActionRowBuilder<ButtonBuilder>().addComponents(
-						buildButton("editDeployment").setDisabled(true),
-						buildButton("deleteDeployment").setDisabled(true)
-					)
-				];
+				const embed = await buildDeploymentEmbed(deployment, "Red");
 
-				const startedEmbed = buildEmbed({ 
-					preset: "deploymentStarted", 
-					placeholders: { 
-						title: deployment.title,
-						difficulty: deployment.difficulty,
-						user: deployment.user,
-						// Add other relevant properties from deployment as needed
-					} 
-				});
-
-				await message.edit({ embeds: [startedEmbed], components: rows }).catch(() => null);
+				await message.edit({ content: "<:hellpod:1301464931794685973> **This deployment has started!** <:hellpod:1301464931794685973>", components: [] }).catch(err => console.error("Message edit error:", err));
 
 				deployment.started = true;
 				await deployment.save();
 			}
 
-			for (const deployment of deploymentsToEdit) {
-				const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
-				const message = await channel.messages.fetch(deployment.message).catch(() => null);
-
-				if (!message) continue;
-
-				const editedEmbed = buildEmbed({ 
-					preset: "deploymentInProgress", 
-					placeholders: { 
-						title: deployment.title,
-						difficulty: deployment.difficulty,
-						user: deployment.user,
-						// Add other relevant properties from deployment as needed
-					} 
-				});
-
-				await message.edit({ embeds: [editedEmbed], components: [] }).catch(() => null);
-
-				deployment.edited = true;
-				await deployment.save();
-			}
+			const deploymentsToDelete = await Deployment.find({
+				where: {
+					deleted: false,
+					endTime: LessThanOrEqual(DateTime.now().toMillis())
+				}
+			});
 
 			for (const deployment of deploymentsToDelete) {
 				const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
@@ -177,8 +149,9 @@ export default {
 			}
 		};
 
+
 		await checkDeployments();
-		setInterval(checkDeployments, 60000);
+		cron.schedule('* * * * *', checkDeployments);
 
 		const deploymentTime = await getDeploymentTime();
 		await startQueuedGame(deploymentTime);
@@ -192,28 +165,43 @@ export default {
 			client.nextGame = new Date(Date.now() + deploymentTime);
 		}
 
-		const clearExpiredVCs = async () => {
-			const vcs = await VoiceChannel.find();
+		// Dynamically delete pickdrop VCs as soon as everyone leaves
+		client.on('voiceStateUpdate', async (oldState, newState) => {
+			const channel = oldState.channel || newState.channel;
+			if(!(channel.parent.id == config.vcCategory)) return;
+
+			const vc = await VoiceChannel.findOne({
+				where: {
+					channel: channel.id,
+					expires: LessThanOrEqual(DateTime.now().toMillis())
+				}
+			});
+
+			if (!vc) return;
+
+			if(channel && !channel.members.size) {
+				await channel.delete().catch((err) => console.log(err));
+				await vc.remove().catch((err) => console.log(err));
+				console.log(`Expired & empty channel ${channel.id} deleted`);
+			}
+		});
+
+		cron.schedule("* * * * *", async () => {
+			const vcs = await VoiceChannel.find({ where: { expires: LessThanOrEqual(DateTime.now().toMillis()) } });
 
 			for (const vc of vcs) {
-				if (vc.expires < Date.now()) {
-					const channel = await client.channels.fetch(vc.channel).catch(() => null) as GuildTextBasedChannel;
-					if (!channel) {
-						await vc.remove();
-						return;
-					}
+				const channel = await client.channels.fetch(vc.channel).catch(() => null) as BaseGuildVoiceChannel;
 
-					if (channel.type !== ChannelType.GuildVoice) return;
-
-					if (channel.members.size > 0) return;
-
-					await channel.delete().catch(() => null);
+				if (!channel) {
 					await vc.remove();
+					return;
 				}
-			}
-		};
 
-		await clearExpiredVCs();
-		setInterval(clearExpiredVCs, 60000);
+				if (channel.members.size > 0) return;
+
+				await channel.delete().catch(() => null);
+				await vc.remove();
+			}
+		});
 	},
 } as any;

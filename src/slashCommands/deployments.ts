@@ -22,7 +22,12 @@ const getUserDeployments = async (userID: string): Promise<assignedDeployment[]>
 
     const signups = await Signups.find({ where: { userId: userID } });
     for (const signup of signups) {
-        const deployment = await Deployment.find({ where: { id: signup.deploymentId } });
+        const deployment = await Deployment.find({
+            where: {
+                id: signup.deploymentId,
+                started: false
+            }
+        });
         if (deployment[0]) {
             deployments.push({
                 message: deployment[0].message,
@@ -36,7 +41,12 @@ const getUserDeployments = async (userID: string): Promise<assignedDeployment[]>
 
     const backups = await Backups.find({ where: { userId: userID } });
     for (const backup of backups) {
-        const deployment = await Deployment.find({ where: { id: backup.deploymentId } });
+        const deployment = await Deployment.find({
+            where: { id:
+                backup.deploymentId,
+                started: false
+            }
+        });
         if (deployment[0]) {
             deployments.push({
                 message: deployment[0].message,
