@@ -179,6 +179,9 @@ export default {
 		// };
 
 		client.on('voiceStateUpdate', async (oldState, newState) => {
+			console.log(oldState.channelId)
+			console.log(newState.channelId)
+			console.log(oldState)
 			const channel:Promise<VoiceChannel[]> = VoiceChannel.find({
 				where: {
 					channel: oldState.channelId,
