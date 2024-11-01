@@ -17,6 +17,7 @@ export default {
     vcCategory: "1297303880706818109",
     loggingChannel: "1297709020534013953",
     backupEmoji: "<:Backup:1289325583905456251>",
+    hostRole: "1296482820067295284",
     editEmoji: "🔧",
     roles: [
         {
