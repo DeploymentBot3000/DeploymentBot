@@ -9,7 +9,14 @@ import { REST } from "@discordjs/rest";
 import { ChannelType, Routes } from "discord-api-types/v10";
 import { convertURLs } from "../../utils/windowsUrlConvertor.js";
 import Deployment from "../../tables/Deployment.js";
-import { ActionRowBuilder, ButtonBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, User } from "discord.js";
+import {
+	ActionRowBuilder,
+	BaseGuildVoiceChannel,
+	ButtonBuilder,
+	GuildTextBasedChannel,
+	StringSelectMenuBuilder,
+	User
+} from "discord.js";
 import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
 import VoiceChannel from "../../tables/VoiceChannel.js";
@@ -180,17 +187,22 @@ export default {
 		// };
 
 		client.on('voiceStateUpdate', async (oldState, newState) => {
-			const channel:VoiceChannel[] = await VoiceChannel.find({
+			const channelId = oldState.channelId || newState.channelId;
+			const vc = await VoiceChannel.findOne({
 				where: {
-					channel: oldState.channelId || newState.channelId,
+					channel: channelId || "",
 					expires: LessThanOrEqual(DateTime.now().toMillis())
 				}
 			});
 
-			console.log(channel)
+			if (!vc) return;
 
-			// if(channel && channel.members.size() == 0)
-			// 	await channel.delete(() => null);
+			const channel = await client.channels.fetch(channelId).catch(() => null) as BaseGuildVoiceChannel;
+
+			if(!channel.members.size) {
+				await channel.delete().catch(() => null);
+				await vc.remove();
+			}
 		});
 
 		// await clearExpiredVCs();
