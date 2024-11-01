@@ -10,6 +10,7 @@ export default new Button({
     permissions: [],
     requiredRoles: [{ role: config.hostRole, required: true }],
     func: async function({ interaction }) {
+
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
 
         if (alreadyQueued) {
