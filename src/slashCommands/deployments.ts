@@ -108,7 +108,7 @@ export default new Slashcommand({
     description: "Lists your upcoming deployments!",
     cooldown: 0,
     permissions: [],
-    requiredRoles: [{ role: "Verified", required: true }],
+    requiredRoles: [{ role: Config.verifiedRoleId, required: true }],
     options: [],
     func: async function({ interaction }) {
         const user = interaction.user.id;
