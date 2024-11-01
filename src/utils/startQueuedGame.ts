@@ -128,7 +128,7 @@ export const startQueuedGame = async (deploymentTime: number) => {
             });
             console.log(`Voice channel created: ${vc.id}`);
 
-            await VoiceChannel.insert({ channel: vc.id, expires: Date.now() + 60000, guild: vc.guild.id }); // 3600000
+            await VoiceChannel.insert({ channel: vc.id, expires: Date.now() + 1000, guild: vc.guild.id }); // 3600000
             console.log(`Voice channel inserted into database`);
 
             await departureChannel.send({ content: `-------------------------------------------\n\n# <:Helldivers:1226464844534779984> ATTENTION HELLDIVERS <:Helldivers:1226464844534779984>\n\n\n**HOTDROP:** **${randomCode} (${hostDisplayName})**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**.\n**Communication Channel:** <#${vc.id}>.\n\n**Deployment Lead:**\n<@${host.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\nYou are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------` }).catch(() => null);

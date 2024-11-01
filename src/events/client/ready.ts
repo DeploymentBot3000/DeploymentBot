@@ -165,34 +165,10 @@ export default {
 			client.nextGame = new Date(Date.now() + deploymentTime);
 		}
 
-		// const clearExpiredVCs = async () => {
-		// 	const vcs = await VoiceChannel.find();
-		//
-		// 	for (const vc of vcs) {
-		// 		if (vc.expires < Date.now()) {
-		// 			const channel = await client.channels.fetch(vc.channel).catch(() => null) as GuildTextBasedChannel;
-		// 			if (!channel) {
-		// 				await vc.remove();
-		// 				return;
-		// 			}
-		//
-		// 			if (channel.type !== ChannelType.GuildVoice) return;
-		//
-		// 			if (channel.members.size > 0) return;
-		//
-		// 			await channel.delete().catch(() => null);
-		// 			await vc.remove();
-		// 		}
-		// 	}
-		// };
-
+		// Dynamically delete pickdrop VCs as soon as everyone leaves
 		client.on('voiceStateUpdate', async (oldState, newState) => {
 			const channel = oldState.channel || newState.channel;
-			console.log("Run outer!")
-
-			if(!(channel.parent.id == '1300649179294470194')) return;
-
-			console.log("Running Inner!");
+			if(!(channel.parent.id == config.vcCategory)) return;
 
 			const vc = await VoiceChannel.findOne({
 				where: {
@@ -203,13 +179,29 @@ export default {
 
 			if (!vc) return;
 
-			if(!channel.members.size) {
+			if(channel && !channel.members.size) {
+				await channel.delete().catch((err) => console.log(err));
+				await vc.remove().catch((err) => console.log(err));
+				console.log(`Expired & empty channel ${channel.id} deleted`);
+			}
+		});
+
+		cron.schedule("* * * * *", async () => {
+			const vcs = await VoiceChannel.find({ where: { expires: LessThanOrEqual(DateTime.now().toMillis()) } });
+
+			for (const vc of vcs) {
+				const channel = await client.channels.fetch(vc.channel).catch(() => null) as BaseGuildVoiceChannel;
+
+				if (!channel) {
+					await vc.remove();
+					return;
+				}
+
+				if (channel.members.size > 0) return;
+
 				await channel.delete().catch(() => null);
 				await vc.remove();
 			}
 		});
-
-		// await clearExpiredVCs();
-		// cron.schedule("* * * * *", clearExpiredVCs)
 	},
 } as any;
