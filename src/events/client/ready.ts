@@ -18,6 +18,7 @@ import {LessThanOrEqual, MoreThanOrEqual} from 'typeorm';
 import {DateTime} from 'luxon';
 import cron from 'node-cron';
 import { buildDeploymentEmbed } from "../../utils/signupEmbedBuilder.js"
+import contextMenuInteraction from "./contextMenuInteraction.js";
 
 interface Command {
 	name: string;
@@ -179,15 +180,17 @@ export default {
 		// };
 
 		client.on('voiceStateUpdate', async (oldState, newState) => {
-			const channel:Promise<VoiceChannel[]> = VoiceChannel.find({
+			const channel:VoiceChannel[] = await VoiceChannel.find({
 				where: {
 					channel: oldState.channelId || newState.channelId,
 					expires: LessThanOrEqual(DateTime.now().toMillis())
 				}
 			});
 
-			if(channel[0] && channel[0].members.size() == 0)
-				await channel[0].delete(() => null);
+			console.log(channel)
+
+			// if(channel && channel.members.size() == 0)
+			// 	await channel.delete(() => null);
 		});
 
 		// await clearExpiredVCs();
