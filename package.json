@@ -1,16 +1,19 @@
 {
   "name": "discord-bot",
   "version": "1.0.0",
-  "description": "",
+  "description": "101st Discord bot",
   "main": "index.js",
   "type": "module",
+  "engines": {
+    "node": "21.6.2"
+  },
   "scripts": {
     "start": "node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts",
     "dev": "concurrently \"nodemon --exec node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts\"",
     "build": "tsc"
   },
   "keywords": [],
-  "author": "",
+  "author": "Paris,Coyote",
   "license": "ISC",
   "dependencies": {
     "@discordjs/rest": "^2.2.0",
