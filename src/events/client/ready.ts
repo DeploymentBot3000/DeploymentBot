@@ -6,26 +6,21 @@ import { log, error } from "../../utils/logger.js";
 import { client, getDeploymentTime } from "../../index.js";
 import { readdirSync, statSync } from "fs";
 import { REST } from "@discordjs/rest";
-import { ChannelType, Routes } from "discord-api-types/v10";
+import { Routes } from "discord-api-types/v10";
 import { convertURLs } from "../../utils/windowsUrlConvertor.js";
 import Deployment from "../../tables/Deployment.js";
 import {
-	ActionRowBuilder,
 	BaseGuildVoiceChannel,
-	ButtonBuilder,
 	GuildTextBasedChannel,
-	StringSelectMenuBuilder,
-	User
 } from "discord.js";
 import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
 import VoiceChannel from "../../tables/VoiceChannel.js";
 import { startQueuedGame } from "../../utils/startQueuedGame.js";
-import {LessThanOrEqual, MoreThanOrEqual} from 'typeorm';
+import {LessThanOrEqual } from 'typeorm';
 import {DateTime} from 'luxon';
 import cron from 'node-cron';
 import { buildDeploymentEmbed } from "../../utils/signupEmbedBuilder.js"
-import contextMenuInteraction from "./contextMenuInteraction.js";
 
 interface Command {
 	name: string;
@@ -40,8 +35,8 @@ export default {
 	function: async function () {
 		log(`Logged in as ${colors.red(client.user!.tag)}`);
 
-		const __filename = fileURLToPath(import.meta.url);
-		const __dirname = path.dirname(__filename);
+		const __filename:string = fileURLToPath(import.meta.url);
+		const __dirname:string = path.dirname(__filename);
 
 		const commands: Command[] = [];
 
