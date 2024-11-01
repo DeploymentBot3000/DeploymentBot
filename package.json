@@ -8,7 +8,7 @@
     "node": "21.6.2"
   },
   "scripts": {
-    "start": "node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts",
+    "start": "/usr/local/node/21.6.2/bin/node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts",
     "dev": "concurrently \"nodemon --exec node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts\"",
     "build": "tsc"
   },
