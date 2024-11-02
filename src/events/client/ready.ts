@@ -6,17 +6,21 @@ import { log, error } from "../../utils/logger.js";
 import { client, getDeploymentTime } from "../../index.js";
 import { readdirSync, statSync } from "fs";
 import { REST } from "@discordjs/rest";
-import { ChannelType, Routes } from "discord-api-types/v10";
+import { Routes } from "discord-api-types/v10";
 import { convertURLs } from "../../utils/windowsUrlConvertor.js";
 import Deployment from "../../tables/Deployment.js";
-import { ActionRowBuilder, ButtonBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, User } from "discord.js";
+import {
+	BaseGuildVoiceChannel,
+	GuildTextBasedChannel,
+} from "discord.js";
 import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
-import Queue from "../../tables/Queue.js";
-import QueueStatusMsg from "../../tables/QueueStatusMsg.js";
-import { buildButton, buildEmbed } from "../../utils/configBuilders.js";
 import VoiceChannel from "../../tables/VoiceChannel.js";
 import { startQueuedGame } from "../../utils/startQueuedGame.js";
+import {LessThanOrEqual } from 'typeorm';
+import {DateTime} from 'luxon';
+import cron from 'node-cron';
+import { buildDeploymentEmbed } from "../../utils/signupEmbedBuilder.js"
 
 interface Command {
 	name: string;
@@ -31,8 +35,8 @@ export default {
 	function: async function () {
 		log(`Logged in as ${colors.red(client.user!.tag)}`);
 
-		const __filename = fileURLToPath(import.meta.url);
-		const __dirname = path.dirname(__filename);
+		const __filename:string = fileURLToPath(import.meta.url);
+		const __dirname:string = path.dirname(__filename);
 
 		const commands: Command[] = [];
 
@@ -72,14 +76,20 @@ export default {
 			.catch((err) => console.log(err));
 
 		const checkDeployments = async () => {
-			const deployments = await Deployment.find();
-			const deploymentsNoNotice = deployments.filter(d => !d.noticeSent);
-			const unstartedDeployments = deployments.filter((d: Deployment) => !d.started && d.startTime <= Date.now());
-			const deploymentsToEdit = deployments.filter((d: Deployment) => d.started && !d.edited && Date.now() > d.startTime + 15 * 60 * 1000);
-			const deploymentsToDelete = deployments.filter((d: Deployment) => d.edited && !d.deleted && Date.now() > d.startTime + 2 * 60 * 60 * 1000);
-			
+			const deploymentsNoNotice = await Deployment.find({
+				where: {
+					noticeSent: false
+				}
+			})
+			const unstartedDeployments = await Deployment.find({
+				where: {
+					started: false,
+					startTime: LessThanOrEqual(DateTime.now().toMillis()),
+				}
+			});
+
 			for (const deployment of deploymentsNoNotice) {
-				if (deployment.startTime - await getDeploymentTime() < Date.now()) {
+				if (deployment.startTime - 900000 < Date.now()) {
 					const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null) as GuildTextBasedChannel;
 					const signups = await Signups.find({ where: { deploymentId: deployment.id } });
 					const backups = await Backups.find({ where: { deploymentId: deployment.id } });
@@ -93,7 +103,7 @@ export default {
 					const backupsFormatted = backups.map(backup => `<@${backup.userId}>`).join("\n");
 
 					await departureChannel.send({
-						content: `# ATTENTION HELLDIVERS\n\n\nOperation: **${deployment.title}**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in 15 minutes. <@${deployment.user}> will open communication channels in the next 5 minutes and Divers are expected to be present.\n\nDifficulty: **${deployment.difficulty}**\n\nDeployment Lead:\n<@${deployment.user}>\n\nHelldivers assigned:\n${signupsFormatted}\n\n${backupsFormatted.length ? `Standby divers:\n${backupsFormatted}\n\n` : ""}You are the selected Divers for this operation. Be ready 15 minutes before deployment time. If you are to be late make sure you inform the deployment host.` });
+						content: `-------------------------------------------\n\n# <:Helldivers:1226464844534779984> ATTENTION HELLDIVERS <:Helldivers:1226464844534779984>\n\n\n**Operation:** **${deployment.title}**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**. <@${deployment.user}> will open communication channels in the next **5 minutes** and Divers are expected to be present.\n\n**Difficulty:** **${deployment.difficulty}**\n\n**Deployment Lead:**\n<@${deployment.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\n${backupsFormatted.length ? `**Standby divers:**\n${backupsFormatted}\n\n` : ""}You are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------` });
 
 					deployment.noticeSent = true;
 
@@ -107,63 +117,20 @@ export default {
 
 				if (!message) continue;
 
-				const rows = [
-					new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-						new StringSelectMenuBuilder().setPlaceholder("Deployment has started").setCustomId("signup").addOptions(
-							...config.roles.map(role => ({
-								label: role.name,
-								value: role.name,
-								emoji: role.emoji || undefined
-							})),
-							{
-								label: "Backup",
-								value: "backup",
-								emoji: config.backupEmoji
-							}
-						).setDisabled(true)),
-					new ActionRowBuilder<ButtonBuilder>().addComponents(
-						buildButton("editDeployment").setDisabled(true),
-						buildButton("deleteDeployment").setDisabled(true)
-					)
-				];
+				const embed = await buildDeploymentEmbed(deployment, "Red");
 
-				const startedEmbed = buildEmbed({ 
-					preset: "deploymentStarted", 
-					placeholders: { 
-						title: deployment.title,
-						difficulty: deployment.difficulty,
-						user: deployment.user,
-						// Add other relevant properties from deployment as needed
-					} 
-				});
-
-				await message.edit({ embeds: [startedEmbed], components: rows }).catch(() => null);
+				await message.edit({ content: "<:hellpod:1302084726219210752> **This deployment has started!** <:hellpod:1302084726219210752>", embeds: [embed], components: [] }).catch(err => console.error("Message edit error:", err));
 
 				deployment.started = true;
 				await deployment.save();
 			}
 
-			for (const deployment of deploymentsToEdit) {
-				const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
-				const message = await channel.messages.fetch(deployment.message).catch(() => null);
-
-				if (!message) continue;
-
-				const editedEmbed = buildEmbed({ 
-					preset: "deploymentInProgress", 
-					placeholders: { 
-						title: deployment.title,
-						difficulty: deployment.difficulty,
-						user: deployment.user,
-						// Add other relevant properties from deployment as needed
-					} 
-				});
-
-				await message.edit({ embeds: [editedEmbed], components: [] }).catch(() => null);
-
-				deployment.edited = true;
-				await deployment.save();
-			}
+			const deploymentsToDelete = await Deployment.find({
+				where: {
+					deleted: false,
+					endTime: LessThanOrEqual(DateTime.now().toMillis())
+				}
+			});
 
 			for (const deployment of deploymentsToDelete) {
 				const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
@@ -177,8 +144,9 @@ export default {
 			}
 		};
 
+
 		await checkDeployments();
-		setInterval(checkDeployments, 60000);
+		cron.schedule('* * * * *', checkDeployments);
 
 		const deploymentTime = await getDeploymentTime();
 		await startQueuedGame(deploymentTime);
@@ -192,28 +160,43 @@ export default {
 			client.nextGame = new Date(Date.now() + deploymentTime);
 		}
 
-		const clearExpiredVCs = async () => {
-			const vcs = await VoiceChannel.find();
+		// Dynamically delete pickdrop VCs as soon as everyone leaves
+		client.on('voiceStateUpdate', async (oldState, newState) => {
+			const channel = oldState.channel || newState.channel;
+			if(!(channel.parent.id == config.vcCategory)) return;
+
+			const vc = await VoiceChannel.findOne({
+				where: {
+					channel: channel.id,
+					expires: LessThanOrEqual(DateTime.now().toMillis())
+				}
+			});
+
+			if (!vc) return;
+
+			if(channel && !channel.members.size) {
+				await channel.delete().catch((err) => console.log(err));
+				await vc.remove().catch((err) => console.log(err));
+				console.log(`Expired & empty channel ${channel.id} deleted`);
+			}
+		});
+
+		cron.schedule("* * * * *", async () => {
+			const vcs = await VoiceChannel.find({ where: { expires: LessThanOrEqual(DateTime.now().toMillis()) } });
 
 			for (const vc of vcs) {
-				if (vc.expires < Date.now()) {
-					const channel = await client.channels.fetch(vc.channel).catch(() => null) as GuildTextBasedChannel;
-					if (!channel) {
-						await vc.remove();
-						return;
-					}
+				const channel = await client.channels.fetch(vc.channel).catch(() => null) as BaseGuildVoiceChannel;
 
-					if (channel.type !== ChannelType.GuildVoice) return;
-
-					if (channel.members.size > 0) return;
-
-					await channel.delete().catch(() => null);
+				if (!channel) {
 					await vc.remove();
+					return;
 				}
-			}
-		};
 
-		await clearExpiredVCs();
-		setInterval(clearExpiredVCs, 60000);
+				if (channel.members.size > 0) return;
+
+				await channel.delete().catch(() => null);
+				await vc.remove();
+			}
+		});
 	},
 } as any;

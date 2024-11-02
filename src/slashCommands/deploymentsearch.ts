@@ -91,7 +91,7 @@ export default new Slashcommand({
     description: "Search for today's upcoming deployments!",
     cooldown: 0,
     permissions: [],
-    requiredRoles: [{ role: "Verified", required: true }],
+    requiredRoles: [{ role: Config.verifiedRoleId, required: true }],
     options: [
         { name: "start_time", type: ApplicationCommandOptionType.String, description: "Enter your desired start time (HH:MM, 24-hour format)", required: true },
         { name: "time_zone", type: ApplicationCommandOptionType.String, description: "Enter your time zone (e.g., UTC±HH:MM)", required: true },

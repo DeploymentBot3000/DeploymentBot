@@ -19,7 +19,7 @@ export default new Modal({
         
         if (!startRegex.test(startTime)) {
             const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC+X`");
+                .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`");
 
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
 
@@ -47,10 +47,12 @@ export default new Modal({
         });
 
         const startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTCZ");
-
-        if (startDate.getTime() < Date.now()) {
+  const oneHourFromNow = Date.now() + (60 * 60 * 1000); // 1 hour in milliseconds
+        
+        if (startDate.getTime() < oneHourFromNow) {
             const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("Start time cannot be in the past");
+                .setDescription("Start time must be at least 1 hour in the future");
+
 
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
 
@@ -159,7 +161,7 @@ export default new Modal({
             )
         ];
 
-        const msg = await ch.send({ content: `@here <@${interaction.user.id}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
+        const msg = await ch.send({ content: `<@&1302268594817597541> <@${interaction.user.id}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
 
         const deployment = await Deployment.create({
             channel: channel.channel,
@@ -169,7 +171,11 @@ export default new Modal({
             difficulty,
             description,
             startTime: startDate.getTime(),
-            endTime: startDate.getTime() + 7200000
+            endTime: startDate.getTime() + 7200000,
+            started: false,
+            deleted: false,
+            edited: false,
+            noticeSent: false
         }).save();
 
         await Signups.insert({
