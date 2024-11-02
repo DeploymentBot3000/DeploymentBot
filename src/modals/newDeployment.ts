@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, EmbedBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, StringSelectMenuInteraction } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, StringSelectMenuInteraction } from "discord.js";
 import Modal from "../classes/Modal.js";
 import LatestInput from "../tables/LatestInput.js";
 import { buildButton, buildEmbed } from "../utils/configBuilders.js";
@@ -157,7 +157,11 @@ export default new Modal({
             )),
             new ActionRowBuilder<ButtonBuilder>().addComponents(
                 buildButton("editDeployment"),
-                buildButton("deleteDeployment")
+                buildButton("deleteDeployment"),
+                new ButtonBuilder()
+                    .setCustomId("leaveDeployment")
+                    .setLabel("Leave")
+                    .setStyle(ButtonStyle.Danger)
             )
         ];
 
