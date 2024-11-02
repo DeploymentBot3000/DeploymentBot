@@ -10,19 +10,6 @@
         const signups = await Signups.find({ where: { deploymentId: deployment.id } });
         const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
-        //const colorMap = {
-        //    "Red": "#d90b0b",
-        //    "Green": "#00FF00"
-       //};
-
-        const actualColor = typeof color === 'string' ?
-            (color === "Red" ? Colors.Red : Colors.Green) :
-            color;
-
-        //const actualColor = colorMap[color as keyof typeof colorMap] || color;
-        console.log('Using color:', actualColor);
-
-
         const embed = new EmbedBuilder()
             .setTitle(deployment.title)
             .addFields([
@@ -51,7 +38,7 @@
                 }
             ])
             //(actualColor as ColorResolvable)
-            .setColor(Colors.Red)
+            .setColor(0xFF0000)
             .setFooter({ text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4` })
             .setTimestamp(Number(deployment.startTime));
         return embed;
