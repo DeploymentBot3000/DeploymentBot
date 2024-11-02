@@ -10,8 +10,8 @@ import config from "../config.js";
 export default new Slashcommand({
     name: "remove",
     description: "Remove a user from a deployment",
-    permissions: [],
-    requiredRoles: [],
+    permissions: ["SendMessages"],
+    requiredRoles: [{ role: "Verified", required: true }],
     cooldown: 0,
     options: [
         {
