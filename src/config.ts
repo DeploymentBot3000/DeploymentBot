@@ -140,5 +140,6 @@ export default {
             label: "Leave",
             style: "Danger"
         }
-    }
+    },
+    useNicknames: true
 }

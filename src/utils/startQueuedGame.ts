@@ -179,12 +179,20 @@ async function updateQueueMessages(notEnoughPlayers: boolean = false, nextDeploy
             .addFields([
                 {
                     name: "Hosts:",
-                    value: currentHosts.map(host => `<@${host.user}>`).join("\n") || "` - `",
+                    value: await Promise.all(currentHosts.map(async host => {
+                        if (!config.useNicknames) return `<@${host.user}>`;
+                        const member = await channel.guild.members.fetch(host.user).catch(() => null);
+                        return member ? `${member.nickname || member.user.username}` : `<@${host.user}>`;
+                    })).then(hosts => hosts.join("\n")) || "` - `",
                     inline: true
                 },
                 {
                     name: "Participants:",
-                    value: currentPlayers.map(player => `<@${player.user}>`).join("\n") || "` - `",
+                    value: await Promise.all(currentPlayers.map(async player => {
+                        if (!config.useNicknames) return `<@${player.user}>`;
+                        const member = await channel.guild.members.fetch(player.user).catch(() => null);
+                        return member ? `${member.nickname || member.user.username}` : `<@${player.user}>`;
+                    })).then(players => players.join("\n")) || "` - `",
                     inline: true
                 },
                 {
