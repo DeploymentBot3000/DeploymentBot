@@ -27,17 +27,16 @@ export default new Slashcommand({
 
         const msg = await interaction.channel.send({ content, embeds: [embed], components: [row] });
 
-        const successEmbed = buildEmbed({ preset: "success" })
-            .setDescription("Queue panel sent");
-
         const currentMsgArray = await QueueStatusMsg.find({ where: { id: 1 }});
         const currentMsg = currentMsgArray[0] || null;
         if(currentMsg) {
             currentMsg.channel = interaction.channelId;
-            currentMsg.message = msg.channelId;
+            currentMsg.message = msg.id;
             await currentMsg.save();
-        } else await QueueStatusMsg.insert({ channel: interaction.channelId, message: msg.channelId });
+        } else await QueueStatusMsg.insert({ channel: interaction.channelId, message: msg.id });
 
+        const successEmbed = buildEmbed({ preset: "success" })
+            .setDescription("Queue panel sent");
         await interaction.reply({ embeds: [successEmbed], ephemeral: true });
     }
 })
