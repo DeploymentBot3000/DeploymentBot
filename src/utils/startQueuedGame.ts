@@ -37,7 +37,8 @@ export const startQueuedGame = async (deploymentTime: number) => {
     console.log(`Deployment interval read from file: ${deploymentIntervalMs} ms`);
 
     // Calculate the next deployment time
-    const nextDeploymentTime = now + deploymentIntervalMs;
+    client.nextGame = new Date(now + deploymentIntervalMs);
+    const nextDeploymentTime = client.nextGame.getTime();
 
     // Fetch the logging channel
     const loggingChannel = await client.channels.fetch(config.loggingChannel).catch(() => null) as TextChannel;
