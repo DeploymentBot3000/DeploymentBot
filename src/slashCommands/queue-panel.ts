@@ -31,9 +31,9 @@ export default new Slashcommand({
         const currentMsg = currentMsgArray[0] || null;
         if(currentMsg) {
             currentMsg.channel = interaction.channelId;
-            currentMsg.message = msg.channelId;
+            currentMsg.message = msg.id;
             await currentMsg.save();
-        } else await QueueStatusMsg.insert({ channel: interaction.channelId, message: msg.channelId });
+        } else await QueueStatusMsg.insert({ channel: interaction.channelId, message: msg.id });
 
         const successEmbed = buildEmbed({ preset: "success" })
             .setDescription("Queue panel sent");
