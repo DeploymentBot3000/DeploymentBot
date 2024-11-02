@@ -59,8 +59,8 @@ export default async function updateQueueMessages(notEnoughPlayers: boolean = fa
             console.log(`Removing status message from queue message: ${message.id}`);
         }
 
-        const msg = await message.edit({ content, embeds: [embed] });
+        await message.edit({ content, embeds: [embed] });
         console.log(`Queue message updated: ${message.id}`);
-        return msg;
+        return message;
     }
 }
