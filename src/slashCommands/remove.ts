@@ -128,12 +128,30 @@ export default new Slashcommand({
         }
 
         // Update deployment message
-        const channel = await interaction.client.channels.fetch(deployment.channel);
-        if (channel?.isTextBased()) {
+        try {
+            const channel = await interaction.client.channels.fetch(deployment.channel);
+            if (!channel?.isTextBased()) {
+                console.error("Channel not found or not text-based:", deployment.channel);
+                throw new Error("Channel not found or not text-based");
+            }
+
             const message = await channel.messages.fetch(deployment.message);
             const currentEmbed = message.embeds[0];
             const signups = await Signups.find({ where: { deploymentId: deployment.id } });
             const backups = await Backups.find({ where: { deploymentId: deployment.id } });
+
+            // Fetch all members for signup mentions
+            const guild = interaction.guild;
+            const memberPromises = [...signups, ...backups].map(async (record) => {
+                try {
+                    return await guild.members.fetch(record.userId);
+                } catch (error) {
+                    console.error(`Failed to fetch member ${record.userId}:`, error);
+                    return null;
+                }
+            });
+            
+            const members = await Promise.all(memberPromises);
 
             const newEmbed = {
                 ...currentEmbed.data,
@@ -143,7 +161,8 @@ export default new Slashcommand({
                             ...field,
                             value: signups.map(signup => {
                                 const role = config.roles.find(r => r.name === signup.role);
-                                return `${role.emoji} <@${signup.userId}>`;
+                                const member = members.find(m => m?.id === signup.userId);
+                                return member ? `${role.emoji} <@${signup.userId}>` : `${role.emoji} Unknown User`;
                             }).join("\n") || "` - `"
                         };
                     }
@@ -151,7 +170,10 @@ export default new Slashcommand({
                         return {
                             ...field,
                             value: backups.length ? 
-                                backups.map(backup => `<@${backup.userId}>`).join("\n") 
+                                backups.map(backup => {
+                                    const member = members.find(m => m?.id === backup.userId);
+                                    return member ? `<@${backup.userId}>` : "Unknown User";
+                                }).join("\n") 
                                 : "` - `"
                         };
                     }
@@ -164,6 +186,14 @@ export default new Slashcommand({
             };
 
             await message.edit({ embeds: [newEmbed] });
+        } catch (error) {
+            console.error("Failed to update deployment message:", error);
+            await interaction.reply({ 
+                embeds: [buildEmbed({ preset: "error" })
+                    .setDescription("Successfully removed user but failed to update deployment message")], 
+                ephemeral: true 
+            });
+            return;
         }
 
         await interaction.reply({ 
