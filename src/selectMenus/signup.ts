@@ -60,19 +60,15 @@ export default new SelectMenu({
                             const role = config.roles.find(role => role.name === signup.role);
                             const member = signupMembers[index];
                             return member 
-                                ? `${role.emoji} ${member.displayName}`
+                                ? `${role.emoji} <@${signup.userId}>`
                                 : `${role.emoji} Unknown Member (${signup.userId})`;
                         }).join("\n") || "` - `",
                         inline: true
                     },
                     {
                         name: "Backups:",
-                        value: backupMembers.length ?
-                            backupMembers.map((member, index) => 
-                                member 
-                                    ? member.displayName 
-                                    : `Unknown Member (${backups[index].userId})`
-                            ).join("\n")
+                        value: backups.length ?
+                            backups.map(backup => `<@${backup.userId}>`).join("\n")
                             : "` - `",
                         inline: true
                     }
