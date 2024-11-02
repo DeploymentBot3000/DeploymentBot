@@ -19,7 +19,7 @@ export default new Modal({
         
         if (!startRegex.test(startTime)) {
             const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC+X`");
+                .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`");
 
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
 
