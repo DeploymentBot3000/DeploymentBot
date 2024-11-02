@@ -53,6 +53,13 @@ export default new Button({
 
         const rows = [];
 
+        if (!selectmenuInteraction.values || !Array.isArray(selectmenuInteraction.values)) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription("Invalid selection");
+
+            return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
+        }
+
         for (const choice of selectmenuInteraction.values) {
             switch (choice) {
                 case "title":
@@ -96,9 +103,15 @@ export default new Button({
         
         if (!modalInteraction) return;
 
-        if (selectmenuInteraction.values.includes("title")) deployment.title = modalInteraction.fields.getTextInputValue("title");
-        if (selectmenuInteraction.values.includes("difficulty")) deployment.difficulty = modalInteraction.fields.getTextInputValue("difficulty");
-        if (selectmenuInteraction.values.includes("description")) deployment.description = modalInteraction.fields.getTextInputValue("description");
+        if (selectmenuInteraction.values.includes("title")) {
+            deployment.title = modalInteraction.fields.getTextInputValue("title");
+        }
+        if (selectmenuInteraction.values.includes("difficulty")) {
+            deployment.difficulty = modalInteraction.fields.getTextInputValue("difficulty");
+        }
+        if (selectmenuInteraction.values.includes("description")) {
+            deployment.description = modalInteraction.fields.getTextInputValue("description");
+        }
         if (selectmenuInteraction.values.includes("startTime")) {
             const startTime = modalInteraction.fields.getTextInputValue("startTime");
             const startTimeFormatted = startTime.replace(/UTC\+(\d{1,2}):?(\d{2})?/, (_, hourOffset, minuteOffset = "00") => {
