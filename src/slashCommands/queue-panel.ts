@@ -3,7 +3,7 @@ import { buildButton, buildEmbed } from "../utils/configBuilders.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import { client } from "../index.js";
 import buildQueueEmbed from "../utils/buildQueueEmbed.js";
-import {ActionRowBuilder, ButtonBuilder, GuildTextBasedChannel} from "discord.js";
+import {ActionRowBuilder, ButtonBuilder, } from "discord.js";
 
 export default new Slashcommand({
     name: "queue-panel",
