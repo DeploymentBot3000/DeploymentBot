@@ -26,6 +26,7 @@ export default new Slashcommand({
         if(currentMsg) {
             currentMsg.channel = interaction.channelId;
             currentMsg.message = msg.id;
+            console.log("Run")
         } else await QueueStatusMsg.insert({ channel: interaction.channelId, message: msg.id });
 
         await interaction.reply({ embeds: [successEmbed], ephemeral: true });
