@@ -22,31 +22,16 @@ export default new Modal({
         let startDate: Date;
 
         if (absoluteTimeRegex.test(startTime)) {
-            // Extract timezone offset
+            // Parse the timezone offset first
             const match = startTime.match(/UTC([+-])(\d{1,2})(?::?(\d{2})?)/);
-            const sign = match[1] === '+' ? -1 : 1; // Fixed: Reversed sign logic for correct UTC conversion
-            const hours = parseInt(match[2]);
-            const minutes = match[3] ? parseInt(match[3]) : 0;
-            const offsetMinutes = sign * (hours * 60 + minutes);
+            const sign = match[1] === '-' ? '+' : '-'; // Reverse the sign for correct UTC conversion
+            const hours = match[2].padStart(2, '0');
+            const minutes = (match[3] || '00').padStart(2, '0');
 
-            // Parse the date without timezone
-            let datePart = startTime.split(' UTC')[0];
-            // Handle 24:00 by converting it to 00:00 of the next day
-            if (datePart.includes('24:')) {
-                const [date, time] = datePart.split(' ');
-                const nextDay = new Date(date);
-                nextDay.setDate(nextDay.getDate() + 1);
-                const formattedDate = nextDay.toISOString().split('T')[0];
-                datePart = `${formattedDate} 00:${time.split(':')[1]}`;
-            }
-            
-            const localDate = date.parse(datePart, 'YYYY-MM-DD HH:mm');
-            if (isNaN(localDate.getTime())) {
-                throw new Error('Invalid time format');
-            }
-            
-            // Adjust for UTC offset
-            startDate = new Date(localDate.getTime() - offsetMinutes * 60000); // Fixed: Changed to subtraction
+            // Format the time string with the reversed timezone
+            const startTimeFormatted = startTime.replace(/UTC[+-]\d{1,2}(?::\d{2})?/, `UTC${sign}${hours}${minutes}`);
+
+            startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTCZ");
         } else if (relativeTimeRegex.test(startTime)) {
             const matches = startTime.match(/(\d+)([dhms])/g);
             let totalMs = 0;
