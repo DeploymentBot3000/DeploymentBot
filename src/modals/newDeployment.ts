@@ -24,7 +24,7 @@ export default new Modal({
         if (absoluteTimeRegex.test(startTime)) {
             // Extract timezone offset
             const match = startTime.match(/UTC([+-])(\d{1,2})(?::?(\d{2})?)/);
-            const sign = match[1] === '+' ? 1 : -1; // Fix: Changed sign logic
+            const sign = match[1] === '+' ? -1 : 1; // Fixed: Reversed sign logic for correct UTC conversion
             const hours = parseInt(match[2]);
             const minutes = match[3] ? parseInt(match[3]) : 0;
             const offsetMinutes = sign * (hours * 60 + minutes);
@@ -46,7 +46,7 @@ export default new Modal({
             }
             
             // Adjust for UTC offset
-            startDate = new Date(localDate.getTime() + offsetMinutes * 60000);
+            startDate = new Date(localDate.getTime() - offsetMinutes * 60000); // Fixed: Changed to subtraction
         } else if (relativeTimeRegex.test(startTime)) {
             const matches = startTime.match(/(\d+)([dhms])/g);
             let totalMs = 0;
