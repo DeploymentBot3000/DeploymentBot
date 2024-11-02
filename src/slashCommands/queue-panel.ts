@@ -1,6 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder } from "discord.js";
 import Slashcommand from "../classes/Slashcommand.js";
-import Queue from "../tables/Queue.js";
 import { buildButton, buildEmbed } from "../utils/configBuilders.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import { client } from "../index.js";
