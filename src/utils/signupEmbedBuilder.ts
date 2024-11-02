@@ -2,7 +2,7 @@
     import Deployment from "../tables/Deployment.js";
     import Signups from "../tables/Signups.js";
     import Backups from "../tables/Backups.js";
-    import { EmbedBuilder, ColorResolvable } from "discord.js";
+    import { EmbedBuilder, ColorResolvable, Colors } from "discord.js";
 
 
     export async function buildDeploymentEmbed(deployment: InstanceType<typeof Deployment>, color: ColorResolvable = "#00FF00") {
@@ -10,12 +10,16 @@
         const signups = await Signups.find({ where: { deploymentId: deployment.id } });
         const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
-        const colorMap = {
-            "Red": "#d90b0b",
-            "Green": "#00FF00"
-        };
+        //const colorMap = {
+        //    "Red": "#d90b0b",
+        //    "Green": "#00FF00"
+       //};
 
-        const actualColor = colorMap[color as keyof typeof colorMap] || color;
+        const actualColor = typeof color === 'string' ?
+            (color === "Red" ? Colors.Red : Colors.Green) :
+            color;
+
+        //const actualColor = colorMap[color as keyof typeof colorMap] || color;
         console.log('Using color:', actualColor);
 
 
@@ -46,7 +50,8 @@
                     inline: true
                 }
             ])
-            .setColor(actualColor as ColorResolvable)
+            //(actualColor as ColorResolvable)
+            .setColor(Colors.Red)
             .setFooter({ text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4` })
             .setTimestamp(Number(deployment.startTime));
         return embed;
