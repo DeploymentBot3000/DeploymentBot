@@ -7,7 +7,7 @@ export default async function updateQueueMessages(notEnoughPlayers: boolean = fa
     console.log("Starting updateQueueMessages function");
 
     const queueMessages = await QueueStatusMsg.find({ where: { id: 1 }});
-    if(queueMessages.length) return null;
+    if(queueMessages.length === 0) return null;
     const queueMessage = queueMessages[0];
 
     console.log("Run!")
