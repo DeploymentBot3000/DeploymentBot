@@ -2,7 +2,8 @@ import Slashcommand from "../classes/Slashcommand.js";
 import { buildButton, buildEmbed } from "../utils/configBuilders.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import { client } from "../index.js";
-import updateQueueMessages from "../utils/updateQueueMessage.js";
+import buildQueueEmbed from "../utils/buildQueueEmbed.js";
+import {ActionRowBuilder, ButtonBuilder, GuildTextBasedChannel} from "discord.js";
 
 export default new Slashcommand({
     name: "queue-panel",
@@ -16,13 +17,18 @@ export default new Slashcommand({
             return interaction.reply({ content: "You don't have permission to use this command.", ephemeral: true });
         }
 
-        const msg = await updateQueueMessages(true, client.nextGame.getTime(), false);
+        const { embed, content } = await buildQueueEmbed(true, client.nextGame.getTime(), false, interaction.channel);
+
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+            buildButton("host"),
+            buildButton("join"),
+            buildButton("leave")
+        );
+
+        const msg = await interaction.channel.send({ content, embeds: [embed], components: [row] });
 
         const successEmbed = buildEmbed({ preset: "success" })
             .setDescription("Queue panel sent");
-
-        console.log("Interaction:", interaction);
-        console.log("Message:", msg);
 
         const currentMsgArray = await QueueStatusMsg.find({ where: { id: 1 }});
         const currentMsg = currentMsgArray[0] || null;
