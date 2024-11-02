@@ -28,7 +28,7 @@ export default new Button({
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        if(!deployment.noticeSent) {
+        if(deployment.noticeSent) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You can't edit a deployment after the notice has been sent!");
 
