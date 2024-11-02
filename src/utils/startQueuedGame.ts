@@ -27,20 +27,18 @@ export const startQueuedGame = async (deploymentTime: number) => {
     const now = Date.now();
     const timeUntilDeployment = deploymentTime - now;
 
-    if (timeUntilDeployment > 0) {
-        console.log(`Waiting ${timeUntilDeployment}ms until deployment`);
-        await new Promise(resolve => setTimeout(resolve, timeUntilDeployment));
-    }
+    // if (timeUntilDeployment > 0) {
+    //     console.log(`Waiting ${timeUntilDeployment}ms until deployment`);
+    //     await new Promise(resolve => setTimeout(resolve, timeUntilDeployment));
+    // }
 
     // Read the deployment interval from the file
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const deploymentIntervalPath = path.join(__dirname, '..', '..', 'deploymentTime.txt');
-    const deploymentIntervalMs = parseInt(await fs.readFile(deploymentIntervalPath, 'utf-8'), 10);
+    const deploymentIntervalMs = await getDeploymentTime();
     console.log(`Deployment interval read from file: ${deploymentIntervalMs} ms`);
 
     // Calculate the next deployment time
-    const nextDeploymentTime = now + deploymentIntervalMs;
+    client.nextGame = new Date(now + deploymentIntervalMs);
+    const nextDeploymentTime = client.nextGame.getTime();
 
     // Fetch the logging channel
     const loggingChannel = await client.channels.fetch(config.loggingChannel).catch(() => null) as TextChannel;
@@ -128,7 +126,7 @@ export const startQueuedGame = async (deploymentTime: number) => {
             });
             console.log(`Voice channel created: ${vc.id}`);
 
-            await VoiceChannel.insert({ channel: vc.id, expires: Date.now() + 3600000, guild: vc.guild.id });
+            await VoiceChannel.insert({ channel: vc.id, expires: Date.now() + 3600000, guild: vc.guild.id }); // 3600000
             console.log(`Voice channel inserted into database`);
 
             await departureChannel.send({ content: `-------------------------------------------\n\n# <:Helldivers:1226464844534779984> ATTENTION HELLDIVERS <:Helldivers:1226464844534779984>\n\n\n**HOTDROP:** **${randomCode} (${hostDisplayName})**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**.\n**Communication Channel:** <#${vc.id}>.\n\n**Deployment Lead:**\n<@${host.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\nYou are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------` }).catch(() => null);

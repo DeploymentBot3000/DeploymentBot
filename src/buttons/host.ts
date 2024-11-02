@@ -2,13 +2,15 @@ import Button from "../classes/Button.js";
 import { client } from "../index.js";
 import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
+import config from "../config.js";
 
 export default new Button({
     id: "host",
     cooldown: 0,
     permissions: [],
-    requiredRoles: [],
+    requiredRoles: [{ role: config.hostRole, required: true }],
     func: async function({ interaction }) {
+
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
 
         if (alreadyQueued) {
