@@ -6,8 +6,11 @@ import buildQueueEmbed from "./buildQueueEmbed.js";
 export default async function updateQueueMessages(notEnoughPlayers: boolean = false, nextDeploymentTime: number, deploymentCreated: boolean = false) {
     console.log("Starting updateQueueMessages function");
 
-    const queueMessages = await QueueStatusMsg.find();
+    const queueMessages = await QueueStatusMsg.find({ where: { id: 1 }});
+    if(queueMessages.length === 0) return null;
     const queueMessage = queueMessages[0];
+
+    console.log("Run!")
 
     console.log(`Next deployment time: ${new Date(nextDeploymentTime).toISOString()} (${nextDeploymentTime})`);
 
