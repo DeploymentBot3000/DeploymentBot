@@ -25,7 +25,7 @@ export const startQueuedGame = async (deploymentTime: number) => {
     console.log(`Hosts: ${hosts.length}, Players: ${players.length}`);
 
     const now = Date.now();
-    const timeUntilDeployment = deploymentTime - now;
+    // const timeUntilDeployment = deploymentTime - now;
 
     // if (timeUntilDeployment > 0) {
     //     console.log(`Waiting ${timeUntilDeployment}ms until deployment`);
