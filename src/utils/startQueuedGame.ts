@@ -142,12 +142,12 @@ export const startQueuedGame = async (deploymentTime: number) => {
             await Queue.delete({ user: host.user });
             console.log(`Host removed from queue: ${host.user}`);
 
+            // Mark that a deployment was created
+            deploymentCreated = true;
+
             // edit the queue message
             await updateQueueMessages(false, nextDeploymentTime, deploymentCreated);
             console.log(`Queue messages updated`);
-
-            // Mark that a deployment was created
-            deploymentCreated = true;
 
             // Log to the logging channel
             if (loggingChannel) {
