@@ -5,19 +5,10 @@
     import { EmbedBuilder, ColorResolvable } from "discord.js";
 
 
-    export async function buildDeploymentEmbed(deployment: InstanceType<typeof Deployment>, color: ColorResolvable = "#00FF00") {
+    export async function buildDeploymentEmbed(deployment: InstanceType<typeof Deployment>, color: ColorResolvable = "Green") {
         console.log('Building deployment embed with color:', color);
         const signups = await Signups.find({ where: { deploymentId: deployment.id } });
         const backups = await Backups.find({ where: { deploymentId: deployment.id } });
-
-        const colorMap = {
-            "Red": "#d90b0b",
-            "Green": "#00FF00"
-        };
-
-        const actualColor = colorMap[color as keyof typeof colorMap] || color;
-        console.log('Using color:', actualColor);
-
 
         const embed = new EmbedBuilder()
             .setTitle(deployment.title)
@@ -46,7 +37,7 @@
                     inline: true
                 }
             ])
-            .setColor(actualColor as ColorResolvable)
+            .setColor(color as ColorResolvable)
             .setFooter({ text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4` })
             .setTimestamp(Number(deployment.startTime));
         return embed;
