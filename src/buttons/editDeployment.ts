@@ -28,12 +28,12 @@ export default new Button({
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        if(deployment.noticeSent) {
-            const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("You can't edit a deployment after the notice has been sent!");
-
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-        }
+        // if(deployment.noticeSent) {
+        //     const errorEmbed = buildEmbed({ preset: "error" })
+        //         .setDescription("You can't edit a deployment after the notice has been sent!");
+        //
+        //     return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        // }
 
         const selectmenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
             new StringSelectMenuBuilder().setCustomId("editDeployment").setPlaceholder("Select an option").setMaxValues(4).addOptions(
