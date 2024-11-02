@@ -7,9 +7,10 @@ export default async function updateQueueMessages(notEnoughPlayers: boolean = fa
     console.log("Starting updateQueueMessages function");
 
     const queueMessages = await QueueStatusMsg.find({ where: { id: 1 }});
-    console.log(queueMessages)
     if(queueMessages.length) return null;
     const queueMessage = queueMessages[0];
+
+    console.log("Run!")
 
     console.log(`Next deployment time: ${new Date(nextDeploymentTime).toISOString()} (${nextDeploymentTime})`);
 
