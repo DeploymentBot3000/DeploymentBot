@@ -22,10 +22,31 @@ export default new Modal({
         let startDate: Date;
 
         if (absoluteTimeRegex.test(startTime)) {
-            const startTimeFormatted = startTime.replace(/UTC([+-])(\d{1,2}):?(\d{2})?/, (_, sign, hourOffset, minuteOffset = "00") => {
-                return `UTC${sign}${hourOffset.padStart(2, "0")}${minuteOffset.padStart(2, "0")}`.replace(/:/g, "");
-            });
-            startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTCZ");
+            // Extract timezone offset
+            const match = startTime.match(/UTC([+-])(\d{1,2})(?::?(\d{2})?)/);
+            const sign = match[1] === '+' ? 1 : -1; // Fix: Changed sign logic
+            const hours = parseInt(match[2]);
+            const minutes = match[3] ? parseInt(match[3]) : 0;
+            const offsetMinutes = sign * (hours * 60 + minutes);
+
+            // Parse the date without timezone
+            let datePart = startTime.split(' UTC')[0];
+            // Handle 24:00 by converting it to 00:00 of the next day
+            if (datePart.includes('24:')) {
+                const [date, time] = datePart.split(' ');
+                const nextDay = new Date(date);
+                nextDay.setDate(nextDay.getDate() + 1);
+                const formattedDate = nextDay.toISOString().split('T')[0];
+                datePart = `${formattedDate} 00:${time.split(':')[1]}`;
+            }
+            
+            const localDate = date.parse(datePart, 'YYYY-MM-DD HH:mm');
+            if (isNaN(localDate.getTime())) {
+                throw new Error('Invalid time format');
+            }
+            
+            // Adjust for UTC offset
+            startDate = new Date(localDate.getTime() + offsetMinutes * 60000);
         } else if (relativeTimeRegex.test(startTime)) {
             const matches = startTime.match(/(\d+)([dhms])/g);
             let totalMs = 0;
