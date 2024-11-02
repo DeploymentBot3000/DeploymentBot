@@ -25,19 +25,20 @@ export const startQueuedGame = async (deploymentTime: number) => {
     console.log(`Hosts: ${hosts.length}, Players: ${players.length}`);
 
     const now = Date.now();
-    const timeUntilDeployment = deploymentTime - now;
+    // const timeUntilDeployment = deploymentTime - now;
 
-    if (timeUntilDeployment > 0) {
-        console.log(`Waiting ${timeUntilDeployment}ms until deployment`);
-        await new Promise(resolve => setTimeout(resolve, timeUntilDeployment));
-    }
+    // if (timeUntilDeployment > 0) {
+    //     console.log(`Waiting ${timeUntilDeployment}ms until deployment`);
+    //     await new Promise(resolve => setTimeout(resolve, timeUntilDeployment));
+    // }
 
     // Read the deployment interval from the file
     const deploymentIntervalMs = await getDeploymentTime();
     console.log(`Deployment interval read from file: ${deploymentIntervalMs} ms`);
 
     // Calculate the next deployment time
-    const nextDeploymentTime = now + deploymentIntervalMs;
+    client.nextGame = new Date(now + deploymentIntervalMs);
+    const nextDeploymentTime = client.nextGame.getTime();
 
     // Fetch the logging channel
     const loggingChannel = await client.channels.fetch(config.loggingChannel).catch(() => null) as TextChannel;
