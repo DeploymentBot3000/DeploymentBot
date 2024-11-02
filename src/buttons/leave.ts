@@ -9,42 +9,65 @@ export default new Button({
     permissions: [],
     requiredRoles: [],
     func: async function ({ interaction }) {
-        const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
+        try {
+            const member = await interaction.guild?.members.fetch(interaction.user.id).catch(() => null);
+            if (!member) {
+                const errorEmbed = buildEmbed({ preset: "error" })
+                    .setDescription("Failed to fetch your guild member data");
+                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            }
 
-        if (!alreadyQueued) {
+            const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
+
+            if (!alreadyQueued) {
+                const errorEmbed = buildEmbed({ preset: "error" })
+                    .setDescription("You are not in the queue");
+
+                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            }
+
+            await Queue.delete({ user: interaction.user.id });
+
+            const successEmbed = buildEmbed({ preset: "success" })
+                .setDescription("You have been removed from the queue");
+
+            await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+
+            const queue = await Queue.find().catch(() => []);
+            if (!queue) {
+                const errorEmbed = buildEmbed({ preset: "error" })
+                    .setDescription("Failed to fetch queue data");
+                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            }
+
+            const embed = buildEmbed({ name: "queuePanel" })
+                .addFields([
+                    {
+                        name: "Hosts:",
+                        value: queue.filter(q => q.host).map(host => `<@${host.user}>`).join("\n") || "` - `",
+                        inline: true
+                    },
+                    {
+                        name: "Participants:",
+                        value: queue.filter(q => !q.host).map(player => `<@${player.user}>`).join("\n") || "` - `",
+                        inline: true
+                    },
+                    {
+                        name: "Next game:",
+                        value: `📅 <t:${Math.round(client.nextGame.getTime() / 1000)}:d>\n🕒 <t:${Math.round(client.nextGame.getTime() / 1000)}:t>`,
+                    }
+                ]);
+
+            await interaction.message.edit({ embeds: [embed] }).catch(async () => {
+                const errorEmbed = buildEmbed({ preset: "error" })
+                    .setDescription("Failed to update the queue panel");
+                await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+            });
+        } catch (error) {
+            console.error('Error in leave button:', error);
             const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("You are not in the queue");
-
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                .setDescription("An unexpected error occurred");
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true }).catch(() => {});
         }
-
-        await Queue.delete({ user: interaction.user.id });
-
-        const successEmbed = buildEmbed({ preset: "success" })
-            .setDescription("You have been removed from the queue");
-
-        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
-
-        const queue = await Queue.find();
-
-        const embed = buildEmbed({ name: "queuePanel" })
-            .addFields([
-                {
-                    name: "Hosts:",
-                    value: queue.filter(q => q.host).map(host => `<@${host.user}>`).join("\n") || "` - `",
-                    inline: true
-                },
-                {
-                    name: "Participants:",
-                    value: queue.filter(q => !q.host).map(player => `<@${player.user}>`).join("\n") || "` - `",
-                    inline: true
-                },
-                {
-                    name: "Next game:",
-                    value: `📅 <t:${Math.round(client.nextGame.getTime() / 1000)}:d>\n🕒 <t:${Math.round(client.nextGame.getTime() / 1000)}:t>`,
-                }
-            ]);
-
-        await interaction.message.edit({ embeds: [embed] });
     }
 })
