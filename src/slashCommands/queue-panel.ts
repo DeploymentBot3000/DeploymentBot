@@ -23,6 +23,7 @@ export default new Slashcommand({
 
         const currentMsgArray = await QueueStatusMsg.find({ where: { id: 1 }});
         const currentMsg = currentMsgArray[0] || null;
+        console.log(currentMsg);
         if(currentMsg) {
             currentMsg.channel = interaction.channelId;
             currentMsg.message = msg.id;
