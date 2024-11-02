@@ -15,9 +15,35 @@ export default new Modal({
         const description = interaction.fields.getTextInputValue("description");
         const startTime = interaction.fields.getTextInputValue("startTime");
 
-        const startRegex = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(\d{1,2}) UTC[+-]\d{1,2}(:30)?$/;
+        // Regex for both absolute and relative time formats
+        const absoluteTimeRegex = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(\d{1,2}) UTC[+-]\d{1,2}(:30)?$/;
+        const relativeTimeRegex = /^(?:(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s\s*)?)+$/;
         
-        if (!startRegex.test(startTime)) {
+        let startDate: Date;
+
+        if (absoluteTimeRegex.test(startTime)) {
+            const startTimeFormatted = startTime.replace(/UTC([+-])(\d{1,2}):?(\d{2})?/, (_, sign, hourOffset, minuteOffset = "00") => {
+                return `UTC${sign}${hourOffset.padStart(2, "0")}${minuteOffset.padStart(2, "0")}`.replace(/:/g, "");
+            });
+            startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTCZ");
+        } else if (relativeTimeRegex.test(startTime)) {
+            const matches = startTime.match(/(\d+)([dhms])/g);
+            let totalMs = 0;
+            
+            matches.forEach(match => {
+                const value = parseInt(match.slice(0, -1));
+                const unit = match.slice(-1);
+                
+                switch (unit) {
+                    case 'd': totalMs += value * 24 * 60 * 60 * 1000; break;
+                    case 'h': totalMs += value * 60 * 60 * 1000; break;
+                    case 'm': totalMs += value * 60 * 1000; break;
+                    case 's': totalMs += value * 1000; break;
+                }
+            });
+            
+            startDate = new Date(Date.now() + totalMs);
+        } else {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`");
 
@@ -42,12 +68,7 @@ export default new Modal({
             return;
         }
 
-        const startTimeFormatted = startTime.replace(/UTC([+-])(\d{1,2}):?(\d{2})?/, (_, sign, hourOffset, minuteOffset = "00") => {
-            return `UTC${sign}${hourOffset.padStart(2, "0")}${minuteOffset.padStart(2, "0")}`.replace(/:/g, "");
-        });
-
-        const startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTCZ");
-  const oneHourFromNow = Date.now() + (60 * 60 * 1000); // 1 hour in milliseconds
+        const oneHourFromNow = Date.now() + (60 * 60 * 1000); // 1 hour in milliseconds
         
         if (startDate.getTime() < oneHourFromNow) {
             const errorEmbed = buildEmbed({ preset: "error" })
