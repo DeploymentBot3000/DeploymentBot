@@ -27,10 +27,10 @@ export const startQueuedGame = async (deploymentTime: number) => {
     const now = Date.now();
     const timeUntilDeployment = deploymentTime - now;
 
-    if (timeUntilDeployment > 0) {
-        console.log(`Waiting ${timeUntilDeployment}ms until deployment`);
-        await new Promise(resolve => setTimeout(resolve, timeUntilDeployment));
-    }
+    // if (timeUntilDeployment > 0) {
+    //     console.log(`Waiting ${timeUntilDeployment}ms until deployment`);
+    //     await new Promise(resolve => setTimeout(resolve, timeUntilDeployment));
+    // }
 
     // Read the deployment interval from the file
     const deploymentIntervalMs = await getDeploymentTime();
