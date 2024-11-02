@@ -27,6 +27,8 @@ export default new Slashcommand({
 
         const msg = await interaction.channel.send({ content, embeds: [embed], components: [row] });
 
+        console.log(msg);
+
         const currentMsgArray = await QueueStatusMsg.find({ where: { id: 1 }});
         const currentMsg = currentMsgArray[0] || null;
         if(currentMsg) {
