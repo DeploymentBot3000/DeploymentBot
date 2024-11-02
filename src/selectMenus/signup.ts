@@ -62,19 +62,52 @@ export default new SelectMenu({
         const alreadySignedUp = await Signups.findOne({ where: { deploymentId: deployment.id, userId: interaction.user.id } });
         const alreadySignedUpBackup = await Backups.findOne({ where: { deploymentId: deployment.id, userId: interaction.user.id } });
 
+        if (interaction.values[0] === "Leave Deployment") {
+            if (deployment.user === interaction.user.id) {
+                const errorEmbed = buildEmbed({ preset: "error" })
+                    .setDescription("You cannot leave your own deployment!");
+
+                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            }
+
+            const existingSignup = await Signups.findOne({ 
+                where: { 
+                    deploymentId: deployment.id, 
+                    userId: interaction.user.id 
+                } 
+            });
+            const existingBackup = await Backups.findOne({ 
+                where: { 
+                    deploymentId: deployment.id, 
+                    userId: interaction.user.id 
+                } 
+            });
+
+            if (!existingSignup && !existingBackup) {
+                const errorEmbed = buildEmbed({ preset: "error" })
+                    .setDescription("You are not signed up for this deployment!");
+
+                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            }
+
+            if (existingSignup) await existingSignup.remove();
+            if (existingBackup) await existingBackup.remove();
+
+            return await updateEmbed();
+        }
+
         if (alreadySignedUp) {
             const backupsCount = await Backups.count({ where: { deploymentId: deployment.id } });
 
             if (alreadySignedUp.role == interaction.values[0]) {
                 if (deployment.user == interaction.user.id) {
                     const errorEmbed = buildEmbed({ preset: "error" })
-                        .setDescription("You cannot abandon for your own deployment!");
+                        .setDescription("You cannot abandon your own deployment!");
 
                     return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                 }
 
                 await alreadySignedUp.remove();
-
                 return await updateEmbed();
             } else if (interaction.values[0] == "backup") {
                 if (backupsCount >= 4) {
