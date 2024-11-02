@@ -21,13 +21,13 @@ export default new Slashcommand({
         const successEmbed = buildEmbed({ preset: "success" })
             .setDescription("Queue panel sent");
 
-        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
-
         const currentMsgArray = await QueueStatusMsg.find({ where: { id: 1 }});
         const currentMsg = currentMsgArray[0] || null;
         if(currentMsg) {
             currentMsg.channel = interaction.channelId;
             currentMsg.message = msg.id;
         } else await QueueStatusMsg.insert({ channel: interaction.channelId, message: msg.id });
+
+        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
     }
 })
