@@ -147,7 +147,7 @@ export const startQueuedGame = async (deploymentTime: number) => {
 
             // edit the queue message
             await updateQueueMessages(false, nextDeploymentTime, deploymentCreated);
-            console.log(`Queue messages updated`);
+            console.log(`Queue messages updated`); // LOL
 
             // Log to the logging channel
             if (loggingChannel) {
