@@ -89,7 +89,9 @@ export default {
 			});
 
 			for (const deployment of deploymentsNoNotice) {
+
 				if (deployment.startTime - 900000 <= Date.now()) {
+
 					const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null) as GuildTextBasedChannel;
 					const signups = await Signups.find({ where: { deploymentId: deployment.id } });
 					const backups = await Backups.find({ where: { deploymentId: deployment.id } });
