@@ -3,7 +3,7 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
 import {ColorResolvable, EmbedBuilder, Guild} from "discord.js";
-import formatToGoogleCalendarDate from "./formatToGoogleCalendarDate.js";
+import getGoogleCalendarLink from "./getGoogleCalendarLink.js";
 
 
 export async function buildDeploymentEmbed(
@@ -21,7 +21,7 @@ export async function buildDeploymentEmbed(
     const signups = await Signups.find({ where: { deploymentId: deployment.id } });
     const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
-    const googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(deployment.title)}&dates=${formatToGoogleCalendarDate(deployment.startTime)}/${formatToGoogleCalendarDate(deployment.endTime)}&details=${encodeURIComponent(deployment.description)}&location=${encodeURIComponent("101st Deployments Channel")}&sf=true&output=xml`;
+    const googleCalendarLink = getGoogleCalendarLink(deployment.title, deployment.description, deployment.startTime, deployment.endTime);
 
     return new EmbedBuilder()
         .setTitle(started ? `<:hellpod:1302084726219210752> ${deployment.title} - Started <:hellpod:1302084726219210752>` : deployment.title)

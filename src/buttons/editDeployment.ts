@@ -5,7 +5,7 @@ import { buildEmbed } from "../utils/configBuilders.js";
 import config from "../config.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
-import formatToGoogleCalendarDate from "../utils/formatToGoogleCalendarDate.js";
+import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 
 export default new Button({
     id: "editDeployment",
@@ -178,7 +178,7 @@ export default new Button({
             }
         }
 
-        const googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(deployment.title)}&dates=${formatToGoogleCalendarDate(deployment.startTime)}/${formatToGoogleCalendarDate(deployment.endTime)}&details=${encodeURIComponent(deployment.description)}&location=${encodeURIComponent("101st Deployments Channel")}&sf=true&output=xml`;
+        const googleCalendarLink = getGoogleCalendarLink(deployment.title, deployment.description, deployment.startTime, deployment.endTime);
 
         const embed = new EmbedBuilder()
             .setTitle(deployment.title)

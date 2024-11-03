@@ -5,6 +5,7 @@ import Backups from "../tables/Backups.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import { EmbedBuilder } from "discord.js";
 import config from "../config.js";
+import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 
 export default new Button({
     id: "leaveDeployment",
@@ -70,13 +71,14 @@ export default new Button({
             // Update the embed
             const signups = await Signups.find({ where: { deploymentId: deployment.id } });
             const backups = await Backups.find({ where: { deploymentId: deployment.id } });
+            const googleCalendarLink = getGoogleCalendarLink(deployment.title, deployment.description, deployment.startTime, deployment.endTime);
 
             const embed = new EmbedBuilder()
                 .setTitle(deployment.title)
                 .addFields([
                     {
                         name: "Event Info:",
-                        value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d>\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.endTime) / 1000)}:t>`
+                        value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.endTime / 1000))}:t>\n🪖 ${deployment.difficulty}`
                     },
                     {
                         name: "Description:",
