@@ -232,8 +232,11 @@ export default new Modal({
             console.error('Failed to handle interaction:', error);
             // Optionally try to send a follow-up if the initial reply failed
             try {
+                const errorEmbed = buildEmbed({ preset: "error" })
+                    .setDescription("An error occurred while processing your request.");
+                
                 await interaction.followUp({
-                    content: 'Sorry, there was an error processing your request.',
+                    embeds: [errorEmbed],
                     ephemeral: true
                 });
             } catch (e) {
