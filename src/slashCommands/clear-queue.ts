@@ -35,12 +35,18 @@ export default new Slashcommand({
                 .addFields([
                     {
                         name: "Hosts:",
-                        value: currentHosts.map(host => `<@${host.user}>`).join("\n") || "` - `",
+                        value: await Promise.all(currentHosts.map(async host => {
+                            const member = await channel.guild.members.fetch(host.user).catch(() => null);
+                            return member ? member.displayName : 'Unknown User';
+                        })).then(hosts => hosts.join("\n")) || "` - `",
                         inline: true
                     },
                     {
                         name: "Participants:",
-                        value: currentPlayers.map(player => `<@${player.user}>`).join("\n") || "` - `",
+                        value: await Promise.all(currentPlayers.map(async player => {
+                            const member = await channel.guild.members.fetch(player.user).catch(() => null);
+                            return member ? member.displayName : 'Unknown User';
+                        })).then(players => players.join("\n")) || "` - `",
                         inline: true
                     },
                     {
