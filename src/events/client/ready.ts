@@ -119,7 +119,7 @@ export default {
 
 				if (!message) continue;
 
-				const embed = await buildDeploymentEmbed(deployment, "Red", true);
+				const embed = await buildDeploymentEmbed(deployment, "Red");
 
 				await message.edit({ content: "", embeds: [embed], components: [] }).catch(err => console.error("Message edit error:", err));
 
