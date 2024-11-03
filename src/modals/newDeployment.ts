@@ -63,20 +63,20 @@ export default new Modal({
 
             // Calculate the relative start date based on current time
             startDate = new Date(Date.now() + totalMs);
-
-            if(startDate instanceof Date && !isNaN(startDate.getTime())) {
-                const errorEmbed = buildEmbed({ preset: "error" })
-                    .setDescription("Error parsing date string, please try again later.");
-                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-                await storeLatestInput(interaction, { title, difficulty, description });
-                console.log(`Error: Could not parse data/time string - ${startDate}`);
-                return;
-            }
         } else {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`");
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             await storeLatestInput(interaction, { title, difficulty, description });
+            return;
+        }
+
+        if(startDate instanceof Date && !isNaN(startDate.getTime())) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription("Error parsing date string, please try again later.");
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await storeLatestInput(interaction, { title, difficulty, description });
+            console.log(`Error: Could not parse data/time string - ${startDate}`);
             return;
         }
 
