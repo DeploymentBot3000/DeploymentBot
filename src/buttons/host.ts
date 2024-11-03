@@ -10,6 +10,7 @@ export default new Button({
     permissions: [],
     requiredRoles: [{ role: config.hostRole, required: true }],
     func: async function({ interaction }) {
+        await interaction.deferUpdate();
 
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
 
@@ -17,10 +18,9 @@ export default new Button({
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are already in the queue");
 
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        await interaction.deferUpdate();
         await Queue.insert({ user: interaction.user.id, host: true });
 
         const queue = await Queue.find();

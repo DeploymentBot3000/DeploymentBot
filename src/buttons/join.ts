@@ -16,7 +16,7 @@ export default new Button({
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are already in the queue");
 
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
 
         await Queue.insert({ user: interaction.user.id, host: false });
