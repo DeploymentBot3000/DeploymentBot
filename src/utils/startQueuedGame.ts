@@ -45,7 +45,18 @@ export const startQueuedGame = async (deploymentTime: number) => {
         
         // Log to the logging channel
         if (loggingChannel) {
-            await loggingChannel.send(`Not enough players or hosts for queue deployment. Hosts: ${hosts.length}, Players: ${players.length}`);
+            const logMessage = [
+                `!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`,
+                `!      Failed Queue Deployment    !`,
+                `!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`,
+                `!                                !`,
+                `! Insufficient Players/Hosts     !`,
+                `! Hosts Available: ${hosts.length}`.padEnd(33) + '!',
+                `! Players Available: ${players.length}`.padEnd(33) + '!',
+                `!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`
+            ].join('\n');
+            
+            await loggingChannel.send(logMessage);
         }
     } else {
         console.log(`Sufficient players and hosts. Creating groups.`);
@@ -146,7 +157,22 @@ export const startQueuedGame = async (deploymentTime: number) => {
 
             // Log to the logging channel
             if (loggingChannel) {
-                const logMessage = `Queue deployment started:\nHost: ${hostDisplayName} (<@${host.user}>)\nPlayers: ${selectedPlayers.map(p => `<@${p.user}>`).join(', ')}\nVoice Channel: ${vc.name} (${vc.id})`;
+                const logMessage = [
+                    `###################################`,
+                    `#         Queue Deployment         #`,
+                    `###################################`,
+                    `#                                 #`,
+                    `# Host: ${hostDisplayName}`.padEnd(34) + '#',
+                    `# <@${host.user}>`.padEnd(34) + '#',
+                    `#                                 #`,
+                    `# Players:                        #`,
+                    ...selectedPlayers.map(p => `# • <@${p.user}>`.padEnd(34) + '#'),
+                    `#                                 #`,
+                    `# Voice Channel: 🔊 ${vc.name}`.padEnd(34) + '#',
+                    `# Channel ID: ${vc.id}`.padEnd(34) + '#',
+                    `###################################`
+                ].join('\n');
+                
                 await loggingChannel.send(logMessage);
             }
         }
