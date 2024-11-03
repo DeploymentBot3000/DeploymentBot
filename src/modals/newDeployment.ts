@@ -2,10 +2,11 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBa
 import Modal from "../classes/Modal.js";
 import LatestInput from "../tables/LatestInput.js";
 import { buildButton, buildEmbed } from "../utils/configBuilders.js";
-import { DateTime } from "luxon";
+import date from "date-and-time";
 import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
+import { DateTime } from "luxon";
 
 export default new Modal({
     id: "newDeployment",
@@ -18,28 +19,22 @@ export default new Modal({
         // Regex for both absolute and relative time formats
         const absoluteTimeRegex = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(\d{1,2}) UTC[+-]\d{1,2}(:30)?$/;
         const relativeTimeRegex = /^(?:(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s\s*)?)+$/;
-        
+
         let startDate: Date;
 
         if (absoluteTimeRegex.test(startTime)) {
-            // Parse the date and time parts
-            const [datePart, timePart] = startTime.split(' ');
-            const [timeValue, timezone] = timePart.split(' UTC');
-            
-            // Create DateTime object with the timezone offset
-            startDate = DateTime.fromFormat(
-                `${datePart} ${timeValue}`, 
-                "yyyy-MM-dd HH:mm", 
-                { zone: `UTC${timezone}` }
-            ).toJSDate();
+            // Parse using Luxon for better handling of time zones
+            const startDateTime = DateTime.fromFormat(startTime, "yyyy-MM-dd HH:mm 'UTC'ZZ");
+            startDate = startDateTime.toJSDate();  // Converts Luxon DateTime to JavaScript Date
         } else if (relativeTimeRegex.test(startTime)) {
+            // Parse relative time
             const matches = startTime.match(/(\d+)([dhms])/g);
             let totalMs = 0;
-            
+
             matches.forEach(match => {
                 const value = parseInt(match.slice(0, -1));
                 const unit = match.slice(-1);
-                
+
                 switch (unit) {
                     case 'd': totalMs += value * 24 * 60 * 60 * 1000; break;
                     case 'h': totalMs += value * 60 * 60 * 1000; break;
@@ -47,8 +42,9 @@ export default new Modal({
                     case 's': totalMs += value * 1000; break;
                 }
             });
-            
-            startDate = DateTime.now().plus({ milliseconds: totalMs }).toJSDate();
+
+            // Calculate the relative start date based on current time
+            startDate = new Date(Date.now() + totalMs);
         } else {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`");
