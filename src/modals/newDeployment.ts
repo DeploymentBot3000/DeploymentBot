@@ -120,9 +120,9 @@ export default new Modal({
         );
 
         try {
-            await interaction.deferReply();
+            await interaction.deferReply({ ephemeral: true });
             
-            await interaction.reply({ components: [row], ephemeral: true });
+            await interaction.editReply({ components: [row] });
 
             const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
             if (latestInput) await latestInput.remove();
