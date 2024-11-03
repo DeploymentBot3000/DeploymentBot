@@ -71,6 +71,7 @@ export default new Modal({
             return;
         }
 
+        // Checks for failure to parse date / time and handles along with logs
         if(startDate instanceof Date && isNaN(startDate.getTime())) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Error parsing date string, please try again later.");
