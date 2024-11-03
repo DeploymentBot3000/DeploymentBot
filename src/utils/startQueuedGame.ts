@@ -10,6 +10,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import updateQueueMessages from "./updateQueueMessage.js";
 
+let failedDeployments = 0;
+
 // Add this function to generate a random 4-digit number
 function generateRandomCode() {
     return Math.floor(1000 + Math.random() * 9000);
@@ -42,21 +44,19 @@ export const startQueuedGame = async (deploymentTime: number) => {
         console.log(`Not enough players or hosts. Hosts: ${hosts.length}, Players: ${players.length}`);
         // Update queue messages with "Not enough players" message
         await updateQueueMessages(true, nextDeploymentTime);
-        
+
         // Log to the logging channel
         if (loggingChannel) {
-            const logMessage = [
-                `!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`,
-                `!      Failed Queue Deployment    !`,
-                `!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`,
-                `!                                !`,
-                `! Insufficient Players/Hosts     !`,
-                `! Hosts Available: ${hosts.length}`.padEnd(33) + '!',
-                `! Players Available: ${players.length}`.padEnd(33) + '!',
-                `!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`
-            ].join('\n');
-            
-            await loggingChannel.send(logMessage);
+            failedDeployments++;
+            const failedEmbed = {
+                color: 0xFF0000,
+                description: `**Failed Deployment #${failedDeployments}**\n\n` +
+                    `Hosts: \`${hosts.length}\`\n` +
+                    `Players: \`${players.length}\``,
+                timestamp: new Date().toISOString()
+            };
+
+            await loggingChannel.send({ embeds: [failedEmbed] });
         }
     } else {
         console.log(`Sufficient players and hosts. Creating groups.`);
@@ -74,17 +74,17 @@ export const startQueuedGame = async (deploymentTime: number) => {
         for (const group of hostPlayerGroups) {
             const host = group.host;
             const selectedPlayers = group.players;
-        
+
             console.log(`Processing group. Host: ${host?.user}, Players: ${selectedPlayers.map(p => p.user).join(', ')}`);
-        
+
             if (!host || selectedPlayers.length < 3) {
                 console.log(`Skipping group due to insufficient players. Host: ${host?.user}, Players: ${selectedPlayers.length}`);
                 continue;
             }
-        
+
             const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null) as GuildTextBasedChannel;
             console.log(`Departure channel fetched: ${departureChannel?.id}`);
-        
+
             const signupsFormatted = selectedPlayers.map(player => {
                 return `<@${player.user}>`;
             }).join("\n") || "` - `";
@@ -157,23 +157,46 @@ export const startQueuedGame = async (deploymentTime: number) => {
 
             // Log to the logging channel
             if (loggingChannel) {
-                const logMessage = [
-                    `###################################`,
-                    `#         Queue Deployment         #`,
-                    `###################################`,
-                    `#                                 #`,
-                    `# Host: ${hostDisplayName}`.padEnd(34) + '#',
-                    `# <@${host.user}>`.padEnd(34) + '#',
-                    `#                                 #`,
-                    `# Players:                        #`,
-                    ...selectedPlayers.map(p => `# • <@${p.user}>`.padEnd(34) + '#'),
-                    `#                                 #`,
-                    `# Voice Channel: 🔊 ${vc.name}`.padEnd(34) + '#',
-                    `# Channel ID: ${vc.id}`.padEnd(34) + '#',
-                    `###################################`
-                ].join('\n');
-                
-                await loggingChannel.send(logMessage);
+                try {
+                    // Fetch all player members to get their nicknames
+                    const playerMembers = await Promise.all(
+                        selectedPlayers.map(p => departureChannel.guild.members.fetch(p.user).catch(() => null))
+                    );
+
+                    const deploymentEmbed = {
+                        color: 0x00FF00,
+                        title: '🚀 Queue Deployment',
+                        fields: [
+                            {
+                                name: '👑 Host',
+                                value: hostDisplayName,
+                                inline: false
+                            },
+                            {
+                                name: '👥 Players',
+                                value: playerMembers
+                                    .filter(member => member !== null)
+                                    .map(member => `• ${member.nickname || member.user.username}`)
+                                    .join('\n') || 'No players found',
+                                inline: false
+                            },
+                            {
+                                name: '🎙️ Voice Channel',
+                                value: `<#${vc.id}>`,
+                                inline: false
+                            }
+                        ],
+                        timestamp: new Date().toISOString(),
+                        footer: {
+                            text: `Channel ID: ${vc.id}`
+                        }
+                    };
+
+                    await loggingChannel.send({ embeds: [deploymentEmbed] })
+                        .catch(error => console.error('Failed to send deployment log:', error));
+                } catch (error) {
+                    console.error('Error creating deployment log:', error);
+                }
             }
         }
     }
