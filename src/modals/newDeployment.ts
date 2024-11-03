@@ -35,7 +35,7 @@ export default new Modal({
 
             console.log(startTimeFormatted)
 
-            startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTCZ");
+            startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTC'xxx");
         } else if (relativeTimeRegex.test(startTime)) {
             const matches = startTime.match(/(\d+)([dhms])/g);
             let totalMs = 0;
