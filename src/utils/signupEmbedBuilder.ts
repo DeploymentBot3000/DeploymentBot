@@ -3,6 +3,7 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
 import {ColorResolvable, EmbedBuilder, Guild} from "discord.js";
+import formatToGoogleCalendarDate from "./formatToGoogleCalendarDate.js";
 
 
 export async function buildDeploymentEmbed(
@@ -20,12 +21,14 @@ export async function buildDeploymentEmbed(
     const signups = await Signups.find({ where: { deploymentId: deployment.id } });
     const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
+    const googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(deployment.title)}&dates=${formatToGoogleCalendarDate(deployment.startTime)}/${formatToGoogleCalendarDate(deployment.startTime + 7200000)}&details=${encodeURIComponent(deployment.description)}&location=${encodeURIComponent("101st Deployments Channel")}&sf=true&output=xml`;
+
     return new EmbedBuilder()
         .setTitle(started ? `<:hellpod:1302084726219210752> ${deployment.title} - Started <:hellpod:1302084726219210752>` : deployment.title)
         .addFields([
             {
                 name: "Event Info:",
-                value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d>\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.endTime) / 1000)}:t>`
+                value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.startTime + 7200000) / 1000)}:t>\n🪖 ${deployment.difficulty}`
             },
             {
                 name: "Description:",
