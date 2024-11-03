@@ -142,5 +142,6 @@ export default {
             style: "Danger"
         }
     },
-    useNicknames: true
+
+    bugReportChannelId: "id"
 }
