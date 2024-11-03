@@ -3,6 +3,7 @@ export default {
     prefix: "-",
     debugMode: true,
     resetDatabase: true, // Clears out the database on every restart - only enable for the first time
+    synchronizeDatabase: false,
     database: {
         type: "mysql",
         host: "na",
