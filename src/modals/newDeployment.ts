@@ -10,6 +10,18 @@ import { DateTime } from "luxon";
 import formatToGoogleCalendarDate from "../utils/formatToGoogleCalendarDate.js";
 
 const activeDeploymentCreations = new Set<string>();
+const TIMEOUT_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+const userTimeouts = new Map<string, NodeJS.Timeout>();
+
+// Function to cleanup user creation state
+function cleanupUserCreation(userId: string) {
+    activeDeploymentCreations.delete(userId);
+    const timeout = userTimeouts.get(userId);
+    if (timeout) {
+        clearTimeout(timeout);
+        userTimeouts.delete(userId);
+    }
+}
 
 async function storeLatestInput(interaction, { title, difficulty, description }) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
@@ -37,12 +49,17 @@ export default new Modal({
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You already have an active deployment creation in progress. Please complete or cancel that one first.");
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-            activeDeploymentCreations.delete(interaction.user.id);
+            cleanupUserCreation(interaction.user.id);
             return;
         }
 
         // Add user to active creations
         activeDeploymentCreations.add(interaction.user.id);
+        // Set timeout to automatically remove after 5 minutes
+        const timeout = setTimeout(() => {
+            cleanupUserCreation(interaction.user.id);
+        }, TIMEOUT_DURATION);
+        userTimeouts.set(interaction.user.id, timeout);
 
         const title = interaction.fields.getTextInputValue("title");
         const difficulty = interaction.fields.getTextInputValue("difficulty");
@@ -83,7 +100,7 @@ export default new Modal({
                 .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`");
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             await storeLatestInput(interaction, { title, difficulty, description });
-            activeDeploymentCreations.delete(interaction.user.id);
+            cleanupUserCreation(interaction.user.id);
             return;
         }
 
@@ -94,7 +111,7 @@ export default new Modal({
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             await storeLatestInput(interaction, { title, difficulty, description });
             console.log(`Error: Could not parse data/time string - ${startDate}`);
-            activeDeploymentCreations.delete(interaction.user.id);
+            cleanupUserCreation(interaction.user.id);
             return;
         }
 
@@ -123,7 +140,7 @@ export default new Modal({
                 });
             }
 
-            activeDeploymentCreations.delete(interaction.user.id);
+            cleanupUserCreation(interaction.user.id);
             return;
         }
 
@@ -156,7 +173,7 @@ export default new Modal({
 
                 await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
                 // Remove user from active creations
-                activeDeploymentCreations.delete(interaction.user.id);
+                cleanupUserCreation(interaction.user.id);
                 return;
             }
 
@@ -265,7 +282,12 @@ export default new Modal({
             }
         } finally {
             // Always remove user from active creations when done
-            activeDeploymentCreations.delete(interaction.user.id);
+            cleanupUserCreation(interaction.user.id);
         }
     }
 })
+
+// Clear all active creations on module load (bot restart)
+activeDeploymentCreations.clear();
+userTimeouts.forEach(timeout => clearTimeout(timeout));
+userTimeouts.clear();
