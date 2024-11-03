@@ -33,6 +33,8 @@ export default new Modal({
             // Format the time string with the reversed timezone
             const startTimeFormatted = startTime.replace(/UTC[+-]\d{1,2}(?::\d{2})?/, `UTC${sign}${hours}${minutes}`);
 
+            console.log(startTimeFormatted)
+
             startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTCZ");
         } else if (relativeTimeRegex.test(startTime)) {
             const matches = startTime.match(/(\d+)([dhms])/g);
