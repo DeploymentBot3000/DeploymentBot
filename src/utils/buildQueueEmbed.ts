@@ -41,12 +41,8 @@ export default async function buildQueueEmbed(notEnoughPlayers: boolean = false,
     let content = null;
     if (notEnoughPlayers) {
         content = `**❌ Not enough players.** Next deployment starting <t:${Math.round(nextDeploymentTime / 1000)}:R>`;
-        //console.log(`Adding "Not enough players" message to queue message: ${message.id}`);
     } else if (deploymentCreated) {
         content = `**✅ Successfully created a deployment.** Next deployment starting <t:${Math.round(nextDeploymentTime / 1000)}:R>`;
-        //console.log(`Adding "Successfully created a deployment" message to queue message: ${message.id}`);
-    } else {
-        //console.log(`Removing status message from queue message: ${message.id}`);
     }
     return { embed, content };
 }
