@@ -91,7 +91,11 @@ export default new Slashcommand({
                     )
                     .setTimestamp();
 
-                await channel.send({ embeds: [bugReportEmbed] });
+                // Added specific user pings to the message content
+                await channel.send({
+                    content: '<@486987675384020995> <@320766564116725761>',
+                    embeds: [bugReportEmbed]
+                });
 
                 // Confirm submission to user
                 await modalSubmission.reply({
@@ -124,4 +128,4 @@ export default new Slashcommand({
             });
         }
     }
-}); 
+});
