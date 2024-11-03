@@ -33,12 +33,18 @@ export default new Button({
             .addFields([
                 {
                     name: "Hosts:",
-                    value: queue.filter(q => q.host).map(host => `<@${host.user}>`).join("\n") || "` - `",
+                    value: await Promise.all(queue.filter(q => q.host).map(async host => {
+                        const member = await interaction.guild?.members.fetch(host.user).catch(() => null);
+                        return member ? member.displayName : 'Unknown User';
+                    })).then(hosts => hosts.join("\n")) || "` - `",
                     inline: true
                 },
                 {
                     name: "Participants:",
-                    value: queue.filter(q => !q.host).map(player => `<@${player.user}>`).join("\n") || "` - `",
+                    value: await Promise.all(queue.filter(q => !q.host).map(async player => {
+                        const member = await interaction.guild?.members.fetch(player.user).catch(() => null);
+                        return member ? member.displayName : 'Unknown User';
+                    })).then(players => players.join("\n")) || "` - `",
                     inline: true
                 },
                 {
