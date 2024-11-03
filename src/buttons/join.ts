@@ -20,11 +20,6 @@ export default new Button({
 
         await Queue.insert({ user: interaction.user.id, host: false });
 
-        const successEmbed = buildEmbed({ preset: "success" })
-            .setDescription("You have been added to the queue as a participant");
-
-        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
-
         const queue = await Queue.find();
 
         const embed = buildEmbed({ name: "queuePanel" })

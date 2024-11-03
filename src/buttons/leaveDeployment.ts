@@ -115,10 +115,7 @@ export default new Button({
                 return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             }
 
-            const successEmbed = buildEmbed({ preset: "success" })
-                .setDescription("You have left the deployment");
-
-            await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+            await interaction.reply({ embeds: [buildEmbed({ preset: "success" })], ephemeral: true });
         } catch (error) {
             console.error('Error in leaveDeployment button:', error);
             const errorEmbed = buildEmbed({ preset: "error" })
