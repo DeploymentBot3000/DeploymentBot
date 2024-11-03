@@ -163,7 +163,7 @@ export default new Modal({
                     },
                     {
                         name: "Signups:",
-                        value: `${offenseRole.emoji} <@${interaction.user.id}>`,
+                        value: `${offenseRole.emoji} ${interaction.member.displayName}`,
                         inline: true
                     },
                     {
