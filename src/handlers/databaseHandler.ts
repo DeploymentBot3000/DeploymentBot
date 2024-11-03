@@ -22,7 +22,7 @@ for (const file of tableFiles) {
 const AppDataSource = new DataSource({
     ...config.database as DataSourceOptions,
     entities: Object.values(entities),
-    synchronize: config.resetDatabase,
+    synchronize: true,
     dropSchema: config.resetDatabase
 });
 
