@@ -165,7 +165,7 @@ export const startQueuedGame = async (deploymentTime: number) => {
 
                     const deploymentEmbed = {
                         color: 0x00FF00,
-                        title: '🚀 Queue Deployment',
+                        title: '<:Helldivers:1226464844534779984> Queue Deployment <:Helldivers:1226464844534779984>',
                         fields: [
                             {
                                 name: '👑 Host',
