@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, StringSelectMenuInteraction, GuildMember, ColorResolvable } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, StringSelectMenuInteraction, GuildMember, ColorResolvable, ChannelType } from "discord.js";
 import Modal from "../classes/Modal.js";
 import LatestInput from "../tables/LatestInput.js";
 import { buildButton, buildEmbed } from "../utils/configBuilders.js";
@@ -67,6 +67,13 @@ export default new Modal({
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`");
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            
+            // Log invalid time entry to specific channel
+            const logChannel = await interaction.client.channels.fetch('1299122351291629599');
+            if (logChannel?.type === ChannelType.GuildText) {
+                await logChannel.send(`Invalid time format used by ${interaction.user.tag} (${interaction.user.id})\nAttempted time: ${startTime}`);
+            }
+            
             await storeLatestInput(interaction, { title, difficulty, description });
             return;
         }
@@ -76,6 +83,13 @@ export default new Modal({
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Error parsing date string, please try again later.");
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            
+            // Log invalid time entry to specific channel
+            const logChannel = await interaction.client.channels.fetch('1299122351291629599');
+            if (logChannel?.type === ChannelType.GuildText) {
+                await logChannel.send(`Failed to parse time by ${interaction.user.tag} (${interaction.user.id})\nAttempted time: ${startTime}`);
+            }
+            
             await storeLatestInput(interaction, { title, difficulty, description });
             console.log(`Error: Could not parse data/time string - ${startDate}`);
             return;
