@@ -17,18 +17,16 @@ export default async function buildQueueEmbed(notEnoughPlayers: boolean = false,
             {
                 name: "Hosts:",
                 value: await Promise.all(currentHosts.map(async host => {
-                    if (!config.useNicknames) return `<@${host.user}>`;
                     const member = await channel.guild.members.fetch(host.user).catch(() => null);
-                    return member ? `${member.nickname || member.user.username}` : `<@${host.user}>`;
+                    return member ? `<@${host.user}> (${member.user.username})` : `<@${host.user}>`;
                 })).then(hosts => hosts.join("\n")) || "` - `",
                 inline: true
             },
             {
                 name: "Participants:",
                 value: await Promise.all(currentPlayers.map(async player => {
-                    if (!config.useNicknames) return `<@${player.user}>`;
                     const member = await channel.guild.members.fetch(player.user).catch(() => null);
-                    return member ? `${member.nickname || member.user.username}` : `<@${player.user}>`;
+                    return member ? `<@${player.user}> (${member.user.username})` : `<@${player.user}>`;
                 })).then(players => players.join("\n")) || "` - `",
                 inline: true
             },
