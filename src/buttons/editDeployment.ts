@@ -192,14 +192,18 @@ export default new Button({
                     name: "Signups:",
                     value: signupMembers.map(signup => {
                         const role = config.roles.find(role => role.name === signup.role);
-                        return `${role.emoji} <@${signup.userId}>`;
+                        const member = interaction.guild.members.cache.get(signup.userId);
+                        return `${role.emoji} ${member ? member.displayName : `Unknown Member (${signup.userId})`}`;
                     }).join("\n") || "` - `",
                     inline: true
                 },
                 {
                     name: "Backups:",
                     value: backupMembers.length ?
-                        backupMembers.map(backup => `<@${backup.userId}>`).join("\n") || "` - `"
+                        backupMembers.map(backup => {
+                            const member = interaction.guild.members.cache.get(backup.userId);
+                            return member ? member.displayName : `Unknown Member (${backup.userId})`;
+                        }).join("\n")
                         : "` - `",
                     inline: true
                 }
