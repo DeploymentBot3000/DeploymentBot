@@ -1,6 +1,6 @@
 export default function formatToGoogleCalendarDate(ms) {
     console.log(ms)
-    const date = new Date(ms / 1000);
+    const date = new Date((ms / 1000));
     console.log(date);
     const dateString = date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
     console.log(dateString)
