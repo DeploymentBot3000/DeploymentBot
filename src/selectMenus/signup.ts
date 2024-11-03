@@ -5,6 +5,7 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import config from "../config.js";
+import formatToGoogleCalendarDate from "../utils/formatToGoogleCalendarDate.js";
 
 export default new SelectMenu({
     id: "signup",
@@ -42,7 +43,7 @@ export default new SelectMenu({
             const backupMembers = await Promise.all(
                 backups.map(backup => fetchMember(backup.userId))
             );
-            const googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(deployment.title)}&dates=${deployment.startTime}/${deployment.startTime + 7200000}&details=${encodeURIComponent(deployment.description)}&location=${encodeURIComponent("101st Deployments Channel")}&sf=true&output=xml`;
+            const googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(deployment.title)}&dates=${formatToGoogleCalendarDate(deployment.startTime)}/${formatToGoogleCalendarDate(deployment.startTime + 7200000)}&details=${encodeURIComponent(deployment.description)}&location=${encodeURIComponent("101st Deployments Channel")}&sf=true&output=xml`;
 
             const embed = new EmbedBuilder()
                 .setTitle(deployment.title)

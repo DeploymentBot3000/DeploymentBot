@@ -7,6 +7,7 @@ import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import { DateTime } from "luxon";
+import formatToGoogleCalendarDate from "../utils/formatToGoogleCalendarDate.js";
 
 const activeDeploymentCreations = new Set<string>();
 
@@ -164,7 +165,7 @@ export default new Modal({
 
             const offenseRole = config.roles.find(role => role.name === "Offense");
 
-            const googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startTime}/${startTime + 7200000}&details=${encodeURIComponent(description)}&location=${encodeURIComponent("101st Deployments Channel")}&sf=true&output=xml`;
+            const googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatToGoogleCalendarDate(startDate.getTime())}/${formatToGoogleCalendarDate(startTime + 7200000)}&details=${encodeURIComponent(description)}&location=${encodeURIComponent("101st Deployments Channel")}&sf=true&output=xml`;
 
             const embed = new EmbedBuilder()
                 .setTitle(title)
