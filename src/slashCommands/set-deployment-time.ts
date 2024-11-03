@@ -5,6 +5,7 @@ import { client, setDeploymentTime } from "../index.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import Queue from "../tables/Queue.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
+import updateQueueMessages from "../utils/updateQueueMessage.js";
 
 export default new Slashcommand({
     name: "set-deployment-time",
@@ -41,35 +42,6 @@ export default new Slashcommand({
 
         client.nextGame = new Date(Date.now() + time);
 
-        const currentQueue = await Queue.find();
-        const currentHosts = currentQueue.filter(q => q.host);
-        const currentPlayers = currentQueue.filter(q => !q.host);
-
-        const queueMessages = await QueueStatusMsg.find();
-
-        for (const queueMessage of queueMessages) {
-            const channel = await client.channels.fetch(queueMessage.channel).catch(() => null) as GuildTextBasedChannel;
-            const message = await channel.messages.fetch(queueMessage.message).catch(() => null);
-
-            const embed = buildEmbed({ name: "queuePanel" })
-                .addFields([
-                    {
-                        name: "Hosts:",
-                        value: currentHosts.map(host => `<@${host.user}>`).join("\n") || "` - `",
-                        inline: true
-                    },
-                    {
-                        name: "Participants:",
-                        value: currentPlayers.map(player => `<@${player.user}>`).join("\n") || "` - `",
-                        inline: true
-                    },
-                    {
-                        name: "Next game:",
-                        value: `📅 <t:${Math.round(client.nextGame.getTime() / 1000)}:d>\n🕒 <t:${Math.round(client.nextGame.getTime() / 1000)}:t>`,
-                    }
-                ]);
-
-            await message.edit({ content: null, embeds: [embed] });
-        }
+        await updateQueueMessages(true, client.nextGame.getTime(), false);
     }
 })

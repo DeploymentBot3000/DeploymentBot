@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, EmbedBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, StringSelectMenuInteraction } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, StringSelectMenuInteraction } from "discord.js";
 import Modal from "../classes/Modal.js";
 import LatestInput from "../tables/LatestInput.js";
 import { buildButton, buildEmbed } from "../utils/configBuilders.js";
@@ -6,6 +6,7 @@ import date from "date-and-time";
 import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
+import { DateTime } from "luxon";
 
 export default new Modal({
     id: "newDeployment",
@@ -15,9 +16,36 @@ export default new Modal({
         const description = interaction.fields.getTextInputValue("description");
         const startTime = interaction.fields.getTextInputValue("startTime");
 
-        const startRegex = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(\d{1,2}) UTC[+-]\d{1,2}(:30)?$/;
-        
-        if (!startRegex.test(startTime)) {
+        // Regex for both absolute and relative time formats
+        const absoluteTimeRegex = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(\d{1,2}) UTC[+-]\d{1,2}(:30)?$/;
+        const relativeTimeRegex = /^(?:(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s\s*)?)+$/;
+
+        let startDate: Date;
+
+        if (absoluteTimeRegex.test(startTime)) {
+            // Parse using Luxon for better handling of time zones
+            const startDateTime = DateTime.fromFormat(startTime, "yyyy-MM-dd HH:mm 'UTC'ZZ");
+            startDate = startDateTime.toJSDate();  // Converts Luxon DateTime to JavaScript Date
+        } else if (relativeTimeRegex.test(startTime)) {
+            // Parse relative time
+            const matches = startTime.match(/(\d+)([dhms])/g);
+            let totalMs = 0;
+
+            matches.forEach(match => {
+                const value = parseInt(match.slice(0, -1));
+                const unit = match.slice(-1);
+
+                switch (unit) {
+                    case 'd': totalMs += value * 24 * 60 * 60 * 1000; break;
+                    case 'h': totalMs += value * 60 * 60 * 1000; break;
+                    case 'm': totalMs += value * 60 * 1000; break;
+                    case 's': totalMs += value * 1000; break;
+                }
+            });
+
+            // Calculate the relative start date based on current time
+            startDate = new Date(Date.now() + totalMs);
+        } else {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`");
 
@@ -42,12 +70,7 @@ export default new Modal({
             return;
         }
 
-        const startTimeFormatted = startTime.replace(/UTC([+-])(\d{1,2}):?(\d{2})?/, (_, sign, hourOffset, minuteOffset = "00") => {
-            return `UTC${sign}${hourOffset.padStart(2, "0")}${minuteOffset.padStart(2, "0")}`.replace(/:/g, "");
-        });
-
-        const startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTCZ");
-  const oneHourFromNow = Date.now() + (60 * 60 * 1000); // 1 hour in milliseconds
+        const oneHourFromNow = Date.now() + (60 * 60 * 1000); // 1 hour in milliseconds
         
         if (startDate.getTime() < oneHourFromNow) {
             const errorEmbed = buildEmbed({ preset: "error" })
@@ -157,7 +180,11 @@ export default new Modal({
             )),
             new ActionRowBuilder<ButtonBuilder>().addComponents(
                 buildButton("editDeployment"),
-                buildButton("deleteDeployment")
+                buildButton("deleteDeployment"),
+                new ButtonBuilder()
+                    .setCustomId("leaveDeployment")
+                    .setLabel("Leave")
+                    .setStyle(ButtonStyle.Danger)
             )
         ];
 

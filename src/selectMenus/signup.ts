@@ -25,6 +25,24 @@ export default new SelectMenu({
             const signups = await Signups.find({ where: { deploymentId: deployment.id } });
             const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
+            const guild = interaction.guild;
+            
+            const fetchMember = async (userId: string) => {
+                try {
+                    return await guild.members.fetch(userId);
+                } catch (error) {
+                    console.error(`Failed to fetch member ${userId}:`, error);
+                    return null;
+                }
+            };
+
+            const signupMembers = await Promise.all(
+                signups.map(signup => fetchMember(signup.userId))
+            );
+            const backupMembers = await Promise.all(
+                backups.map(backup => fetchMember(backup.userId))
+            );
+
             const embed = new EmbedBuilder()
                 .setTitle(deployment.title)
                 .addFields([
@@ -38,9 +56,12 @@ export default new SelectMenu({
                     },
                     {
                         name: "Signups:",
-                        value: signups.map(signup => {
+                        value: signups.map((signup, index) => {
                             const role = config.roles.find(role => role.name === signup.role);
-                            return `${role.emoji} <@${signup.userId}>`;
+                            const member = signupMembers[index];
+                            return member 
+                                ? `${role.emoji} <@${signup.userId}>`
+                                : `${role.emoji} Unknown Member (${signup.userId})`;
                         }).join("\n") || "` - `",
                         inline: true
                     },

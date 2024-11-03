@@ -28,13 +28,6 @@ export default new Button({
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
       
-        if(!deployment.noticeSent) {
-            const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("You can't edit a deployment after the notice has been sent!");
-
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-        }
-
         if(deployment.noticeSent) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You can't edit a deployment after the notice has been sent!");
@@ -155,6 +148,35 @@ export default new Button({
         const signups = await Signups.find({ where: { deploymentId: deployment.id } });
         const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
+        const signupMembers = [];
+        const backupMembers = [];
+
+        for (const signup of signups) {
+            try {
+                const member = await interaction.guild.members.fetch(signup.userId);
+                if (member) {
+                    signupMembers.push(signup);
+                }
+            } catch (error) {
+                console.error(`Failed to fetch member for signup ${signup.userId}:`, error);
+                // Remove invalid signup from database
+                await signup.remove().catch(console.error);
+            }
+        }
+
+        for (const backup of backups) {
+            try {
+                const member = await interaction.guild.members.fetch(backup.userId);
+                if (member) {
+                    backupMembers.push(backup);
+                }
+            } catch (error) {
+                console.error(`Failed to fetch member for backup ${backup.userId}:`, error);
+                // Remove invalid backup from database
+                await backup.remove().catch(console.error);
+            }
+        }
+
         const embed = new EmbedBuilder()
             .setTitle(deployment.title)
             .addFields([
@@ -168,7 +190,7 @@ export default new Button({
                 },
                 {
                     name: "Signups:",
-                    value: signups.map(signup => {
+                    value: signupMembers.map(signup => {
                         const role = config.roles.find(role => role.name === signup.role);
                         return `${role.emoji} <@${signup.userId}>`;
                     }).join("\n") || "` - `",
@@ -176,14 +198,14 @@ export default new Button({
                 },
                 {
                     name: "Backups:",
-                    value: backups.length ?
-                        backups.map(backup => `<@${backup.userId}>`).join("\n") || "` - `"
+                    value: backupMembers.length ?
+                        backupMembers.map(backup => `<@${backup.userId}>`).join("\n") || "` - `"
                         : "` - `",
                     inline: true
                 }
             ])
             .setColor("Green")
-            .setFooter({ text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4` })
+            .setFooter({ text: `Sign ups: ${signupMembers.length}/4 ~ Backups: ${backupMembers.length}/4` })
             .setTimestamp(Number(deployment.startTime));
 
         await interaction.message.edit({ embeds: [embed] }).catch(() => null);
