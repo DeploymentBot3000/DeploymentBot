@@ -2,46 +2,63 @@ import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
-import {ColorResolvable, EmbedBuilder} from "discord.js";
+import {ColorResolvable, EmbedBuilder, Guild} from "discord.js";
 
 
-export async function buildDeploymentEmbed(deployment: InstanceType<typeof Deployment>, interaction: any, color: ColorResolvable = "Green", started: boolean = false) {
-        console.log('Building deployment embed with color:', color);
-        const signups = await Signups.find({ where: { deploymentId: deployment.id } });
-        const backups = await Backups.find({ where: { deploymentId: deployment.id } });
+export async function buildDeploymentEmbed(
+    deployment: InstanceType<typeof Deployment>, 
+    guild: Guild | null | ColorResolvable, 
+    color: ColorResolvable = "Green", 
+    started: boolean = false
+) {
+    if (typeof guild === 'string' || typeof guild === 'number') {
+        color = guild;
+        guild = null;
+    }
+
+    console.log('Building deployment embed with color:', color);
+    const signups = await Signups.find({ where: { deploymentId: deployment.id } });
+    const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
     return new EmbedBuilder()
-            .setTitle(started ? `<:hellpod:1302084726219210752> ${deployment.title} - Started <:hellpod:1302084726219210752>` : deployment.title)
-            .addFields([
-                {
-                    name: "Event Info:",
-                    value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d>\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.endTime) / 1000)}:t>`
-                },
-                {
-                    name: "Description:",
-                    value: deployment.description
-                },
-                {
-                    name: "Signups:",
-                    value: signups.map(signup => {
-                        const role = config.roles.find(role => role.name === signup.role);
-                        const member = interaction.guild.members.cache.get(signup.userId);
-                        return `${role.emoji} ${member ? member.displayName : `Unknown Member (${signup.userId})`}`;
-                    }).join("\n") || "` - `",
-                    inline: true
-                },
-                {
-                    name: "Backups:",
-                    value: backups.length ?
-                        backups.map(backup => {
-                            const member = interaction.guild.members.cache.get(backup.userId);
-                            return member ? member.displayName : `Unknown Member (${backup.userId})`;
-                        }).join("\n")
-                        : "` - `",
-                    inline: true
-                }
-            ])
-            .setColor(color as ColorResolvable)
-            .setFooter({text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4`})
-            .setTimestamp(Number(deployment.startTime));
-    }
+        .setTitle(started ? `<:hellpod:1302084726219210752> ${deployment.title} - Started <:hellpod:1302084726219210752>` : deployment.title)
+        .addFields([
+            {
+                name: "Event Info:",
+                value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d>\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.endTime) / 1000)}:t>`
+            },
+            {
+                name: "Description:",
+                value: deployment.description
+            },
+            {
+                name: "Signups:",
+                value: await Promise.all(signups.map(async signup => {
+                    const role = config.roles.find(role => role.name === signup.role);
+                    let memberName = `Unknown Member (${signup.userId})`;
+                    
+                    if (guild && guild instanceof Guild) {
+                        const member = await guild.members.fetch(signup.userId).catch(() => null);
+                        if (member) memberName = member.displayName;
+                    }
+                    
+                    return `${role?.emoji || ''} ${memberName}`;
+                })).then(lines => lines.join("\n")) || "` - `",
+                inline: true
+            },
+            {
+                name: "Backups:",
+                value: backups.length ? 
+                    await Promise.all(backups.map(async backup => {
+                        if (!guild || !(guild instanceof Guild)) return `Unknown Member (${backup.userId})`;
+                        const member = await guild.members.fetch(backup.userId).catch(() => null);
+                        return member ? member.displayName : `Unknown Member (${backup.userId})`;
+                    })).then(lines => lines.join("\n"))
+                    : "` - `",
+                inline: true
+            }
+        ])
+        .setColor(color)
+        .setFooter({text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4`})
+        .setTimestamp(Number(deployment.startTime));
+}

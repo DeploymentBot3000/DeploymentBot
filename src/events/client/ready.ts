@@ -119,7 +119,7 @@ export default {
 
 				if (!message) continue;
 
-				const embed = await buildDeploymentEmbed(deployment, "Red");
+				const embed = await buildDeploymentEmbed(deployment, message.guild, "Red", true);
 
 				await message.edit({ content: "", embeds: [embed], components: [] }).catch(err => console.error("Message edit error:", err));
 
