@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBa
 import Modal from "../classes/Modal.js";
 import LatestInput from "../tables/LatestInput.js";
 import { buildButton, buildEmbed } from "../utils/configBuilders.js";
-import date from "date-and-time";
+import { DateTime } from "luxon";
 import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
@@ -22,16 +22,16 @@ export default new Modal({
         let startDate: Date;
 
         if (absoluteTimeRegex.test(startTime)) {
-            // Parse the timezone offset first
-            const match = startTime.match(/UTC([+-])(\d{1,2})(?::?(\d{2})?)/);
-            const sign = match[1] === '-' ? '+' : '-'; // Reverse the sign for correct UTC conversion
-            const hours = match[2].padStart(2, '0');
-            const minutes = (match[3] || '00').padStart(2, '0');
-
-            // Format the time string with the reversed timezone
-            const startTimeFormatted = startTime.replace(/UTC[+-]\d{1,2}(?::\d{2})?/, `UTC${sign}${hours}${minutes}`);
-
-            startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTCZ");
+            // Parse the date and time parts
+            const [datePart, timePart] = startTime.split(' ');
+            const [timeValue, timezone] = timePart.split(' UTC');
+            
+            // Create DateTime object with the timezone offset
+            startDate = DateTime.fromFormat(
+                `${datePart} ${timeValue}`, 
+                "yyyy-MM-dd HH:mm", 
+                { zone: `UTC${timezone}` }
+            ).toJSDate();
         } else if (relativeTimeRegex.test(startTime)) {
             const matches = startTime.match(/(\d+)([dhms])/g);
             let totalMs = 0;
@@ -48,7 +48,7 @@ export default new Modal({
                 }
             });
             
-            startDate = new Date(Date.now() + totalMs);
+            startDate = DateTime.now().plus({ milliseconds: totalMs }).toJSDate();
         } else {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`");
