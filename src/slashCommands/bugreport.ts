@@ -105,6 +105,13 @@ export default new Slashcommand({
                 });
             }
         } catch (error) {
+            // Check if it's a timeout error
+            if (error.code === 'InteractionCollectorError') {
+                // Don't need to respond since the modal was likely closed/timed out
+                return;
+            }
+
+            // Handle other errors
             console.error('Error handling bug report modal:', error);
             await interaction.followUp({
                 embeds: [buildEmbed({
