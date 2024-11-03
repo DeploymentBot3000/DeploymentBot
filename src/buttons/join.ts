@@ -9,6 +9,7 @@ export default new Button({
     permissions: [],
     requiredRoles: [],
     func: async function ({ interaction }) {
+        await interaction.deferUpdate();
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
 
         if (alreadyQueued) {

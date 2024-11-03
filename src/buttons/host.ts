@@ -20,6 +20,7 @@ export default new Button({
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
 
+        await interaction.deferUpdate();
         await Queue.insert({ user: interaction.user.id, host: true });
 
         const queue = await Queue.find();
