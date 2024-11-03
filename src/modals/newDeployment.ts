@@ -71,7 +71,7 @@ export default new Modal({
             // Log invalid time entry to specific channel
             const logChannel = await interaction.client.channels.fetch('1299122351291629599');
             if (logChannel?.type === ChannelType.GuildText) {
-                await logChannel.send(`Invalid time format used by ${interaction.user.tag} (${interaction.user.id})\nAttempted time: ${startTime}`);
+                await logChannel.send(`-----------------\n\nInvalid time format used by ${interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.user.username}\nAttempted time:** ${startTime}**`);
             }
             
             await storeLatestInput(interaction, { title, difficulty, description });
@@ -87,7 +87,7 @@ export default new Modal({
             // Log invalid time entry to specific channel
             const logChannel = await interaction.client.channels.fetch('1299122351291629599');
             if (logChannel?.type === ChannelType.GuildText) {
-                await logChannel.send(`Failed to parse time by ${interaction.user.tag} (${interaction.user.id})\nAttempted time: ${startTime}`);
+                await logChannel.send(`Failed to parse time by ${interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.user.username}\nAttempted time:** ${startTime}**`);
             }
             
             await storeLatestInput(interaction, { title, difficulty, description });
