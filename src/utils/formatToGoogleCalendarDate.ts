@@ -1,6 +1,6 @@
 export default function formatToGoogleCalendarDate(timestamp: number): string {
-    // Validate timestamp
-    if (!timestamp || isNaN(timestamp)) {
+    // Ensure timestamp is a valid number
+    if (typeof timestamp !== 'number' || isNaN(timestamp)) {
         throw new Error(`Invalid timestamp: ${timestamp}`);
     }
     
@@ -11,6 +11,10 @@ export default function formatToGoogleCalendarDate(timestamp: number): string {
         throw new Error(`Invalid date created from timestamp: ${timestamp}`);
     }
     
-    // Format to YYYYMMDDTHHMMSSZ
-    return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    // Format to YYYYMMDDTHHMMSS
+    const formatted = date.toISOString()
+        .replace(/[-:]/g, '')  // Remove dashes and colons
+        .replace(/\.\d{3}Z/, ''); // Remove milliseconds and Z
+    
+    return formatted;
 }

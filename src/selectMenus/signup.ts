@@ -46,7 +46,24 @@ export default new SelectMenu({
                 );
                 let googleCalendarLink;
                 try {
-                    googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(deployment.title)}&dates=${formatToGoogleCalendarDate(deployment.startTime)}/${formatToGoogleCalendarDate(deployment.endTime)}&details=${encodeURIComponent(deployment.description)}&location=${encodeURIComponent("101st Deployments Channel")}&sf=true&output=xml`;
+                    const startTime = Number(deployment.startTime);
+                    const endTime = Number(deployment.endTime);
+                    
+                    if (isNaN(startTime) || isNaN(endTime)) {
+                        throw new Error('Invalid start or end time');
+                    }
+                    
+                    googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${
+                        encodeURIComponent(deployment.title)
+                    }&dates=${
+                        formatToGoogleCalendarDate(startTime)
+                    }/${
+                        formatToGoogleCalendarDate(endTime)
+                    }&details=${
+                        encodeURIComponent(deployment.description)
+                    }&location=${
+                        encodeURIComponent("101st Deployments Channel")
+                    }&sf=true&output=xml`;
                 } catch (error) {
                     console.error('Failed to generate calendar link:', error);
                     googleCalendarLink = '#'; // Fallback link if date formatting fails
