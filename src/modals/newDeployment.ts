@@ -6,6 +6,7 @@ import date from "date-and-time";
 import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
+import { DateTime } from "luxon";
 
 export default new Modal({
     id: "newDeployment",
@@ -18,29 +19,52 @@ export default new Modal({
         // Regex for both absolute and relative time formats
         const absoluteTimeRegex = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(\d{1,2}) UTC[+-]\d{1,2}(:30)?$/;
         const relativeTimeRegex = /^(?:(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s\s*)?)+$/;
-        
+
         let startDate: Date;
+        
+        // if (absoluteTimeRegex.test(startTime)) {
+        //     // Parse the timezone offset first
+        //     const match = startTime.match(/UTC([+-])(\d{1,2})(?::?(\d{2})?)/);
+        //     const sign = match[1] === '-' ? '+' : '-'; // Reverse the sign for correct UTC conversion
+        //     const hours = match[2].padStart(2, '0');
+        //     const minutes = (match[3] || '00').padStart(2, '0');
+        //
+        //     // Format the time string with the reversed timezone
+        //     const startTimeFormatted = startTime.replace(/UTC[+-]\d{1,2}(?::\d{2})?/, `${sign}${hours}:${minutes}`);
+        //
+        //     startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTCZ");
+        // } else if (relativeTimeRegex.test(startTime)) {
+        //     const matches = startTime.match(/(\d+)([dhms])/g);
+        //     let totalMs = 0;
+        //
+        //     matches.forEach(match => {
+        //         const value = parseInt(match.slice(0, -1));
+        //         const unit = match.slice(-1);
+        //
+        //         switch (unit) {
+        //             case 'd': totalMs += value * 24 * 60 * 60 * 1000; break;
+        //             case 'h': totalMs += value * 60 * 60 * 1000; break;
+        //             case 'm': totalMs += value * 60 * 1000; break;
+        //             case 's': totalMs += value * 1000; break;
+        //         }
+        //     });
+        //
+        //     startDate = new Date(Date.now() + totalMs);
+        // }
 
         if (absoluteTimeRegex.test(startTime)) {
-            // Parse the timezone offset first
-            const match = startTime.match(/UTC([+-])(\d{1,2})(?::?(\d{2})?)/);
-            const sign = match[1] === '-' ? '+' : '-'; // Reverse the sign for correct UTC conversion
-            const hours = match[2].padStart(2, '0');
-            const minutes = (match[3] || '00').padStart(2, '0');
-
-            // Format the time string with the reversed timezone
-            const startTimeFormatted = startTime.replace(/UTC[+-]\d{1,2}(?::\d{2})?/, `${sign}${hours}:${minutes}`);
-
-            startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTCZ");
-            console.log(startDate);
+            // Parse using Luxon for better handling of time zones
+            const startDateTime = DateTime.fromFormat(startTime, "yyyy-MM-dd HH:mm 'UTC'ZZ");
+            startDate = startDateTime.toJSDate();  // Converts Luxon DateTime to JavaScript Date
         } else if (relativeTimeRegex.test(startTime)) {
+            // Parse relative time
             const matches = startTime.match(/(\d+)([dhms])/g);
             let totalMs = 0;
-            
+
             matches.forEach(match => {
                 const value = parseInt(match.slice(0, -1));
                 const unit = match.slice(-1);
-                
+
                 switch (unit) {
                     case 'd': totalMs += value * 24 * 60 * 60 * 1000; break;
                     case 'h': totalMs += value * 60 * 60 * 1000; break;
@@ -48,7 +72,8 @@ export default new Modal({
                     case 's': totalMs += value * 1000; break;
                 }
             });
-            
+
+            // Calculate the relative start date based on current time
             startDate = new Date(Date.now() + totalMs);
         } else {
             const errorEmbed = buildEmbed({ preset: "error" })
