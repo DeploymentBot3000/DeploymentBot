@@ -8,6 +8,24 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import { DateTime } from "luxon";
 
+async function storeLatestInput(interaction, { title, difficulty, description }) {
+    const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
+
+    if (latestInput) {
+        latestInput.title = title;
+        latestInput.difficulty = difficulty;
+        latestInput.description = description;
+        await latestInput.save();
+    } else {
+        await LatestInput.insert({
+            userId: interaction.user.id,
+            title,
+            difficulty,
+            description
+        });
+    }
+}
+
 export default new Modal({
     id: "newDeployment",
     func: async function({ interaction }) {
@@ -45,28 +63,19 @@ export default new Modal({
 
             // Calculate the relative start date based on current time
             startDate = new Date(Date.now() + totalMs);
+
+            if(startDate instanceof Date && !isNaN(startDate.getTime())) {
+                const errorEmbed = buildEmbed({ preset: "error" })
+                    .setDescription("Error parsing date string, please try again later.");
+                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await storeLatestInput(interaction, { title, difficulty, description });
+                return;
+            }
         } else {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`");
-
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-
-            const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
-
-            if (latestInput) {
-                latestInput.title = title;
-                latestInput.difficulty = difficulty;
-                latestInput.description = description;
-                await latestInput.save();
-            } else {
-                await LatestInput.insert({
-                    userId: interaction.user.id,
-                    title,
-                    difficulty,
-                    description
-                });
-            }
-
+            await storeLatestInput(interaction, { title, difficulty, description });
             return;
         }
 
