@@ -72,7 +72,7 @@ export default new Modal({
 
         const oneHourFromNow = Date.now() + (60 * 60 * 1000); // 1 hour in milliseconds
         
-        if (startDate.getTime() < oneHourFromNow && false) {
+        if (startDate.getTime() < oneHourFromNow) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Start time must be at least 1 hour in the future");
 
