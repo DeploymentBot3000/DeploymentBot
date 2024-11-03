@@ -37,6 +37,7 @@ export default new Modal({
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You already have an active deployment creation in progress. Please complete or cancel that one first.");
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            activeDeploymentCreations.delete(interaction.user.id);
             return;
         }
 
@@ -82,6 +83,7 @@ export default new Modal({
                 .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`");
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             await storeLatestInput(interaction, { title, difficulty, description });
+            activeDeploymentCreations.delete(interaction.user.id);
             return;
         }
 
@@ -92,6 +94,7 @@ export default new Modal({
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             await storeLatestInput(interaction, { title, difficulty, description });
             console.log(`Error: Could not parse data/time string - ${startDate}`);
+            activeDeploymentCreations.delete(interaction.user.id);
             return;
         }
 
@@ -120,6 +123,7 @@ export default new Modal({
                 });
             }
 
+            activeDeploymentCreations.delete(interaction.user.id);
             return;
         }
 
