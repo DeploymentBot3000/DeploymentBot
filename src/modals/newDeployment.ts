@@ -8,6 +8,8 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import { DateTime } from "luxon";
 
+const activeDeploymentCreations = new Set<string>();
+
 async function storeLatestInput(interaction, { title, difficulty, description }) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
 
@@ -29,6 +31,17 @@ async function storeLatestInput(interaction, { title, difficulty, description })
 export default new Modal({
     id: "newDeployment",
     func: async function({ interaction }) {
+        // Check if user already has an active deployment creation
+        if (activeDeploymentCreations.has(interaction.user.id)) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription("You already have an active deployment creation in progress. Please complete or cancel that one first.");
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return;
+        }
+
+        // Add user to active creations
+        activeDeploymentCreations.add(interaction.user.id);
+
         const title = interaction.fields.getTextInputValue("title");
         const difficulty = interaction.fields.getTextInputValue("difficulty");
         const description = interaction.fields.getTextInputValue("description");
@@ -137,7 +150,8 @@ export default new Modal({
                     .setDescription("Channel selection timed out");
 
                 await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
-
+                // Remove user from active creations
+                activeDeploymentCreations.delete(interaction.user.id);
                 return;
             }
 
@@ -244,6 +258,9 @@ export default new Modal({
             } catch (e) {
                 console.error('Failed to send error message:', e);
             }
+        } finally {
+            // Always remove user from active creations when done
+            activeDeploymentCreations.delete(interaction.user.id);
         }
     }
 })
