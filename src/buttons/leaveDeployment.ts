@@ -71,12 +71,14 @@ export default new Button({
             const signups = await Signups.find({ where: { deploymentId: deployment.id } });
             const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
+            const googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(deployment.title)}&dates=${deployment.startTime}/${deployment.startTime + 7200000}&details=${encodeURIComponent(deployment.description)}&location=${encodeURIComponent("101st Deployments Channel")}&sf=true&output=xml`;
+
             const embed = new EmbedBuilder()
                 .setTitle(deployment.title)
                 .addFields([
                     {
                         name: "Event Info:",
-                        value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d>\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.endTime) / 1000)}:t>`
+                        value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.startTime + 7200000) / 1000)}:t>\n🪖 ${deployment.difficulty}`
                     },
                     {
                         name: "Description:",
