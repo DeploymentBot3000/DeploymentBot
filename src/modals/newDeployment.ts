@@ -69,6 +69,7 @@ export default new Modal({
                     .setDescription("Error parsing date string, please try again later.");
                 await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                 await storeLatestInput(interaction, { title, difficulty, description });
+                console.log(`Error: Could not parse data/time string - ${startDate}`);
                 return;
             }
         } else {
