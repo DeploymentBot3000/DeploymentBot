@@ -2,28 +2,11 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBa
 import Modal from "../classes/Modal.js";
 import LatestInput from "../tables/LatestInput.js";
 import { buildButton, buildEmbed } from "../utils/configBuilders.js";
-import date from "date-and-time";
 import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import { DateTime } from "luxon";
-
-function formatToGoogleCalendarDate(timestamp: number): string {
-    // Validate the timestamp is within reasonable bounds
-    const now = Date.now();
-    const oneYearMs = 365 * 24 * 60 * 60 * 1000;
-    
-    if (timestamp < now - oneYearMs || timestamp > now + oneYearMs) {
-        throw new Error(`Timestamp out of reasonable range: ${timestamp}`);
-    }
-
-    const date = new Date(timestamp);
-    if (isNaN(date.getTime())) {
-        throw new Error(`Invalid timestamp: ${timestamp}`);
-    }
-    
-    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-}
+import formatToGoogleCalendarDate from "../utils/formatToGoogleCalendarDate.js";
 
 async function storeLatestInput(interaction, { title, difficulty, description }) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
