@@ -27,17 +27,13 @@ export default new Button({
             }
 
             await Queue.delete({ user: interaction.user.id });
-
-            const successEmbed = buildEmbed({ preset: "success" })
-                .setDescription("You have been removed from the queue");
-
-            await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+            await interaction.deferUpdate();
 
             const queue = await Queue.find().catch(() => []);
             if (!queue) {
                 const errorEmbed = buildEmbed({ preset: "error" })
                     .setDescription("Failed to fetch queue data");
-                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
             }
 
             const embed = buildEmbed({ name: "queuePanel" })
@@ -73,7 +69,7 @@ export default new Button({
             console.error('Error in leave button:', error);
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("An unexpected error occurred");
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true }).catch(() => {});
+            await interaction.followUp({ embeds: [errorEmbed], ephemeral: true }).catch(() => {});
         }
     }
 })
