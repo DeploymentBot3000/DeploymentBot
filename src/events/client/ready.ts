@@ -136,9 +136,13 @@ ${deployment.description.split('\n').map(line => `║ ${line.padEnd(45)}║`).jo
 
 				if (!message) continue;
 
-				const embed = await buildDeploymentEmbed(deployment, message.guild, "Red", true);
-
-				await message.edit({ content: "", embeds: [embed], components: [] }).catch(err => console.error("Message edit error:", err));
+				try {
+					const embed = await buildDeploymentEmbed(deployment, message.guild, "Red", true);
+					await message.edit({ content: "", embeds: [embed], components: [] });
+				} catch (err) {
+					console.error(`Error building deployment embed for deployment ${deployment.id}:`, err);
+					// Optionally send a fallback message or handle the error differently
+				}
 
 				deployment.started = true;
 				await deployment.save();
