@@ -121,11 +121,11 @@ export default {
             emoji: "🔔"
         },
         editDeployment: {
-            label: "Edit Deployment",
+            label: "Edit",
             style: "Secondary"
         },
         deleteDeployment: {
-            label: "Delete Deployment",
+            label: "Delete",
             style: "Danger"
         },
         host: {
@@ -140,5 +140,6 @@ export default {
             label: "Leave",
             style: "Danger"
         }
-    }
+    },
+    useNicknames: true
 }

@@ -119,9 +119,9 @@ export default {
 
 				if (!message) continue;
 
-				const embed = await buildDeploymentEmbed(deployment, "Red");
+				const embed = await buildDeploymentEmbed(deployment, "Red", true);
 
-				await message.edit({ content: "<:hellpod:1302084726219210752> **This deployment has started!** <:hellpod:1302084726219210752>", embeds: [embed], components: [] }).catch(err => console.error("Message edit error:", err));
+				await message.edit({ content: "", embeds: [embed], components: [] }).catch(err => console.error("Message edit error:", err));
 
 				deployment.started = true;
 				await deployment.save();

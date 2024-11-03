@@ -8,6 +8,7 @@ import config from "../config.js";
 import VoiceChannel from "../tables/VoiceChannel.js";
 import fs from 'fs/promises';
 import path from 'path';
+import updateQueueMessages from "./updateQueueMessage.js";
 
 // Add this function to generate a random 4-digit number
 function generateRandomCode() {
@@ -25,12 +26,6 @@ export const startQueuedGame = async (deploymentTime: number) => {
     console.log(`Hosts: ${hosts.length}, Players: ${players.length}`);
 
     const now = Date.now();
-    // const timeUntilDeployment = deploymentTime - now;
-
-    // if (timeUntilDeployment > 0) {
-    //     console.log(`Waiting ${timeUntilDeployment}ms until deployment`);
-    //     await new Promise(resolve => setTimeout(resolve, timeUntilDeployment));
-    // }
 
     // Read the deployment interval from the file
     const deploymentIntervalMs = await getDeploymentTime();
@@ -142,12 +137,12 @@ export const startQueuedGame = async (deploymentTime: number) => {
             await Queue.delete({ user: host.user });
             console.log(`Host removed from queue: ${host.user}`);
 
-            // edit the queue message
-            await updateQueueMessages(false, nextDeploymentTime, deploymentCreated);
-            console.log(`Queue messages updated`);
-
             // Mark that a deployment was created
             deploymentCreated = true;
+
+            // edit the queue message
+            await updateQueueMessages(false, nextDeploymentTime, deploymentCreated);
+            console.log(`Queue messages updated`); // LOL
 
             // Log to the logging channel
             if (loggingChannel) {
@@ -158,53 +153,3 @@ export const startQueuedGame = async (deploymentTime: number) => {
     }
 };
 
-async function updateQueueMessages(notEnoughPlayers: boolean = false, nextDeploymentTime: number, deploymentCreated: boolean = false) {
-    console.log("Starting updateQueueMessages function");
-
-    const queueMessages = await QueueStatusMsg.find();
-    console.log(`Updating ${queueMessages.length} queue messages`);
-
-    const currentQueue = await Queue.find();
-    const currentHosts = currentQueue.filter(q => q.host);
-    const currentPlayers = currentQueue.filter(q => !q.host);
-    console.log(`Current queue: Hosts: ${currentHosts.length}, Players: ${currentPlayers.length}`);
-
-    console.log(`Next deployment time: ${new Date(nextDeploymentTime).toISOString()} (${nextDeploymentTime})`);
-
-    for (const queueMessage of queueMessages) {
-        const channel = await client.channels.fetch(queueMessage.channel).catch(() => null) as GuildTextBasedChannel;
-        const message = await channel.messages.fetch(queueMessage.message).catch(() => null);
-
-        const embed = buildEmbed({ name: "queuePanel" })
-            .addFields([
-                {
-                    name: "Hosts:",
-                    value: currentHosts.map(host => `<@${host.user}>`).join("\n") || "` - `",
-                    inline: true
-                },
-                {
-                    name: "Participants:",
-                    value: currentPlayers.map(player => `<@${player.user}>`).join("\n") || "` - `",
-                    inline: true
-                },
-                {
-                    name: "Next game:",
-                    value: `📅 <t:${Math.round(nextDeploymentTime / 1000)}:d>\n🕒 <t:${Math.round(nextDeploymentTime / 1000)}:t>`,
-                }
-            ]);
-
-        let content = null;
-        if (notEnoughPlayers) {
-            content = `**❌ Not enough players.** Next deployment starting <t:${Math.round(nextDeploymentTime / 1000)}:R>`;
-            console.log(`Adding "Not enough players" message to queue message: ${message.id}`);
-        } else if (deploymentCreated) {
-            content = `**✅ Successfully created a deployment.** Next deployment starting <t:${Math.round(nextDeploymentTime / 1000)}:R>`;
-            console.log(`Adding "Successfully created a deployment" message to queue message: ${message.id}`);
-        } else {
-            console.log(`Removing status message from queue message: ${message.id}`);
-        }
-
-        await message.edit({ content, embeds: [embed] });
-        console.log(`Queue message updated: ${message.id}`);
-    }
-}

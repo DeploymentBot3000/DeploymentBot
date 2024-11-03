@@ -1,17 +1,17 @@
-    import config from "../config.js";
-    import Deployment from "../tables/Deployment.js";
-    import Signups from "../tables/Signups.js";
-    import Backups from "../tables/Backups.js";
-    import { EmbedBuilder, ColorResolvable } from "discord.js";
+import config from "../config.js";
+import Deployment from "../tables/Deployment.js";
+import Signups from "../tables/Signups.js";
+import Backups from "../tables/Backups.js";
+import {ColorResolvable, EmbedBuilder} from "discord.js";
 
 
-    export async function buildDeploymentEmbed(deployment: InstanceType<typeof Deployment>, color: ColorResolvable = "Green") {
+export async function buildDeploymentEmbed(deployment: InstanceType<typeof Deployment>, color: ColorResolvable = "Green", started: boolean = false) {
         console.log('Building deployment embed with color:', color);
         const signups = await Signups.find({ where: { deploymentId: deployment.id } });
         const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
-        const embed = new EmbedBuilder()
-            .setTitle(deployment.title)
+    return new EmbedBuilder()
+            .setTitle(started ? `<:hellpod:1302084726219210752> ${deployment.title} - Started <:hellpod:1302084726219210752>` : deployment.title)
             .addFields([
                 {
                     name: "Event Info:",
@@ -38,7 +38,6 @@
                 }
             ])
             .setColor(color as ColorResolvable)
-            .setFooter({ text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4` })
+            .setFooter({text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4`})
             .setTimestamp(Number(deployment.startTime));
-        return embed;
     }

@@ -14,6 +14,6 @@ export default class LatestInput extends BaseEntity {
     @Column()
     difficulty: string;
 
-    @Column()
+    @Column({ type: 'text' })
     description: string;
 }
