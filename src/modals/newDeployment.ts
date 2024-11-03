@@ -9,7 +9,20 @@ import Signups from "../tables/Signups.js";
 import { DateTime } from "luxon";
 
 function formatToGoogleCalendarDate(timestamp: number): string {
-    return new Date(timestamp).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    // Validate the timestamp is within reasonable bounds
+    const now = Date.now();
+    const oneYearMs = 365 * 24 * 60 * 60 * 1000;
+    
+    if (timestamp < now - oneYearMs || timestamp > now + oneYearMs) {
+        throw new Error(`Timestamp out of reasonable range: ${timestamp}`);
+    }
+
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+        throw new Error(`Invalid timestamp: ${timestamp}`);
+    }
+    
+    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 }
 
 async function storeLatestInput(interaction, { title, difficulty, description }) {
