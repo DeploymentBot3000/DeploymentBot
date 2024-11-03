@@ -5,7 +5,7 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import config from "../config.js";
-import formatToGoogleCalendarDate from "../utils/formatToGoogleCalendarDate.js";
+import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 
 export default new SelectMenu({
     id: "signup",
@@ -44,30 +44,8 @@ export default new SelectMenu({
                 const backupMembers = await Promise.all(
                     backups.map(backup => fetchMember(backup.userId))
                 );
-                let googleCalendarLink;
-                try {
-                    const startTime = Number(deployment.startTime);
-                    const endTime = Number(deployment.endTime);
-                    
-                    if (isNaN(startTime) || isNaN(endTime)) {
-                        throw new Error('Invalid start or end time');
-                    }
-                    
-                    googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${
-                        encodeURIComponent(deployment.title)
-                    }&dates=${
-                        formatToGoogleCalendarDate(startTime)
-                    }/${
-                        formatToGoogleCalendarDate(endTime)
-                    }&details=${
-                        encodeURIComponent(deployment.description)
-                    }&location=${
-                        encodeURIComponent("101st Deployments Channel")
-                    }&sf=true&output=xml`;
-                } catch (error) {
-                    console.error('Failed to generate calendar link:', error);
-                    googleCalendarLink = '#'; // Fallback link if date formatting fails
-                }
+
+                const googleCalendarLink = getGoogleCalendarLink(deployment.title, deployment.description, deployment.startTime, deployment.endTime);
 
                 const embed = new EmbedBuilder()
                     .setTitle(deployment.title)

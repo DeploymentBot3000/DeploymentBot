@@ -6,7 +6,7 @@ import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import { DateTime } from "luxon";
-import formatToGoogleCalendarDate from "../utils/formatToGoogleCalendarDate.js";
+import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 
 async function storeLatestInput(interaction, { title, difficulty, description }) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
@@ -164,7 +164,7 @@ export default new Modal({
 
             const offenseRole = config.roles.find(role => role.name === "Offense");
 
-            const googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatToGoogleCalendarDate(startDate.getTime())}/${formatToGoogleCalendarDate(startDate.getTime() + 7200000)}&details=${encodeURIComponent(description)}&location=${encodeURIComponent("101st Deployments Channel")}&sf=true&output=xml`;
+            const googleCalendarLink = getGoogleCalendarLink(title, description, startDate.getTime(), (startDate.getTime() + 7200000))
 
             const embed = new EmbedBuilder()
                 .setTitle(title)
