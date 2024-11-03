@@ -28,14 +28,11 @@ export default new Modal({
             const hours = match[2].padStart(2, '0');
             const minutes = (match[3] || '00').padStart(2, '0');
 
-            console.log(`UTC${sign}${hours}${minutes}`);
-
             // Format the time string with the reversed timezone
             const startTimeFormatted = startTime.replace(/UTC[+-]\d{1,2}(?::\d{2})?/, `UTC${sign}${hours}:${minutes}`);
 
-            console.log(startTimeFormatted)
-
             startDate = date.parse(startTimeFormatted, "YYYY-MM-DD H:m UTCZ");
+            console.log(startDate);
         } else if (relativeTimeRegex.test(startTime)) {
             const matches = startTime.match(/(\d+)([dhms])/g);
             let totalMs = 0;
