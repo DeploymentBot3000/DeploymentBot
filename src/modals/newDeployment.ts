@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, StringSelectMenuInteraction } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, StringSelectMenuInteraction, GuildMember, ColorResolvable } from "discord.js";
 import Modal from "../classes/Modal.js";
 import LatestInput from "../tables/LatestInput.js";
 import { buildButton, buildEmbed } from "../utils/configBuilders.js";
@@ -163,7 +163,7 @@ export default new Modal({
                     },
                     {
                         name: "Signups:",
-                        value: `${offenseRole.emoji} ${interaction.member.displayName}`,
+                        value: `${offenseRole.emoji} ${interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.member.user.username}`,
                         inline: true
                     },
                     {
