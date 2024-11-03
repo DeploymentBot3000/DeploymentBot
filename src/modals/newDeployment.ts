@@ -8,6 +8,10 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import { DateTime } from "luxon";
 
+function formatToGoogleCalendarDate(timestamp: number): string {
+    return new Date(timestamp).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+}
+
 async function storeLatestInput(interaction, { title, difficulty, description }) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
 
@@ -150,7 +154,7 @@ export default new Modal({
 
             const offenseRole = config.roles.find(role => role.name === "Offense");
 
-            const googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate}/${startDate.getTime() + 7200000}&details=${encodeURIComponent(description)}&location=${encodeURIComponent("101st Deployments Channel")}&sf=true&output=xml`;
+            const googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatToGoogleCalendarDate(startDate.getTime())}/${formatToGoogleCalendarDate(startDate.getTime() + 7200000)}&details=${encodeURIComponent(description)}&location=${encodeURIComponent("101st Deployments Channel")}&sf=true&output=xml`;
 
             const embed = new EmbedBuilder()
                 .setTitle(title)
@@ -163,7 +167,7 @@ export default new Modal({
                         name: "Description:",
                         value: description
                     },
-                    {
+                    {   
                         name: "Signups:",
                         value: `${offenseRole.emoji} ${interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.member.user.username}`,
                         inline: true
