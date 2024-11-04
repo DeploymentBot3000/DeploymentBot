@@ -42,7 +42,7 @@ export default async function getStartTime(startTime: string, interaction: Modal
         startDate = new Date(Date.now() + totalMs);
     } else {
         const errorEmbed = buildEmbed({preset: "error"})
-            .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`");
+            .setDescription("**Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`**\nLog:Error formatting data");
         await interaction.reply({embeds: [errorEmbed], ephemeral: true});
         setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
 
@@ -56,17 +56,17 @@ export default async function getStartTime(startTime: string, interaction: Modal
 
     if(startDate instanceof Date && isNaN(startDate.getTime())) {
         const errorEmbed = buildEmbed({ preset: "error" })
-            .setDescription("Error parsing date string, please try again later.");
+            .setDescription("**Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`**\nLog:Error parsing date string");
         await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
 
         // Log invalid time entry to specific channel
         const logChannel = await interaction.client.channels.fetch('1299122351291629599');
         if (logChannel?.type === ChannelType.GuildText) {
-            await logChannel.send(`Failed to parse time by ${interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.user.username}\nAttempted time:** ${startTime}**`);
+            await logChannel.send(`-----------------\n\nFailed to parse time by ${interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.user.username}\nAttempted time:** ${startTime}**`);
         }
 
-        console.log(`Error: Could not parse data/time string - ${startDate}`);
+        console.log('Error: Could not parse data/time string - ${startDate}');
         throw new Error();
     }
 

@@ -22,6 +22,8 @@ import {DateTime} from 'luxon';
 import cron from 'node-cron';
 import { buildDeploymentEmbed } from "../../utils/signupEmbedBuilder.js"
 import { EmbedBuilder } from "discord.js";
+import deployments from "../../slashCommands/deployments.js";
+import LatestInput from "../../tables/LatestInput.js";
 
 interface Command {
 	name: string;
@@ -250,5 +252,18 @@ export default {
 				await vc.remove();
 			}
 		});
+
+		cron.schedule("0 * * * *", async () => {
+			const deletedDeployments:Deployment[] = await Deployment.find({ where: { deleted: true }});
+			for(const deployment of deletedDeployments) {
+				await Signups.delete({ deploymentId: deployment.id });
+				await Backups.delete({ deploymentId: deployment.id });
+				await Deployment.delete({ id: deployment.id });
+			}
+		})
+
+		cron.schedule("0 0 * * *", async () => {
+			await LatestInput.clear();
+		})
 	},
 } as any;
