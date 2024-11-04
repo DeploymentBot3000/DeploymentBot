@@ -28,7 +28,7 @@ export default new Button({
 
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
-      
+
         if(deployment.noticeSent) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You can't edit a deployment after the notice has been sent!");
@@ -108,7 +108,7 @@ export default new Button({
         await selectmenuInteraction.showModal(modal);
 
         const modalInteraction: ModalSubmitInteraction = await selectmenuInteraction.awaitModalSubmit({ time: 2147483647 }).catch(() => null);
-        
+
         if (!modalInteraction) return;
 
         if (selectmenuInteraction.values.includes("title")) {
@@ -127,10 +127,19 @@ export default new Button({
             });
 
             const startDate = new Date(startTimeFormatted);
+            const currentStartTime = new Date(deployment.startTime);
+            const oneHourBeforeCurrentStart = new Date(currentStartTime.getTime() - 3600000); // 1 hour in milliseconds
 
             if (startDate.getTime() < Date.now()) {
                 const errorEmbed = buildEmbed({ preset: "error" })
                     .setDescription("Start time cannot be in the past");
+
+                return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
+            }
+
+            if (startDate.getTime() < oneHourBeforeCurrentStart.getTime()) {
+                const errorEmbed = buildEmbed({ preset: "error" })
+                    .setDescription("Cannot edit start time to be more than 1 hour earlier than the current start time");
 
                 return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
             }
