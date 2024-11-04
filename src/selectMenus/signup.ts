@@ -6,6 +6,7 @@ import Signups from "../tables/Signups.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import config from "../config.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
+import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
 
 export default new SelectMenu({
     id: "signup",
@@ -23,72 +24,7 @@ export default new SelectMenu({
         }
 
         const updateEmbed = async () => {
-            try {
-                const signups = await Signups.find({ where: { deploymentId: deployment.id } });
-                const backups = await Backups.find({ where: { deploymentId: deployment.id } });
-
-                const guild = interaction.guild;
-                
-                const fetchMember = async (userId: string) => {
-                    try {
-                        return await guild.members.fetch(userId);
-                    } catch (error) {
-                        console.error(`Failed to fetch member ${userId}:`, error);
-                        return null;
-                    }
-                };
-
-                const signupMembers = await Promise.all(
-                    signups.map(signup => fetchMember(signup.userId))
-                );
-                const backupMembers = await Promise.all(
-                    backups.map(backup => fetchMember(backup.userId))
-                );
-
-                const googleCalendarLink = getGoogleCalendarLink(deployment.title, deployment.description, deployment.startTime, deployment.endTime);
-
-                const embed = new EmbedBuilder()
-                    .setTitle(deployment.title)
-                    .addFields([
-                        {
-                            name: "Event Info:",
-                            value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.endTime / 1000))}:t>\n🪖 ${deployment.difficulty}`
-                        },
-                        {
-                            name: "Description:",
-                            value: deployment.description
-                        },
-                        {
-                            name: "Signups:",
-                            value: signups.map((signup, index) => {
-                                const role = config.roles.find(role => role.name === signup.role);
-                                const member = signupMembers[index];
-                                return member 
-                                    ? `${role.emoji} ${member.displayName}`
-                                    : `${role.emoji} Unknown Member (${signup.userId})`;
-                            }).join("\n") || "` - `",
-                            inline: true
-                        },
-                        {
-                            name: "Backups:",
-                            value: backups.length ?
-                                backups.map((backup, index) => {
-                                    const member = backupMembers[index];
-                                    return member ? member.displayName : `Unknown Member (${backup.userId})`;
-                                }).join("\n")
-                                : "` - `",
-                            inline: true
-                        }
-                    ])
-                    .setColor("Green")
-                    .setFooter({ text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4` })
-                    .setTimestamp(Number(deployment.startTime));
-
-                return await interaction.update({ embeds: [embed] });
-            } catch (error) {
-                console.error('Failed to update embed:', error);
-                throw error;
-            }
+            await buildDeploymentEmbed(deployment, interaction.guild, "Green", true);
         };
 
         const alreadySignedUp = await Signups.findOne({ where: { deploymentId: deployment.id, userId: interaction.user.id } });
