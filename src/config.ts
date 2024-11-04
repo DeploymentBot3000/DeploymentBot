@@ -143,5 +143,5 @@ export default {
         }
     },
 
-    bugReportChannelId: "id"
+    bugReportChannelId: "1302748846547533834"
 }
