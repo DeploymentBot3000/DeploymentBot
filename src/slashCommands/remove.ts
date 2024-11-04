@@ -26,6 +26,12 @@ export default new Slashcommand({
             type: ApplicationCommandOptionType.String,
             required: true,
             autocomplete: true
+        },
+        {
+            name: "reason",
+            description: "Reason for removing the user",
+            type: ApplicationCommandOptionType.String,
+            required: false
         }
     ],
     autocomplete: async function({ interaction }: { interaction: AutocompleteInteraction }) {
@@ -115,12 +121,14 @@ export default new Slashcommand({
         if (signup) await signup.remove();
         if (backup) await backup.remove();
 
+        const reason = interaction.options.getString("reason") || "No reason provided";
+
         // Send DM to removed user
         try {
             await targetUser.send({
                 embeds: [buildEmbed({ preset: "info" })
                     .setTitle("Deployment Removal")
-                    .setDescription(`You have been removed from the deployment: **${deployment.title}**\nBy: <@${interaction.user.id}>`)
+                    .setDescription(`You have been removed from the deployment: **${deployment.title}**\n**By:** <@${interaction.user.id}>\n**Reason:** ${reason}`)
                 ]
             });
         } catch (error) {
@@ -150,7 +158,7 @@ export default new Slashcommand({
 
         await interaction.reply({ 
             embeds: [buildEmbed({ preset: "success" })
-                .setDescription(`Successfully removed <@${targetUser.id}> from the deployment`)], 
+                .setDescription(`Successfully removed <@${targetUser.id}> from the deployment\nReason: ${reason}`)], 
             ephemeral: true 
         });
     }
