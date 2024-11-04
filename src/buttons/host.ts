@@ -49,8 +49,8 @@ export default new Button({
 
         if (alreadyQueued) {
             await Queue.update(
-                { user: interaction.user.id },
-                { host: true }
+                { host: true },
+                { where: { user: interaction.user.id } }
             );
         } else {
             await Queue.create({ user: interaction.user.id, host: true });
