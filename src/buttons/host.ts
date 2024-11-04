@@ -4,12 +4,7 @@ import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import config from "../config.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
-import { GuildMember } from "discord.js";
-import { Collection } from "discord.js";
-
-// Add cooldown collection outside the button
-const cooldowns = new Collection<string, number>();
-const COOLDOWN_DURATION = 5000; // 5 seconds in milliseconds
+import { handleCooldown } from "../utils/cooldownManager.js";
 
 export default new Button({
     id: "host",
@@ -17,51 +12,34 @@ export default new Button({
     permissions: [],
     requiredRoles: [{ role: config.hostRole, required: true }],
     func: async function({ interaction }) {
-        // Add cooldown check
-        const lastUse = cooldowns.get(interaction.user.id);
-        if (lastUse && Date.now() - lastUse < COOLDOWN_DURATION) {
+        const cooldownResult = handleCooldown(interaction.user.id, "host");
+        if (cooldownResult.onCooldown) {
             const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("Please wait before using buttons again");
-            const reply = await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-            
-            // Delete the error message after 45 seconds
-            setTimeout(async () => {
-                try {
-                    await reply.delete();
-                } catch (error) {
-                    // Ignore any errors if message is already deleted
-                }
-            }, 45000);
-            
-            return;
+                .setDescription(`Please wait ${cooldownResult.remainingTime.toFixed(1)} seconds before using this again.`);
+            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true })
+                .then(msg => setTimeout(() => msg.delete().catch(() => {}), 45000));
         }
-        
-        cooldowns.set(interaction.user.id, Date.now());
+
         await interaction.deferUpdate();
 
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
-        console.log('Current queue status:', alreadyQueued);
 
-        if (!(interaction.member as GuildMember).roles.cache.has(config.hostRole)) {
+        if (alreadyQueued?.host === true) {
             const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("You don't have permission to be a host");
+                .setDescription("You are already in the host queue");
+
             return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        try {
-            if (alreadyQueued) {
-                alreadyQueued.host = true;
-                await alreadyQueued.save();
-                console.log('Updated existing queue entry:', alreadyQueued);
-            } else {
-                const newEntry = await Queue.create({ user: interaction.user.id, host: true });
-                console.log('Created new queue entry:', newEntry);
-            }
-
-            const result = await updateQueueMessages(true, client.nextGame.getTime(), false);
-            console.log('Queue message update result:', result);
-        } catch (error) {
-            console.error('Error in host button:', error);
+        if (alreadyQueued?.host === false) {
+            await Queue.update(
+                { user: interaction.user.id },
+                { host: true }
+            );
+        } else {
+            await Queue.create({ user: interaction.user.id, host: true });
         }
+
+        await updateQueueMessages(true, client.nextGame.getTime(), false);
     }
 })
