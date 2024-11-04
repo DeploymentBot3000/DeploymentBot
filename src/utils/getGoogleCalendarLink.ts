@@ -12,13 +12,26 @@ function formatToGoogleCalendarDate(timestamp: number): string {
     if (isNaN(date.getTime())) {
         throw new Error(`Invalid date created from timestamp: ${timestamp}`);
     }
-
     // Format to YYYYMMDDTHHMMSS
-    const formatted = date.toISOString()
-        .replace(/[-:]/g, '')  // Remove dashes and colons
-        .replace(/\.\d{3}Z/, ''); // Remove milliseconds and Z
+   // const formatted = date.toISOString()
+   //     .replace(/[-:]/g, '')  // Remove dashes and colons
+   // .replace(/\.\d{3}Z/, ''); // Remove milliseconds and Z
+   //  const tzOffset = date.getTimezoneOffset();
+   //  const tzHours = Math.floor(Math.abs(tzOffset) / 60).toString().padStart(2, '0');
+   //  const tzmMinuetes = (Math.abs(tzOffset) % 60).toString().padStart(2, '0');
+   //  const tzSign = tzOffset <= 0? '+' : '-';
 
-    return formatted;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minuets = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    console.log(`${year}${month}${day}T${hours}${minuets}${seconds}Z`)
+
+    //return formatted;
+    return `${year}${month}${day}T${hours}${minuets}${seconds}Z`;
 }
 
 export default function getGoogleCalendarLink(title:string, description:string, startDate:number, endDate:number) {
