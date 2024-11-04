@@ -26,7 +26,7 @@ export default new Button({
 
         // const queue = await Queue.find();
 
-        const embed = await updateQueueMessages(true, client.nextGame.getTime(), false);
+        await updateQueueMessages(true, client.nextGame.getTime(), false);
 
         // const embed = buildEmbed({ name: "queuePanel" })
         //     .addFields([
@@ -52,6 +52,6 @@ export default new Button({
         //         }
         //     ]);
 
-        await interaction.message.edit({ embeds: [embed] });
+        // await interaction.message.edit({ embeds: [embed] });
     }
 })
