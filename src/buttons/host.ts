@@ -24,34 +24,6 @@ export default new Button({
 
         await Queue.insert({ user: interaction.user.id, host: true });
 
-        // const queue = await Queue.find();
-
-        const embed = await updateQueueMessages(true, client.nextGame.getTime(), false);
-
-        // const embed = buildEmbed({ name: "queuePanel" })
-        //     .addFields([
-        //         {
-        //             name: "Hosts:",
-        //             value: await Promise.all(queue.filter(q => q.host).map(async host => {
-        //                 const member = await interaction.guild?.members.fetch(host.user).catch(() => null);
-        //                 return member ? member.displayName : 'Unknown User';
-        //             })).then(hosts => hosts.join("\n")) || "` - `",
-        //             inline: true
-        //         },
-        //         {
-        //             name: "Participants:",
-        //             value: await Promise.all(queue.filter(q => !q.host).map(async player => {
-        //                 const member = await interaction.guild?.members.fetch(player.user).catch(() => null);
-        //                 return member ? member.displayName : 'Unknown User';
-        //             })).then(players => players.join("\n")) || "` - `",
-        //             inline: true
-        //         },
-        //         {
-        //             name: "Next game:",
-        //             value: `📅 <t:${Math.round(client.nextGame.getTime() / 1000)}:d>\n🕒 <t:${Math.round(client.nextGame.getTime() / 1000)}:t>`,
-        //         }
-        //     ]);
-
-        await interaction.message.edit({ embeds: [embed] });
+        await updateQueueMessages(true, client.nextGame.getTime(), false);
     }
 })
