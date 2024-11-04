@@ -4,7 +4,7 @@ import { DateTime } from "luxon";
 
 export default async function getStartTime(startTime: string, interaction: ModalSubmitInteraction<CacheType>) {
     // Regex for both absolute and relative time formats
-    const absoluteTimeRegex = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(\d{1,2}) UTC[+-]\d{1,2}(:30)?$/;
+    const absoluteTimeRegex = /^(\d{4})-(\d{1,2})-(\d{1,2}) (\d{1,2}):(\d{1,2}) UTC[+-]\d{1,2}(:30)?$/;
     const relativeTimeRegex = /^(?:(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s\s*)?)+$/;
 
     let startDate: Date;
@@ -53,8 +53,6 @@ export default async function getStartTime(startTime: string, interaction: Modal
         }
         throw new Error();
     }
-
-    console.log(startDate);
 
     if(startDate instanceof Date && isNaN(startDate.getTime())) {
         const errorEmbed = buildEmbed({ preset: "error" })
