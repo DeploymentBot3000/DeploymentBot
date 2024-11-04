@@ -7,6 +7,7 @@ import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
+import getStartTime from "../utils/getStartTime.js";
 
 export default new Button({
     id: "editDeployment",
@@ -142,56 +143,16 @@ export default new Button({
         if (selectmenuInteraction.values.includes("description")) {
             deployment.description = modalInteraction.fields.getTextInputValue("description");
         }
+
         if (selectmenuInteraction.values.includes("startTime")) {
             const startTime = modalInteraction.fields.getTextInputValue("startTime");
-            const startTimeFormatted = startTime.replace(/UTC\+(\d{1,2}):?(\d{2})?/, (_, hourOffset, minuteOffset = "00") => {
-                return `UTC+${hourOffset.padStart(2, "0")}${minuteOffset.padStart(2, "0")}`.replace(/:/g, "");
-            });
+            let startDate:Date = null;
 
-            try {
-                const startDate = new Date(startTimeFormatted);
-                const now = Date.now();
-                const oneHourFromNow = now + 3600000; // 1 hour in milliseconds
+            try { startDate = await getStartTime(startTime, modalInteraction); }
+            catch (e) { return; }
 
-                if (isNaN(startDate.getTime())) {
-                    throw new Error("Invalid date format");
-                }
-
-                if (startDate.getTime() <= now) {
-                    await modalInteraction.reply({
-                        embeds: [
-                            buildEmbed({ preset: "error" })
-                                .setDescription("Start time cannot be in the past!")
-                        ],
-                        ephemeral: true
-                    });
-                    return;
-                }
-
-                if (startDate.getTime() < oneHourFromNow) {
-                    const timeUntilStart = Math.floor((startDate.getTime() - now) / 60000); // Convert to minutes
-                    await modalInteraction.reply({
-                        embeds: [
-                            buildEmbed({ preset: "error" })
-                                .setDescription(`Start time must be at least 1 hour from now!\nYou tried to set it to start in ${timeUntilStart} minutes.`)
-                        ],
-                        ephemeral: true
-                    });
-                    return;
-                }
-
-                deployment.startTime = startDate.getTime();
-                deployment.endTime = startDate.getTime() + 7200000;
-            } catch (error) {
-                await modalInteraction.reply({
-                    embeds: [
-                        buildEmbed({ preset: "error" })
-                            .setDescription("Invalid date format. Please use the format: YYYY-MM-DD HH:MM UTC(+/-)X")
-                    ],
-                    ephemeral: true
-                });
-                return;
-            }
+            deployment.startTime = startDate.getTime();
+            deployment.endTime = startDate.getTime() + 7200000;
         }
 
         await deployment.save();
