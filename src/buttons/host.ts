@@ -40,6 +40,7 @@ export default new Button({
         await interaction.deferUpdate();
 
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
+        console.log('Current queue status:', alreadyQueued);
 
         if (!(interaction.member as GuildMember).roles.cache.has(config.hostRole)) {
             const errorEmbed = buildEmbed({ preset: "error" })
@@ -47,13 +48,20 @@ export default new Button({
             return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        if (alreadyQueued) {
-            alreadyQueued.host = true;
-            await alreadyQueued.save();
-        } else {
-            await Queue.create({ user: interaction.user.id, host: true });
-        }
+        try {
+            if (alreadyQueued) {
+                alreadyQueued.host = true;
+                await alreadyQueued.save();
+                console.log('Updated existing queue entry:', alreadyQueued);
+            } else {
+                const newEntry = await Queue.create({ user: interaction.user.id, host: true });
+                console.log('Created new queue entry:', newEntry);
+            }
 
-        await updateQueueMessages(true, client.nextGame.getTime(), false);
+            const result = await updateQueueMessages(true, client.nextGame.getTime(), false);
+            console.log('Queue message update result:', result);
+        } catch (error) {
+            console.error('Error in host button:', error);
+        }
     }
 })
