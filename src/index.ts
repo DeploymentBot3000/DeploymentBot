@@ -39,9 +39,9 @@ export const client = new CustomClient({
 });
 
 // Add status when client is ready
-client.on('ready', () => {
-    client.user?.setActivity(config.status.text, { type: ActivityType.Watching });
-});
+//client.on('ready', () => {
+//    client.user?.setActivity(config.status.text, { type: ActivityType.Watching });
+//});
 
 export const getDeploymentTime = async () => {
     const deploymentTime = await fs.readFile("./deploymentTime.txt", "utf-8");
