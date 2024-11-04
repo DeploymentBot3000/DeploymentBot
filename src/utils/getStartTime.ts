@@ -69,5 +69,18 @@ export default async function getStartTime(startTime: string, interaction: Modal
         console.log(`Error: Could not parse data/time string - ${startDate}`);
         throw new Error();
     }
+
+    const oneHourFromNow = Date.now() + (60 * 60 * 1000); // 1 hour in milliseconds
+
+    if (startDate.getTime() < oneHourFromNow) {
+        const errorEmbed = buildEmbed({ preset: "error" })
+            .setDescription("Start time must be at least 1 hour in the future");
+
+
+        await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
+        throw new Error();
+    }
+
     return startDate;
 }
