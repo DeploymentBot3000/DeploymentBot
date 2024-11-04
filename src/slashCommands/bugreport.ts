@@ -63,14 +63,30 @@ export default new Slashcommand({
                 const reproSteps = modalSubmission.fields.getTextInputValue('reproSteps');
 
                 // Get the bug report channel
-                const channel = await interaction.client.channels.fetch(Config.bugReportChannelId) as TextChannel;
+                if (!Config.bugReportChannelId) {
+                    await modalSubmission.reply({
+                        embeds: [buildEmbed({
+                            preset: "error",
+                            placeholders: {
+                                description: "Bug report channel ID is not configured properly."
+                            }
+                        })],
+                        ephemeral: true
+                    });
+                    return;
+                }
+
+                // Use channelId to fetch from any guild the bot is in
+                const channel = await interaction.client.channels.cache.get(Config.bugReportChannelId) as TextChannel;
+                // Alternative method if the channel isn't cached:
+                // const channel = await interaction.client.channels.fetch(Config.bugReportChannelId) as TextChannel;
 
                 if (!channel) {
                     await modalSubmission.reply({
                         embeds: [buildEmbed({
                             preset: "error",
                             placeholders: {
-                                description: "Failed to submit bug report. Channel not found."
+                                description: "Failed to submit bug report. Channel not found or bot lacks access. Make sure the bot is in the server where the bug report channel is located."
                             }
                         })],
                         ephemeral: true
