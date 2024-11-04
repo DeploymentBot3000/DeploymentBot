@@ -125,38 +125,41 @@ export default {
 					const embed = await buildDeploymentEmbed(deployment, message.guild, "Red", true);
 					await message.edit({ content: "", embeds: [embed], components: [] });
 
-					const loggingChannel = await client.channels.fetch(config.loggingChannel).catch(() => null) as GuildTextBasedChannel;
-					if (loggingChannel) {
-						const signups = await Signups.find({ where: { deploymentId: deployment.id } });
-						const backups = await Backups.find({ where: { deploymentId: deployment.id } });
+					// Fetch all logging channels and send to each
+					for (const channelId of config.loggingChannels) {
+						const loggingChannel = await client.channels.fetch(channelId).catch(() => null) as GuildTextBasedChannel;
+						if (loggingChannel) {
+							const signups = await Signups.find({ where: { deploymentId: deployment.id } });
+							const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
-						const signupsFormatted = signups.map(signup => {
-							if (signup.userId == deployment.user) return;
-							const role = config.roles.find(role => role.name === signup.role);
-							const member = message.guild.members.cache.get(signup.userId);
-							return `${role.emoji} ${member?.nickname || member?.user.username || signup.userId}`;
-						}).filter(s => s).join("\n") || "- None -";
+							const signupsFormatted = signups.map(signup => {
+								if (signup.userId == deployment.user) return;
+								const role = config.roles.find(role => role.name === signup.role);
+								const member = message.guild.members.cache.get(signup.userId);
+								return `${role.emoji} ${member?.nickname || member?.user.username || signup.userId}`;
+							}).filter(s => s).join("\n") || "- None -";
 
-						const backupsFormatted = backups.map(backup => {
-							const member = message.guild.members.cache.get(backup.userId);
-							return member?.nickname || member?.user.username || backup.userId;
-						}).join("\n") || "- None -";
+							const backupsFormatted = backups.map(backup => {
+								const member = message.guild.members.cache.get(backup.userId);
+								return member?.nickname || member?.user.username || backup.userId;
+							}).join("\n") || "- None -";
 
-						const logEmbed = new EmbedBuilder()
-							.setColor("Yellow")
-							.setTitle("Deployment Started")
-							.addFields(
-								{ name: "Title", value: deployment.title, inline: true },
-								{ name: "Host", value: message.guild.members.cache.get(deployment.user)?.nickname || deployment.user, inline: true },
-								{ name: "Difficulty", value: deployment.difficulty, inline: true },
-								{ name: "Time", value: `<t:${Math.floor(deployment.startTime / 1000)}:F>`, inline: false },
-								{ name: "Players", value: signupsFormatted, inline: true },
-								{ name: "Backups", value: backupsFormatted, inline: true },
-								{ name: "Description", value: deployment.description || "No description provided" }
-							)
-							.setTimestamp();
+							const logEmbed = new EmbedBuilder()
+								.setColor("Yellow")
+								.setTitle("Deployment Started")
+								.addFields(
+									{ name: "Title", value: deployment.title, inline: true },
+									{ name: "Host", value: message.guild.members.cache.get(deployment.user)?.nickname || deployment.user, inline: true },
+									{ name: "Difficulty", value: deployment.difficulty, inline: true },
+									{ name: "Time", value: `<t:${Math.floor(deployment.startTime / 1000)}:F>`, inline: false },
+									{ name: "Players", value: signupsFormatted, inline: true },
+									{ name: "Backups", value: backupsFormatted, inline: true },
+									{ name: "Description", value: deployment.description || "No description provided" }
+								)
+								.setTimestamp();
 
-						await loggingChannel.send({ embeds: [logEmbed] });
+							await loggingChannel.send({ embeds: [logEmbed] });
+						}
 					}
 				} catch (err) {
 					console.error(`Error building deployment embed for deployment ${deployment.id}:`, err);
