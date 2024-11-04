@@ -94,6 +94,7 @@ export const startQueuedGame = async (deploymentTime: number) => {
                 name: `🔊| HOTDROP ${randomCode} ${hostDisplayName}`,
                 type: ChannelType.GuildVoice,
                 parent: config.vcCategory,
+                userLimit: 4,
                 permissionOverwrites: [
                     {
                         id: departureChannel.guild.roles.everyone.id,
@@ -101,8 +102,7 @@ export const startQueuedGame = async (deploymentTime: number) => {
                     },
                     {
                         id: config.verifiedRoleId,
-                        allow: ["ViewChannel"],
-                        deny: ["Connect"]
+                        allow: ["ViewChannel", "Connect"],
                     },
                     {
                         id: host.user,
