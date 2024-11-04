@@ -21,6 +21,9 @@ import {LessThanOrEqual } from 'typeorm';
 import {DateTime} from 'luxon';
 import cron from 'node-cron';
 import { buildDeploymentEmbed } from "../../utils/signupEmbedBuilder.js"
+import { EmbedBuilder } from "discord.js";
+import deployments from "../../slashCommands/deployments.js";
+import LatestInput from "../../tables/LatestInput.js";
 
 interface Command {
 	name: string;
@@ -78,11 +81,13 @@ export default {
 		const checkDeployments = async () => {
 			const deploymentsNoNotice = await Deployment.find({
 				where: {
+					deleted: false,
 					noticeSent: false
 				}
 			})
 			const unstartedDeployments = await Deployment.find({
 				where: {
+					deleted: false,
 					started: false,
 					startTime: LessThanOrEqual(DateTime.now().toMillis()),
 				}
@@ -103,7 +108,6 @@ export default {
 					}).filter(s => s).join("\n") || "` - `";
 
 					const backupsFormatted = backups.map(backup => `<@${backup.userId}>`).join("\n");
-
 					await departureChannel.send({
 						content: `-------------------------------------------\n\n# <:Helldivers:1226464844534779984> ATTENTION HELLDIVERS <:Helldivers:1226464844534779984>\n\n\n**Operation:** **${deployment.title}**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**. <@${deployment.user}> will open communication channels in the next **5 minutes** and Divers are expected to be present.\n\n**Difficulty:** **${deployment.difficulty}**\n\n**Deployment Lead:**\n<@${deployment.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\n${backupsFormatted.length ? `**Standby divers:**\n${backupsFormatted}\n\n` : ""}You are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------` });
 
@@ -119,9 +123,49 @@ export default {
 
 				if (!message) continue;
 
-				const embed = await buildDeploymentEmbed(deployment, message.guild, "Red", true);
+				try {
+					const embed = await buildDeploymentEmbed(deployment, message.guild, "Red", true);
+					await message.edit({ content: "", embeds: [embed], components: [] });
 
-				await message.edit({ content: "", embeds: [embed], components: [] }).catch(err => console.error("Message edit error:", err));
+					// Fetch all logging channels and send to each
+					for (const channelId of config.loggingChannels) {
+						const loggingChannel = await client.channels.fetch(channelId).catch(() => null) as GuildTextBasedChannel;
+						if (loggingChannel) {
+							const signups = await Signups.find({ where: { deploymentId: deployment.id } });
+							const backups = await Backups.find({ where: { deploymentId: deployment.id } });
+
+							const signupsFormatted = signups.map(signup => {
+								if (signup.userId == deployment.user) return;
+								const role = config.roles.find(role => role.name === signup.role);
+								const member = message.guild.members.cache.get(signup.userId);
+								return `${role.emoji} ${member?.nickname || member?.user.username || signup.userId}`;
+							}).filter(s => s).join("\n") || "- None -";
+
+							const backupsFormatted = backups.map(backup => {
+								const member = message.guild.members.cache.get(backup.userId);
+								return member?.nickname || member?.user.username || backup.userId;
+							}).join("\n") || "- None -";
+
+							const logEmbed = new EmbedBuilder()
+								.setColor("Yellow")
+								.setTitle("Deployment Started")
+								.addFields(
+									{ name: "Title", value: deployment.title, inline: true },
+									{ name: "Host", value: message.guild.members.cache.get(deployment.user)?.nickname || deployment.user, inline: true },
+									{ name: "Difficulty", value: deployment.difficulty, inline: true },
+									{ name: "Time", value: `<t:${Math.floor(deployment.startTime / 1000)}:F>`, inline: false },
+									{ name: "Players", value: signupsFormatted, inline: true },
+									{ name: "Backups", value: backupsFormatted, inline: true },
+									{ name: "Description", value: deployment.description || "No description provided" }
+								)
+								.setTimestamp();
+
+							await loggingChannel.send({ embeds: [logEmbed] });
+						}
+					}
+				} catch (err) {
+					console.error(`Error building deployment embed for deployment ${deployment.id}:`, err);
+				}
 
 				deployment.started = true;
 				await deployment.save();
@@ -149,6 +193,14 @@ export default {
 
 		await checkDeployments();
 		cron.schedule('* * * * *', checkDeployments);
+
+
+		cron.schedule('0 8,20 * * *', async () => {
+			const channel = await client.channels.fetch('1218616472289673267').catch(() => null) as GuildTextBasedChannel;
+			if (channel) {
+				await channel.send("Good morning battalion!");
+			}
+		});
 
 		const deploymentTime = await getDeploymentTime();
 		await startQueuedGame(deploymentTime);
@@ -200,5 +252,18 @@ export default {
 				await vc.remove();
 			}
 		});
+
+		cron.schedule("0 * * * *", async () => {
+			const deletedDeployments:Deployment[] = await Deployment.find({ where: { deleted: true }});
+			for(const deployment of deletedDeployments) {
+				await Signups.delete({ deploymentId: deployment.id });
+				await Backups.delete({ deploymentId: deployment.id });
+				await Deployment.delete({ id: deployment.id });
+			}
+		})
+
+		cron.schedule("0 0 * * *", async () => {
+			await LatestInput.clear();
+		})
 	},
 } as any;

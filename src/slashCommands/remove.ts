@@ -5,7 +5,7 @@ import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import { Like } from "typeorm";
-import config from "../config.js";
+import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
 
 export default new Slashcommand({
     name: "remove",
@@ -26,6 +26,12 @@ export default new Slashcommand({
             type: ApplicationCommandOptionType.String,
             required: true,
             autocomplete: true
+        },
+        {
+            name: "reason",
+            description: "Reason for removing the user",
+            type: ApplicationCommandOptionType.String,
+            required: false
         }
     ],
     autocomplete: async function({ interaction }: { interaction: AutocompleteInteraction }) {
@@ -115,12 +121,14 @@ export default new Slashcommand({
         if (signup) await signup.remove();
         if (backup) await backup.remove();
 
+        const reason = interaction.options.getString("reason") || "No reason provided";
+
         // Send DM to removed user
         try {
             await targetUser.send({
                 embeds: [buildEmbed({ preset: "info" })
                     .setTitle("Deployment Removal")
-                    .setDescription(`You have been removed from the deployment: **${deployment.title}**\nBy: <@${interaction.user.id}>`)
+                    .setDescription(`You have been removed from the deployment: **${deployment.title}**\n**By:** <@${interaction.user.id}>\n**Reason:** ${reason}`)
                 ]
             });
         } catch (error) {
@@ -134,58 +142,10 @@ export default new Slashcommand({
                 console.error("Channel not found or not text-based:", deployment.channel);
                 throw new Error("Channel not found or not text-based");
             }
-
             const message = await channel.messages.fetch(deployment.message);
-            const currentEmbed = message.embeds[0];
-            const signups = await Signups.find({ where: { deploymentId: deployment.id } });
-            const backups = await Backups.find({ where: { deploymentId: deployment.id } });
+            const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
 
-            // Fetch all members for signup mentions
-            const guild = interaction.guild;
-            const memberPromises = [...signups, ...backups].map(async (record) => {
-                try {
-                    return await guild.members.fetch(record.userId);
-                } catch (error) {
-                    console.error(`Failed to fetch member ${record.userId}:`, error);
-                    return null;
-                }
-            });
-            
-            const members = await Promise.all(memberPromises);
-
-            const newEmbed = {
-                ...currentEmbed.data,
-                fields: currentEmbed.data.fields?.map(field => {
-                    if (field.name === "Signups:") {
-                        return {
-                            ...field,
-                            value: signups.map(signup => {
-                                const role = config.roles.find(r => r.name === signup.role);
-                                const member = members.find(m => m?.id === signup.userId);
-                                return member ? `${role.emoji} <@${signup.userId}>` : `${role.emoji} Unknown User`;
-                            }).join("\n") || "` - `"
-                        };
-                    }
-                    if (field.name === "Backups:") {
-                        return {
-                            ...field,
-                            value: backups.length ? 
-                                backups.map(backup => {
-                                    const member = members.find(m => m?.id === backup.userId);
-                                    return member ? `<@${backup.userId}>` : "Unknown User";
-                                }).join("\n") 
-                                : "` - `"
-                        };
-                    }
-                    return field;
-                })
-            };
-
-            newEmbed.footer = { 
-                text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4` 
-            };
-
-            await message.edit({ embeds: [newEmbed] });
+            await message.edit({ embeds: [embed] });
         } catch (error) {
             console.error("Failed to update deployment message:", error);
             await interaction.reply({ 
@@ -198,7 +158,7 @@ export default new Slashcommand({
 
         await interaction.reply({ 
             embeds: [buildEmbed({ preset: "success" })
-                .setDescription(`Successfully removed <@${targetUser.id}> from the deployment`)], 
+                .setDescription(`Successfully removed <@${targetUser.id}> from the deployment\nReason: ${reason}`)], 
             ephemeral: true 
         });
     }
