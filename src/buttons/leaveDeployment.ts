@@ -69,7 +69,7 @@ export default new Button({
                 return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             }
 
-            const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", true);
+            const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
 
             // Add error handling for message edit
             try {
