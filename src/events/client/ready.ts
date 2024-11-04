@@ -79,11 +79,13 @@ export default {
 		const checkDeployments = async () => {
 			const deploymentsNoNotice = await Deployment.find({
 				where: {
+					deleted: false,
 					noticeSent: false
 				}
 			})
 			const unstartedDeployments = await Deployment.find({
 				where: {
+					deleted: false,
 					started: false,
 					startTime: LessThanOrEqual(DateTime.now().toMillis()),
 				}
