@@ -1,26 +1,8 @@
 function formatToGoogleCalendarDate(timestamp: number): string {
     timestamp = Number(timestamp);
-    // Ensure timestamp is a valid number
-    if (typeof timestamp !== 'number' || isNaN(timestamp)) {
-        throw new Error(`Invalid timestamp: ${timestamp}`);
-    }
-
+    if (typeof timestamp !== 'number' || isNaN(timestamp)) throw new Error(`Invalid timestamp: ${timestamp}`);
     const date = new Date(timestamp);
-
-    // Validate date object
-    if (isNaN(date.getTime())) {
-        throw new Error(`Invalid date created from timestamp: ${timestamp}`);
-    }
-
-    console.log(date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z");
-
-    // const year = date.getFullYear();
-    // const month = String(date.getMonth() + 1).padStart(2, '0');
-    // const day = String(date.getDate()).padStart(2, '0');
-    // const hours = String(date.getHours()).padStart(2, '0');
-    // const minuets = String(date.getMinutes()).padStart(2, '0');
-    // const seconds = String(date.getSeconds()).padStart(2, '0');
-    // return `${year}${month}${day}T${hours}${minuets}${seconds}Z`;
+    if (isNaN(date.getTime())) throw new Error(`Invalid date created from timestamp: ${timestamp}`);
     return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 }
 
@@ -32,28 +14,3 @@ export default function getGoogleCalendarLink(title:string, description:string, 
     const formattedEnd = formatToGoogleCalendarDate(endDate);
     return `https://www.google.com/calendar/render?action=TEMPLATE&text=${uriTitle}&dates=${formattedStart}/${formattedEnd}&details=${uriDescription}&location=${uriLocation}&sf=true&output=xml`;
 }
-
-// let googleCalendarLink;
-// try {
-//     const startTime = Number(deployment.startTime);
-//     const endTime = Number(deployment.endTime);
-//
-//     if (isNaN(startTime) || isNaN(endTime)) {
-//         throw new Error('Invalid start or end time');
-//     }
-//
-//     googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${
-//         encodeURIComponent(deployment.title)
-//     }&dates=${
-//         formatToGoogleCalendarDate(startTime)
-//     }/${
-//         formatToGoogleCalendarDate(endTime)
-//     }&details=${
-//         encodeURIComponent(deployment.description)
-//     }&location=${
-//         encodeURIComponent("101st Deployments Channel")
-//     }&sf=true&output=xml`;
-// } catch (error) {
-//     console.error('Failed to generate calendar link:', error);
-//     googleCalendarLink = '#'; // Fallback link if date formatting fails
-// }
