@@ -32,7 +32,7 @@ export default new Slashcommand({
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        setDeploymentTime(time.toString());
+        await setDeploymentTime(time.toString());
 
         const successEmbed = buildEmbed({ preset: "success" })
             .setTitle("Deployment time set")
