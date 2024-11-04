@@ -14,13 +14,14 @@ function formatToGoogleCalendarDate(timestamp: number): string {
 
     console.log(date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z");
 
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minuets = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    return `${year}${month}${day}T${hours}${minuets}${seconds}Z`;
+    // const year = date.getFullYear();
+    // const month = String(date.getMonth() + 1).padStart(2, '0');
+    // const day = String(date.getDate()).padStart(2, '0');
+    // const hours = String(date.getHours()).padStart(2, '0');
+    // const minuets = String(date.getMinutes()).padStart(2, '0');
+    // const seconds = String(date.getSeconds()).padStart(2, '0');
+    // return `${year}${month}${day}T${hours}${minuets}${seconds}Z`;
+    return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 }
 
 export default function getGoogleCalendarLink(title:string, description:string, startDate:number, endDate:number) {
