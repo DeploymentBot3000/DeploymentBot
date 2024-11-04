@@ -8,9 +8,8 @@ function formatToGoogleCalendarDate(timestamp: number): string {
 
 export default function getGoogleCalendarLink(title:string, description:string, startDate:number, endDate:number) {
     const uriTitle = encodeURIComponent(title);
-    const uriDescription = encodeURIComponent(description);
     const uriLocation = encodeURIComponent("101st Deployments Channel");
     const formattedStart = formatToGoogleCalendarDate(startDate);
     const formattedEnd = formatToGoogleCalendarDate(endDate);
-    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${uriTitle}&dates=${formattedStart}/${formattedEnd}&details=${uriDescription}&location=${uriLocation}&sf=true&output=xml`;
+    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${uriTitle}&dates=${formattedStart}/${formattedEnd}&location=${uriLocation}&sf=true&output=xml`;
 }
