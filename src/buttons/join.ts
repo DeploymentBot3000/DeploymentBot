@@ -22,7 +22,7 @@ export default new Button({
 
         await Queue.insert({ user: interaction.user.id, host: false });
 
-        const embed = await updateQueueMessages(true, client.nextGame.getTime(), false);
+        await updateQueueMessages(true, client.nextGame.getTime(), false);
 
         // const queue = await Queue.find();
         //
@@ -50,6 +50,6 @@ export default new Button({
         //         }
         //     ]);
 
-        await interaction.message.edit({ embeds: [embed] });
+        //await interaction.message.edit({ embeds: [embed] });
     }
 })
