@@ -189,6 +189,14 @@ export default {
 		await checkDeployments();
 		cron.schedule('* * * * *', checkDeployments);
 
+
+		cron.schedule('0 8,20 * * *', async () => {
+			const channel = await client.channels.fetch('1218616472289673267').catch(() => null) as GuildTextBasedChannel;
+			if (channel) {
+				await channel.send("Good morning battalion!");
+			}
+		});
+
 		const deploymentTime = await getDeploymentTime();
 		await startQueuedGame(deploymentTime);
 
