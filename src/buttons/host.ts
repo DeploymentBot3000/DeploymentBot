@@ -10,7 +10,7 @@ export default new Button({
     id: "host",
     cooldown: 0,
     permissions: [],
-    requiredRoles: [{ role: config.hostRole, required: true }],
+    requiredRoles: [],
     func: async function({ interaction }) {
         const cooldownResult = handleCooldown(interaction.user.id, "host");
         if (cooldownResult.onCooldown) {
@@ -24,21 +24,25 @@ export default new Button({
 
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
 
-        if (alreadyQueued?.host === true) {
-            const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("You are already in the host queue");
-
-            return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
-        }
-
-        if (alreadyQueued?.host === false) {
+        if (alreadyQueued && !alreadyQueued.host) {
             await Queue.update(
                 { user: interaction.user.id },
                 { host: true }
             );
-        } else {
-            await Queue.create({ user: interaction.user.id, host: true });
+            await updateQueueMessages(true, client.nextGame.getTime(), false);
+            return;
         }
+
+        if (alreadyQueued?.host) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription("You are already queued as host");
+            return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+        }
+
+        await Queue.create({
+            user: interaction.user.id,
+            host: true
+        }).save();
 
         await updateQueueMessages(true, client.nextGame.getTime(), false);
     }

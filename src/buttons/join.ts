@@ -30,18 +30,25 @@ export default new Button({
         await interaction.deferUpdate();
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
 
-        if (alreadyQueued?.host === false) {
+        if (alreadyQueued?.host) {
+            await Queue.update(
+                { user: interaction.user.id },
+                { host: false }
+            );
+            await updateQueueMessages(true, client.nextGame.getTime(), false);
+            return;
+        }
+
+        if (alreadyQueued && !alreadyQueued.host) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are already in the queue");
-
             return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        if (alreadyQueued?.host === true) {
-            await Queue.update({ user: interaction.user.id }, { host: false });
-        } else {
-            await Queue.create({ user: interaction.user.id, host: false });
-        }
+        await Queue.create({
+            user: interaction.user.id,
+            host: false
+        }).save();
 
         await updateQueueMessages(true, client.nextGame.getTime(), false);
     }
