@@ -12,7 +12,7 @@ export default new Button({
 
         const modal = new ModalBuilder().setTitle("New Deployment").setCustomId("newDeployment").addComponents(
             new ActionRowBuilder<TextInputBuilder>().addComponents(
-                new TextInputBuilder().setCustomId("title").setLabel("Title").setPlaceholder("Deployment Title").setRequired(true).setStyle(TextInputStyle.Short).setValue(latestInput?.title || "").setMaxLength(75)
+                new TextInputBuilder().setCustomId("title").setLabel("Title").setPlaceholder("Deployment Title").setRequired(true).setStyle(TextInputStyle.Short).setValue(latestInput?.title || "").setMaxLength(50)
             ),
             new ActionRowBuilder<TextInputBuilder>().addComponents(
                 new TextInputBuilder().setCustomId("difficulty").setLabel("Difficulty").setPlaceholder("Deployment Difficulty").setRequired(true).setStyle(TextInputStyle.Short).setValue(latestInput?.difficulty || "").setMaxLength(10)
