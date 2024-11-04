@@ -1,7 +1,7 @@
 // Package imports
 import config from "./config.js";
 import { error, log } from "./utils/logger.js";
-import { Client, Collection, IntentsBitField, Partials } from "discord.js";
+import { Client, Collection, IntentsBitField, Partials, ActivityType } from "discord.js";
 
 // Handlers & Database
 import eventHandler from "./handlers/eventHandler.js";
@@ -36,6 +36,11 @@ class CustomClient extends Client {
 export const client = new CustomClient({
     intents: [IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.MessageContent, IntentsBitField.Flags.GuildMembers, IntentsBitField.Flags.GuildVoiceStates],
     partials: [Partials.Message, Partials.GuildMember, Partials.Channel, Partials.Reaction, Partials.User]
+});
+
+// Add status when client is ready
+client.on('ready', () => {
+    client.user?.setActivity(config.status.text, { type: ActivityType.Watching });
 });
 
 export const getDeploymentTime = async () => {
