@@ -24,7 +24,8 @@ export default new Button({
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are blacklisted from joining queues");
 
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true })
+                .then(msg => setTimeout(() => msg.delete().catch(() => {}), 45000));
         }
 
         await interaction.deferUpdate();
@@ -42,7 +43,8 @@ export default new Button({
         if (alreadyQueued && !alreadyQueued.host) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are already in the queue");
-            return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+            return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true })
+                .then(msg => setTimeout(() => msg.delete().catch(() => {}), 45000));
         }
 
         await Queue.create({
