@@ -66,8 +66,8 @@ const buildDeploymentsEmbed = async (start: number, end: number): Promise<Hacked
 
         // Add field to the embed
         embed.addFields({
-            name: `🚨 ᲼${deployment.title}`,
-            value: `**🕛 ᲼Drop Time:** <t:${Math.round(deployment.time / 1000)}:t>\n**🪖 ᲼Drop Leader:** <@${deployment.leader}>\n**🟢 ᲼Primary Divers:** ${deployment.primaries}/4\n**🔵 ᲼Backup Divers:** ${deployment.backups}/4\n**🔗 ᲼Signup Link:** [Click me](${link})`,
+            name: `🪖 ᲼${deployment.title}`,
+            value: `**🕛 ᲼Drop Time:** <t:${Math.round(deployment.time / 1000)}:t>\n**📛 ᲼Drop Leader:** <@${deployment.leader}>\n**🟢 ᲼Primary Divers:** ${deployment.primaries}/4\n**🔵 ᲼Backup Divers:** ${deployment.backups}/4\n**🔗 ᲼Signup Link:** [Click me](${link})`,
             inline: true
         });
 
@@ -76,6 +76,12 @@ const buildDeploymentsEmbed = async (start: number, end: number): Promise<Hacked
             count = 0;
         } else count++
     });
+
+    if(!deployments.length) {
+        embed.addFields({
+            name: "⛔ There are not scheduled deployments in the requested time range!"
+        })
+    }
 
     // Add footer
     embed.setFooter({
