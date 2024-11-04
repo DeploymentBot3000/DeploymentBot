@@ -36,7 +36,9 @@ export const startQueuedGame = async (deploymentTime: number) => {
     const nextDeploymentTime = client.nextGame.getTime();
 
     // Fetch the logging channel
-    const loggingChannel = await client.channels.fetch(config.loggingChannel).catch(() => null) as TextChannel;
+    const loggingChannels = await Promise.all(
+        config.loggingChannels.map(id => client.channels.fetch(id).catch(() => null))
+    );
 
     if (hosts.length < 1 || players.length < 3) {
         console.log(`Not enough players or hosts. Hosts: ${hosts.length}, Players: ${players.length}`);
@@ -139,47 +141,49 @@ export const startQueuedGame = async (deploymentTime: number) => {
             await updateQueueMessages(false, nextDeploymentTime, deploymentCreated);
             console.log(`Queue messages updated`); // LOL
 
-            // Log to the logging channel
-            if (loggingChannel) {
-                try {
-                    // Fetch all player members to get their nicknames
-                    const playerMembers = await Promise.all(
-                        selectedPlayers.map(p => departureChannel.guild.members.fetch(p.user).catch(() => null))
-                    );
+            // Log to all logging channels
+            for (const loggingChannel of loggingChannels) {
+                if (loggingChannel && loggingChannel instanceof TextChannel) {
+                    try {
+                        // Fetch all player members to get their nicknames
+                        const playerMembers = await Promise.all(
+                            selectedPlayers.map(p => departureChannel.guild.members.fetch(p.user).catch(() => null))
+                        );
 
-                    const deploymentEmbed = {
-                        color: 0x00FF00,
-                        title: '<:Helldivers:1226464844534779984> Queue Deployment <:Helldivers:1226464844534779984>',
-                        fields: [
-                            {
-                                name: '👑 Host',
-                                value: hostDisplayName,
-                                inline: false
-                            },
-                            {
-                                name: '👥 Players',
-                                value: playerMembers
-                                    .filter(member => member !== null)
-                                    .map(member => `• ${member.nickname || member.user.username}`)
-                                    .join('\n') || 'No players found',
-                                inline: false
-                            },
-                            {
-                                name: '🎙️ Voice Channel',
-                                value: `<#${vc.id}>`,
-                                inline: false
+                        const deploymentEmbed = {
+                            color: 0x00FF00,
+                            title: '<:Helldivers:1226464844534779984> Queue Deployment <:Helldivers:1226464844534779984>',
+                            fields: [
+                                {
+                                    name: '👑 Host',
+                                    value: hostDisplayName,
+                                    inline: false
+                                },
+                                {
+                                    name: '👥 Players',
+                                    value: playerMembers
+                                        .filter(member => member !== null)
+                                        .map(member => `• ${member.nickname || member.user.username}`)
+                                        .join('\n') || 'No players found',
+                                    inline: false
+                                },
+                                {
+                                    name: '🎙️ Voice Channel',
+                                    value: `<#${vc.id}>`,
+                                    inline: false
+                                }
+                            ],
+                            timestamp: new Date().toISOString(),
+                            footer: {
+                                text: `Channel ID: ${vc.id}`
                             }
-                        ],
-                        timestamp: new Date().toISOString(),
-                        footer: {
-                            text: `Channel ID: ${vc.id}`
-                        }
-                    };
+                        };
 
-                    await loggingChannel.send({ embeds: [deploymentEmbed] })
-                        .catch(error => console.error('Failed to send deployment log:', error));
-                } catch (error) {
-                    console.error('Error creating deployment log:', error);
+                        await loggingChannel.send({ embeds: [deploymentEmbed] })
+                            .catch(error => console.error('Failed to send deployment log:', error));
+                    } catch (error) {
+                        console.error('Error creating deployment log:', error);
+                    }
                 }
             }
         }
