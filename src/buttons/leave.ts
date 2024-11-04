@@ -49,6 +49,6 @@ export default new Button({
                 }
             ]);
 
-        await interaction.message.edit({ embeds: [embed] });
+        return await interaction.update({ embeds: [embed] });
     }
 })
