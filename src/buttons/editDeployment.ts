@@ -130,18 +130,37 @@ export default new Button({
                 return `UTC+${hourOffset.padStart(2, "0")}${minuteOffset.padStart(2, "0")}`.replace(/:/g, "");
             });
 
-            const startDate = new Date(startTimeFormatted);
-            const oneHourFromNow = Date.now() + 3600000; // 1 hour in milliseconds
+            try {
+                const startDate = new Date(startTimeFormatted);
+                const oneHourFromNow = Date.now() + 3600000; // 1 hour in milliseconds
 
-            if (startDate.getTime() < oneHourFromNow) {
-                const errorEmbed = buildEmbed({ preset: "error" })
-                    .setDescription("Start time must be at least 1 hour from now");
+                if (isNaN(startDate.getTime())) {
+                    throw new Error("Invalid date format");
+                }
 
-                return await modalInteraction.reply({ embeds: [errorEmbed], ephemeral: true }).catch(() => null);
+                if (startDate.getTime() < oneHourFromNow) {
+                    await modalInteraction.reply({
+                        embeds: [
+                            buildEmbed({ preset: "error" })
+                                .setDescription("Start time must be at least 1 hour from now")
+                        ],
+                        ephemeral: true
+                    });
+                    return;
+                }
+
+                deployment.startTime = startDate.getTime();
+                deployment.endTime = startDate.getTime() + 7200000;
+            } catch (error) {
+                await modalInteraction.reply({
+                    embeds: [
+                        buildEmbed({ preset: "error" })
+                            .setDescription("Invalid date format. Please use the format: YYYY-MM-DD HH:MM UTC(+/-)X")
+                    ],
+                    ephemeral: true
+                });
+                return;
             }
-
-            deployment.startTime = startDate.getTime();
-            deployment.endTime = startDate.getTime() + 7200000;
         }
 
         await deployment.save();
