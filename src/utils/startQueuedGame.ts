@@ -10,8 +10,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import updateQueueMessages from "./updateQueueMessage.js";
 
-let failedDeployments = 0;
-
 // Add this function to generate a random 4-digit number
 function generateRandomCode() {
     return Math.floor(1000 + Math.random() * 9000);
@@ -44,20 +42,6 @@ export const startQueuedGame = async (deploymentTime: number) => {
         console.log(`Not enough players or hosts. Hosts: ${hosts.length}, Players: ${players.length}`);
         // Update queue messages with "Not enough players" message
         await updateQueueMessages(true, nextDeploymentTime);
-
-        // Log to the logging channel
-        if (loggingChannel) {
-            failedDeployments++;
-            const failedEmbed = {
-                color: 0xFF0000,
-                description: `**Failed Deployment #${failedDeployments}**\n\n` +
-                    `Hosts: \`${hosts.length}\`\n` +
-                    `Players: \`${players.length}\``,
-                timestamp: new Date().toISOString()
-            };
-
-            await loggingChannel.send({ embeds: [failedEmbed] });
-        }
     } else {
         console.log(`Sufficient players and hosts. Creating groups.`);
         const hostPlayerGroups = hosts.map(host => {
