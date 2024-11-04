@@ -29,11 +29,6 @@ export default new Button({
 
         await Queue.delete({ user: interaction.user.id });
 
-        const successEmbed = buildEmbed({ preset: "success" })
-            .setDescription("You have been removed from the queue");
-
-        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
-
         const queue = await Queue.find();
 
         const embed = buildEmbed({ name: "queuePanel" })

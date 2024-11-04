@@ -5,6 +5,7 @@ import { buildEmbed } from "../utils/configBuilders.js";
 import config from "../config.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
 import { handleCooldown } from "../utils/cooldownManager.js";
+import { GuildMember } from "discord.js";
 
 export default new Button({
     id: "host",
@@ -16,6 +17,14 @@ export default new Button({
         if (cooldownResult.onCooldown) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription(`Please wait ${cooldownResult.remainingTime.toFixed(1)} seconds before using this again.`);
+            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true })
+                .then(msg => setTimeout(() => msg.delete().catch(() => {}), 45000));
+        }
+
+        const member = interaction.member as GuildMember;
+        if (!member.roles.cache.has(config.hostRole)) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription("You need the Host role to queue as host");
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true })
                 .then(msg => setTimeout(() => msg.delete().catch(() => {}), 45000));
         }
@@ -36,7 +45,8 @@ export default new Button({
         if (alreadyQueued?.host) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are already queued as host");
-            return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+            return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true })
+                .then(msg => setTimeout(() => msg.delete().catch(() => {}), 45000));
         }
 
         await Queue.create({
