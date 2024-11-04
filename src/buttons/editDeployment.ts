@@ -5,6 +5,9 @@ import { buildEmbed } from "../utils/configBuilders.js";
 import config from "../config.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
+import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
+import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
+import getStartTime from "../utils/getStartTime.js";
 
 export default new Button({
     id: "editDeployment",
@@ -27,10 +30,28 @@ export default new Button({
 
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
-      
+
         if(deployment.noticeSent) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You can't edit a deployment after the notice has been sent!");
+
+            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        }
+
+        const now = Date.now();
+        const oneHourBeforeStart = deployment.startTime - 3600000; // 1 hour in milliseconds
+        
+        if (now >= deployment.startTime) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription("You can't edit a deployment that has already started!");
+
+            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        }
+
+        if (now >= oneHourBeforeStart) {
+            const timeUntilStart = Math.floor((deployment.startTime - now) / 60000); // Convert to minutes
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription(`You can't edit a deployment within 1 hour of its start time!\nThis deployment starts in ${timeUntilStart} minutes.`);
 
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
@@ -57,6 +78,9 @@ export default new Button({
 
             return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
         }
+
+        // Delete the select menu message
+        await interaction.deleteReply();
 
         const rows = [];
 
@@ -107,7 +131,7 @@ export default new Button({
         await selectmenuInteraction.showModal(modal);
 
         const modalInteraction: ModalSubmitInteraction = await selectmenuInteraction.awaitModalSubmit({ time: 2147483647 }).catch(() => null);
-        
+
         if (!modalInteraction) return;
 
         if (selectmenuInteraction.values.includes("title")) {
@@ -119,20 +143,13 @@ export default new Button({
         if (selectmenuInteraction.values.includes("description")) {
             deployment.description = modalInteraction.fields.getTextInputValue("description");
         }
+
         if (selectmenuInteraction.values.includes("startTime")) {
             const startTime = modalInteraction.fields.getTextInputValue("startTime");
-            const startTimeFormatted = startTime.replace(/UTC\+(\d{1,2}):?(\d{2})?/, (_, hourOffset, minuteOffset = "00") => {
-                return `UTC+${hourOffset.padStart(2, "0")}${minuteOffset.padStart(2, "0")}`.replace(/:/g, "");
-            });
+            let startDate:Date = null;
 
-            const startDate = new Date(startTimeFormatted);
-
-            if (startDate.getTime() < Date.now()) {
-                const errorEmbed = buildEmbed({ preset: "error" })
-                    .setDescription("Start time cannot be in the past");
-
-                return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
-            }
+            try { startDate = await getStartTime(startTime, modalInteraction); }
+            catch (e) { return; }
 
             deployment.startTime = startDate.getTime();
             deployment.endTime = startDate.getTime() + 7200000;
@@ -145,72 +162,12 @@ export default new Button({
 
         await modalInteraction.reply({ embeds: [successEmbed], components: [], ephemeral: true }).catch(() => null);
 
-        const signups = await Signups.find({ where: { deploymentId: deployment.id } });
-        const backups = await Backups.find({ where: { deploymentId: deployment.id } });
+        const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
 
-        const signupMembers = [];
-        const backupMembers = [];
-
-        for (const signup of signups) {
-            try {
-                const member = await interaction.guild.members.fetch(signup.userId);
-                if (member) {
-                    signupMembers.push(signup);
-                }
-            } catch (error) {
-                console.error(`Failed to fetch member for signup ${signup.userId}:`, error);
-                // Remove invalid signup from database
-                await signup.remove().catch(console.error);
-            }
+        // Add a fallback description if none exists
+        if (!embed.data.description) {
+            embed.setDescription("No description available");
         }
-
-        for (const backup of backups) {
-            try {
-                const member = await interaction.guild.members.fetch(backup.userId);
-                if (member) {
-                    backupMembers.push(backup);
-                }
-            } catch (error) {
-                console.error(`Failed to fetch member for backup ${backup.userId}:`, error);
-                // Remove invalid backup from database
-                await backup.remove().catch(console.error);
-            }
-        }
-
-        const embed = new EmbedBuilder()
-            .setTitle(deployment.title)
-            .addFields([
-                {
-                    name: "Event Info:",
-                    value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d>\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.endTime) / 1000)}:t>`
-                },
-                {
-                    name: "Description:",
-                    value: deployment.description
-                },
-                {
-                    name: "Signups:",
-                    value: signupMembers.map(signup => {
-                        const role = config.roles.find(role => role.name === signup.role);
-                        const member = interaction.guild.members.cache.get(signup.userId);
-                        return `${role.emoji} ${member ? member.displayName : `Unknown Member (${signup.userId})`}`;
-                    }).join("\n") || "` - `",
-                    inline: true
-                },
-                {
-                    name: "Backups:",
-                    value: backupMembers.length ?
-                        backupMembers.map(backup => {
-                            const member = interaction.guild.members.cache.get(backup.userId);
-                            return member ? member.displayName : `Unknown Member (${backup.userId})`;
-                        }).join("\n")
-                        : "` - `",
-                    inline: true
-                }
-            ])
-            .setColor("Green")
-            .setFooter({ text: `Sign ups: ${signupMembers.length}/4 ~ Backups: ${backupMembers.length}/4` })
-            .setTimestamp(Number(deployment.startTime));
 
         await interaction.message.edit({ embeds: [embed] }).catch(() => null);
     }

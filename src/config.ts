@@ -16,7 +16,7 @@ export default {
     guildId: "1218615560049397770",
     departureChannel: "1297304177021685821",
     vcCategory: "1297303880706818109",
-    loggingChannel: "1297709020534013953",
+    loggingChannels: ["1297709020534013953", "1302855434415116309"],
     backupEmoji: "<:Backup:1289325583905456251>",
     hostRole: "1296482820067295284",
     editEmoji: "🔧",
@@ -142,5 +142,6 @@ export default {
             style: "Danger"
         }
     },
-    useNicknames: true
+
+    bugReportChannelId: "1302748846547533834"
 }

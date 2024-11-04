@@ -5,6 +5,8 @@ import Backups from "../tables/Backups.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import { EmbedBuilder } from "discord.js";
 import config from "../config.js";
+import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
+import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
 
 export default new Button({
     id: "leaveDeployment",
@@ -67,44 +69,7 @@ export default new Button({
                 return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             }
 
-            // Update the embed
-            const signups = await Signups.find({ where: { deploymentId: deployment.id } });
-            const backups = await Backups.find({ where: { deploymentId: deployment.id } });
-
-            const embed = new EmbedBuilder()
-                .setTitle(deployment.title)
-                .addFields([
-                    {
-                        name: "Event Info:",
-                        value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d>\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.endTime) / 1000)}:t>`
-                    },
-                    {
-                        name: "Description:",
-                        value: deployment.description
-                    },
-                    {
-                        name: "Signups:",
-                        value: signups.map(signup => {
-                            const role = config.roles.find(role => role.name === signup.role);
-                            const member = interaction.guild.members.cache.get(signup.userId);
-                            return `${role.emoji} ${member ? member.displayName : `Unknown Member (${signup.userId})`}`;
-                        }).join("\n") || "` - `",
-                        inline: true
-                    },
-                    {
-                        name: "Backups:",
-                        value: backups.length ?
-                            backups.map(backup => {
-                                const member = interaction.guild.members.cache.get(backup.userId);
-                                return member ? member.displayName : `Unknown Member (${backup.userId})`;
-                            }).join("\n")
-                            : "` - `",
-                        inline: true
-                    }
-                ])
-                .setColor("Green")
-                .setFooter({ text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4` })
-                .setTimestamp(Number(deployment.startTime));
+            const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
 
             // Add error handling for message edit
             try {
@@ -115,10 +80,7 @@ export default new Button({
                 return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             }
 
-            const successEmbed = buildEmbed({ preset: "success" })
-                .setDescription("You have left the deployment");
-
-            await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+            await interaction.update({});
         } catch (error) {
             console.error('Error in leaveDeployment button:', error);
             const errorEmbed = buildEmbed({ preset: "error" })
