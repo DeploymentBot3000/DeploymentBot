@@ -122,7 +122,8 @@ export default new Button({
         if (selectmenuInteraction.values.includes("startTime")) {
             try {
                 const startTime = modalInteraction.fields.getTextInputValue("startTime");
-                
+                console.log('Received start time:', startTime); // Debug log
+
                 // Regex for both absolute and relative time formats
                 const absoluteTimeRegex = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(\d{1,2}) UTC[+-]\d{1,2}(:30)?$/;
                 const relativeTimeRegex = /^(?:(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s\s*)?)+$/;
@@ -130,17 +131,25 @@ export default new Button({
                 let startDate: Date;
 
                 if (absoluteTimeRegex.test(startTime)) {
-                    // Parse using Luxon for better handling of time zones
+                    console.log('Parsing absolute time format'); // Debug log
                     const startDateTime = DateTime.fromFormat(startTime, "yyyy-MM-dd HH:mm 'UTC'ZZ");
+                    
+                    if (!startDateTime.isValid) {
+                        console.log('Luxon parsing failed:', startDateTime.invalidReason); // Debug log
+                        throw new Error(`Invalid datetime: ${startDateTime.invalidReason}`);
+                    }
+                    
                     startDate = startDateTime.toJSDate();
+                    console.log('Parsed date:', startDate); // Debug log
                 } else if (relativeTimeRegex.test(startTime)) {
-                    // Parse relative time
+                    console.log('Parsing relative time format'); // Debug log
                     const matches = startTime.match(/(\d+)([dhms])/g);
                     let totalMs = 0;
 
                     matches.forEach(match => {
                         const value = parseInt(match.slice(0, -1));
                         const unit = match.slice(-1);
+                        console.log('Processing unit:', { value, unit }); // Debug log
 
                         switch (unit) {
                             case 'd': totalMs += value * 24 * 60 * 60 * 1000; break;
@@ -150,64 +159,75 @@ export default new Button({
                         }
                     });
 
-                    // Calculate the relative start date based on current time
                     startDate = new Date(Date.now() + totalMs);
+                    console.log('Calculated relative date:', startDate); // Debug log
                 } else {
+                    console.log('Failed regex tests'); // Debug log
                     const errorEmbed = buildEmbed({ preset: "error" })
-                        .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`)");
+                        .setDescription("Invalid time format. Please use either:\n" +
+                            "• Absolute time: `YYYY-MM-DD HH:MM UTC+X` (Example: `2024-03-25 18:30 UTC+0`)\n" +
+                            "• Relative time: `#d#h#m#s` (Example: `2h30m` for 2 hours and 30 minutes from now)");
                     return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
                 }
 
                 // Validate parsed date
-                if (isNaN(startDate.getTime())) {
+                if (!startDate || isNaN(startDate.getTime())) {
+                    console.log('Invalid date object:', startDate); // Debug log
                     throw new Error(`Failed to parse date - invalid components: ${startTime}`);
                 }
 
-                // Validate date is within reasonable bounds
-                const maxDate = new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)); // 1 year from now
-                if (startDate > maxDate) {
-                    const errorEmbed = buildEmbed({ preset: "error" })
-                        .setDescription("Start time cannot be more than 1 year in the future");
-                    return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
-                }
-
+                console.log('Current deployment startTime:', deployment.startTime); // Debug log
                 const currentStartTime = new Date(Number(deployment.startTime));
+                console.log('Parsed current start time:', currentStartTime); // Debug log
+
                 if (!currentStartTime || isNaN(currentStartTime.getTime())) {
-                    throw new Error("Invalid current deployment start time");
+                    throw new Error(`Invalid current deployment start time: ${deployment.startTime}`);
                 }
 
                 const oneHourBeforeCurrentStart = new Date(currentStartTime.getTime() - 3600000);
                 const now = new Date();
 
-                // Validate against current time
+                // Add validation logging
+                console.log('Validation times:', {
+                    now: now.toISOString(),
+                    startDate: startDate.toISOString(),
+                    currentStartTime: currentStartTime.toISOString(),
+                    oneHourBeforeCurrentStart: oneHourBeforeCurrentStart.toISOString()
+                });
+
                 if (startDate.getTime() < now.getTime()) {
                     const errorEmbed = buildEmbed({ preset: "error" })
                         .setDescription("Start time cannot be in the past");
                     return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
                 }
 
-                // Validate against current deployment time
                 if (startDate.getTime() < oneHourBeforeCurrentStart.getTime()) {
                     const errorEmbed = buildEmbed({ preset: "error" })
                         .setDescription("Cannot edit start time to be more than 1 hour earlier than the current start time");
                     return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
                 }
 
-                // Calculate end time (2 hours after start)
                 const endTime = startDate.getTime() + 7200000;
-                
-                // Final validation of calculated times
-                if (!Number.isInteger(startDate.getTime()) || !Number.isInteger(endTime)) {
-                    throw new Error("Invalid timestamp calculation");
-                }
 
                 deployment.startTime = startDate.getTime();
                 deployment.endTime = endTime;
 
+                console.log('Final times set:', {
+                    startTime: deployment.startTime,
+                    endTime: deployment.endTime
+                });
+
             } catch (error) {
-                console.error('Error processing start time:', error);
+                console.error('Error processing start time:', {
+                    error: error.message,
+                    stack: error.stack,
+                    input: modalInteraction.fields.getTextInputValue("startTime")
+                });
+                
                 const errorEmbed = buildEmbed({ preset: "error" })
-                    .setDescription(`Failed to process start time: ${error.message}\nPlease use format: YYYY-MM-DD HH:MM UTC+0\nExample: 2024-03-25 18:30 UTC+0`);
+                    .setDescription(`Failed to process start time: ${error.message}\n\nValid formats:\n` +
+                        "• `YYYY-MM-DD HH:MM UTC+X` (Example: `2024-03-25 18:30 UTC+0`)\n" +
+                        "• `#d#h#m#s` (Example: `2h30m` for 2 hours and 30 minutes from now)");
                 return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
             }
         }
