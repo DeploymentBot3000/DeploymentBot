@@ -151,7 +151,7 @@ export default new Button({
 
         await modalInteraction.reply({ embeds: [successEmbed], components: [], ephemeral: true }).catch(() => null);
 
-        const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", true);
+        const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
 
         await interaction.message.edit({ embeds: [embed] }).catch(() => null);
     }
