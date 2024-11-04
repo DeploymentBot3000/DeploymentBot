@@ -59,6 +59,9 @@ export default new Button({
             return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
         }
 
+        // Delete the select menu after it's been used
+        await interaction.editReply({ components: [] });
+
         const rows = [];
 
         if (!selectmenuInteraction.values || !Array.isArray(selectmenuInteraction.values)) {
@@ -127,12 +130,13 @@ export default new Button({
             });
 
             const startDate = new Date(startTimeFormatted);
+            const oneHourFromNow = Date.now() + 3600000; // 1 hour in milliseconds
 
-            if (startDate.getTime() < Date.now()) {
+            if (startDate.getTime() < oneHourFromNow) {
                 const errorEmbed = buildEmbed({ preset: "error" })
-                    .setDescription("Start time cannot be in the past");
+                    .setDescription("Start time must be at least 1 hour from now");
 
-                return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
+                return await modalInteraction.reply({ embeds: [errorEmbed], ephemeral: true }).catch(() => null);
             }
 
             deployment.startTime = startDate.getTime();
