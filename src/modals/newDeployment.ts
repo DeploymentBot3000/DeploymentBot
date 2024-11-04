@@ -42,35 +42,6 @@ export default new Modal({
             return;
         }
 
-        const oneHourFromNow = Date.now() + (60 * 60 * 1000); // 1 hour in milliseconds
-        
-        if (startDate.getTime() < oneHourFromNow) {
-            const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("Start time must be at least 1 hour in the future");
-
-
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-            setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
-
-            const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
-
-            if (latestInput) {
-                latestInput.title = title;
-                latestInput.difficulty = difficulty;
-                latestInput.description = description;
-                await latestInput.save();
-            } else {
-                await LatestInput.insert({
-                    userId: interaction.user.id,
-                    title,
-                    difficulty,
-                    description
-                });
-            }
-
-            return;
-        }
-
         const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
             new StringSelectMenuBuilder().setPlaceholder("Select a channel").setCustomId("channel").addOptions(
                 config.channels.map(channel => ({
