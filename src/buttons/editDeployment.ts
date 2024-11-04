@@ -5,6 +5,7 @@ import { buildEmbed } from "../utils/configBuilders.js";
 import config from "../config.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
+import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 
 export default new Button({
     id: "editDeployment",
@@ -24,6 +25,13 @@ export default new Button({
         if (deployment.user !== interaction.user.id) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You do not have permission to edit this deployment");
+
+            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        }
+      
+        if(deployment.noticeSent) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription("You can't edit a deployment after the notice has been sent!");
 
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
@@ -52,6 +60,13 @@ export default new Button({
         }
 
         const rows = [];
+
+        if (!selectmenuInteraction.values || !Array.isArray(selectmenuInteraction.values)) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription("Invalid selection");
+
+            return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
+        }
 
         for (const choice of selectmenuInteraction.values) {
             switch (choice) {
@@ -96,9 +111,15 @@ export default new Button({
         
         if (!modalInteraction) return;
 
-        if (selectmenuInteraction.values.includes("title")) deployment.title = modalInteraction.fields.getTextInputValue("title");
-        if (selectmenuInteraction.values.includes("difficulty")) deployment.difficulty = modalInteraction.fields.getTextInputValue("difficulty");
-        if (selectmenuInteraction.values.includes("description")) deployment.description = modalInteraction.fields.getTextInputValue("description");
+        if (selectmenuInteraction.values.includes("title")) {
+            deployment.title = modalInteraction.fields.getTextInputValue("title");
+        }
+        if (selectmenuInteraction.values.includes("difficulty")) {
+            deployment.difficulty = modalInteraction.fields.getTextInputValue("difficulty");
+        }
+        if (selectmenuInteraction.values.includes("description")) {
+            deployment.description = modalInteraction.fields.getTextInputValue("description");
+        }
         if (selectmenuInteraction.values.includes("startTime")) {
             const startTime = modalInteraction.fields.getTextInputValue("startTime");
             const startTimeFormatted = startTime.replace(/UTC\+(\d{1,2}):?(\d{2})?/, (_, hourOffset, minuteOffset = "00") => {
@@ -128,12 +149,43 @@ export default new Button({
         const signups = await Signups.find({ where: { deploymentId: deployment.id } });
         const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
+        const signupMembers = [];
+        const backupMembers = [];
+
+        for (const signup of signups) {
+            try {
+                const member = await interaction.guild.members.fetch(signup.userId);
+                if (member) {
+                    signupMembers.push(signup);
+                }
+            } catch (error) {
+                console.error(`Failed to fetch member for signup ${signup.userId}:`, error);
+                // Remove invalid signup from database
+                await signup.remove().catch(console.error);
+            }
+        }
+
+        for (const backup of backups) {
+            try {
+                const member = await interaction.guild.members.fetch(backup.userId);
+                if (member) {
+                    backupMembers.push(backup);
+                }
+            } catch (error) {
+                console.error(`Failed to fetch member for backup ${backup.userId}:`, error);
+                // Remove invalid backup from database
+                await backup.remove().catch(console.error);
+            }
+        }
+
+        const googleCalendarLink = getGoogleCalendarLink(deployment.title, deployment.description, deployment.startTime, deployment.endTime);
+
         const embed = new EmbedBuilder()
             .setTitle(deployment.title)
             .addFields([
                 {
                     name: "Event Info:",
-                    value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d>\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.endTime) / 1000)}:t>`
+                    value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.endTime / 1000))}:t>\n🪖 ${deployment.difficulty}`
                 },
                 {
                     name: "Description:",
@@ -141,22 +193,26 @@ export default new Button({
                 },
                 {
                     name: "Signups:",
-                    value: signups.map(signup => {
+                    value: signupMembers.map(signup => {
                         const role = config.roles.find(role => role.name === signup.role);
-                        return `${role.emoji} <@${signup.userId}>`;
+                        const member = interaction.guild.members.cache.get(signup.userId);
+                        return `${role.emoji} ${member ? member.displayName : `Unknown Member (${signup.userId})`}`;
                     }).join("\n") || "` - `",
                     inline: true
                 },
                 {
                     name: "Backups:",
-                    value: backups.length ?
-                        backups.map(backup => `<@${backup.userId}>`).join("\n") || "` - `"
+                    value: backupMembers.length ?
+                        backupMembers.map(backup => {
+                            const member = interaction.guild.members.cache.get(backup.userId);
+                            return member ? member.displayName : `Unknown Member (${backup.userId})`;
+                        }).join("\n")
                         : "` - `",
                     inline: true
                 }
             ])
             .setColor("Green")
-            .setFooter({ text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4` })
+            .setFooter({ text: `Sign ups: ${signupMembers.length}/4 ~ Backups: ${backupMembers.length}/4` })
             .setTimestamp(Number(deployment.startTime));
 
         await interaction.message.edit({ embeds: [embed] }).catch(() => null);
