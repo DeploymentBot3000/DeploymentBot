@@ -121,34 +121,90 @@ export default new Button({
             deployment.description = modalInteraction.fields.getTextInputValue("description");
         }
         if (selectmenuInteraction.values.includes("startTime")) {
-            const startTime = modalInteraction.fields.getTextInputValue("startTime");
-            const startTimeFormatted = startTime.replace(/UTC\+(\d{1,2}):?(\d{2})?/, (_, hourOffset, minuteOffset = "00") => {
-                return `UTC+${hourOffset.padStart(2, "0")}${minuteOffset.padStart(2, "0")}`.replace(/:/g, "");
-            });
+            try {
+                const startTime = modalInteraction.fields.getTextInputValue("startTime");
 
-            const startDate = new Date(startTimeFormatted);
-            const currentStartTime = new Date(deployment.startTime);
-            const oneHourBeforeCurrentStart = new Date(currentStartTime.getTime() - 3600000); // 1 hour in milliseconds
+                // Validate input format
+                const timeRegex = /^\d{4}-\d{1,2}-\d{1,2}\s\d{1,2}(?::\d{2})?\s?UTC[+-]\d{1,2}$/;
+                if (!timeRegex.test(startTime)) {
+                    const errorEmbed = buildEmbed({ preset: "error" })
+                        .setDescription("Invalid date format. Please use exactly: YYYY-MM-DD HH:MM UTC+0");
+                    return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
+                }
 
-            if (startDate.getTime() < Date.now()) {
+                // Format the time string
+                const startTimeFormatted = startTime.replace(/UTC\+(\d{1,2}):?(\d{2})?/, (_, hourOffset, minuteOffset = "00") => {
+                    if (parseInt(hourOffset) > 23) {
+                        throw new Error("Invalid UTC offset: hours cannot exceed 23");
+                    }
+                    return `UTC+${hourOffset.padStart(2, "0")}${minuteOffset.padStart(2, "0")}`.replace(/:/g, "");
+                });
+
+                const startDate = new Date(startTimeFormatted);
+
+                // Validate parsed date
+                if (isNaN(startDate.getTime())) {
+                    throw new Error("Failed to parse date - invalid date components");
+                }
+
+                // Validate date is within reasonable bounds
+                const maxDate = new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)); // 1 year from now
+                if (startDate > maxDate) {
+                    const errorEmbed = buildEmbed({ preset: "error" })
+                        .setDescription("Start time cannot be more than 1 year in the future");
+                    return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
+                }
+
+                const currentStartTime = new Date(deployment.startTime);
+                if (!currentStartTime || isNaN(currentStartTime.getTime())) {
+                    throw new Error("Invalid current deployment start time");
+                }
+
+                const oneHourBeforeCurrentStart = new Date(currentStartTime.getTime() - 3600000);
+                const now = new Date();
+
+                // Validate against current time
+                if (startDate.getTime() < now.getTime()) {
+                    const errorEmbed = buildEmbed({ preset: "error" })
+                        .setDescription("Start time cannot be in the past");
+                    return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
+                }
+
+                // Validate against current deployment time
+                if (startDate.getTime() < oneHourBeforeCurrentStart.getTime()) {
+                    const errorEmbed = buildEmbed({ preset: "error" })
+                        .setDescription("Cannot edit start time to be more than 1 hour earlier than the current start time");
+                    return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
+                }
+
+                // Calculate end time (2 hours after start)
+                const endTime = startDate.getTime() + 7200000;
+
+                // Final validation of calculated times
+                if (!Number.isInteger(startDate.getTime()) || !Number.isInteger(endTime)) {
+                    throw new Error("Invalid timestamp calculation");
+                }
+
+                deployment.startTime = startDate.getTime();
+                deployment.endTime = endTime;
+
+            } catch (error) {
+                console.error('Error processing start time:', error);
                 const errorEmbed = buildEmbed({ preset: "error" })
-                    .setDescription("Start time cannot be in the past");
-
+                    .setDescription(`Failed to process start time: ${error.message || 'Unknown error'}\nPlease use format: YYYY-MM-DD HH:MM UTC+0`);
                 return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
             }
-
-            if (startDate.getTime() < oneHourBeforeCurrentStart.getTime()) {
-                const errorEmbed = buildEmbed({ preset: "error" })
-                    .setDescription("Cannot edit start time to be more than 1 hour earlier than the current start time");
-
-                return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
-            }
-
-            deployment.startTime = startDate.getTime();
-            deployment.endTime = startDate.getTime() + 7200000;
         }
 
-        await deployment.save();
+        // Add try-catch for the save operation
+        try {
+            await deployment.save();
+        } catch (error) {
+            console.error('Error saving deployment:', error);
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription("Failed to save deployment changes. Please try again.");
+            return await modalInteraction.reply({ embeds: [errorEmbed], components: [], ephemeral: true }).catch(() => null);
+        }
 
         const successEmbed = buildEmbed({ preset: "success" })
             .setDescription("Deployment edited successfully");
