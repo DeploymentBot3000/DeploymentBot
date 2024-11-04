@@ -1,6 +1,8 @@
 import config from "../config.js";
+import {time} from "discord.js";
 
 function formatToGoogleCalendarDate(timestamp: number): string {
+    console.log(typeof timestamp);
     timestamp = Number(timestamp);
     // Ensure timestamp is a valid number
     if (typeof timestamp !== 'number' || isNaN(timestamp)) {
