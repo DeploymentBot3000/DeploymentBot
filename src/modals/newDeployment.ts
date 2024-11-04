@@ -67,6 +67,7 @@ export default new Modal({
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Invalid start time format. Please use `YYYY-MM-DD HH:MM UTC(+/-)X` (EX:`2024-11-02 06:23 UTC-7`");
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
             
             // Log invalid time entry to specific channel
             const logChannel = await interaction.client.channels.fetch('1299122351291629599');
@@ -83,6 +84,7 @@ export default new Modal({
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Error parsing date string, please try again later.");
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
             
             // Log invalid time entry to specific channel
             const logChannel = await interaction.client.channels.fetch('1299122351291629599');
@@ -103,6 +105,7 @@ export default new Modal({
 
 
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
 
             const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
 
@@ -136,7 +139,10 @@ export default new Modal({
         try {
             await interaction.deferReply({ ephemeral: true });
             
-            await interaction.editReply({ components: [row] });
+            await interaction.editReply({ 
+                content: `Helldivers, it's time to pick your battlefield. Select your region below to ensure you're dropped into the right chaos with the least lag (because lag's the real enemy here). Select the appropriate region to join your battalion's ranks!\n\n<@${interaction.user.id}>`,
+                components: [row] 
+            });
 
             const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
             if (latestInput) await latestInput.remove();
@@ -151,6 +157,7 @@ export default new Modal({
                     .setDescription("Channel selection timed out");
 
                 await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
+                setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
 
                 return;
             }
@@ -159,6 +166,7 @@ export default new Modal({
                 .setDescription("Deployment created successfully");
 
             await selectMenuResponse.update({ embeds: [successEmbed], components: [] });
+            setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
 
             const channel = config.channels.find(channel => channel.channel === selectMenuResponse.values[0].split("-")[0]);
 
@@ -255,6 +263,7 @@ export default new Modal({
                     embeds: [errorEmbed],
                     ephemeral: true
                 });
+                setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
             } catch (e) {
                 console.error('Failed to send error message:', e);
             }
