@@ -23,42 +23,5 @@ export default new Slashcommand({
         await interaction.reply({ embeds: [embed], ephemeral: true });
 
         await updateQueueMessages(true, client.nextGame.getTime(), false);
-
-        // const currentQueue = await Queue.find();
-        // const currentHosts = currentQueue.filter(q => q.host);
-        // const currentPlayers = currentQueue.filter(q => !q.host);
-        //
-        // const queueMessages = await QueueStatusMsg.find();
-        //
-        // for (const queueMessage of queueMessages) {
-        //     const channel = await client.channels.fetch(queueMessage.channel).catch(() => null) as GuildTextBasedChannel;
-        //     const message = await channel.messages.fetch(queueMessage.message).catch(() => null);
-        //
-        //     const embed = buildEmbed({ name: "queuePanel" })
-        //         .addFields([
-        //             {
-        //                 name: "Hosts:",
-        //                 value: await Promise.all(currentHosts.map(async host => {
-        //                     const member = await channel.guild.members.fetch(host.user).catch(() => null);
-        //                     return member ? member.displayName : 'Unknown User';
-        //                 })).then(hosts => hosts.join("\n")) || "` - `",
-        //                 inline: true
-        //             },
-        //             {
-        //                 name: "Participants:",
-        //                 value: await Promise.all(currentPlayers.map(async player => {
-        //                     const member = await channel.guild.members.fetch(player.user).catch(() => null);
-        //                     return member ? member.displayName : 'Unknown User';
-        //                 })).then(players => players.join("\n")) || "` - `",
-        //                 inline: true
-        //             },
-        //             {
-        //                 name: "Next game:",
-        //                 value: `📅 <t:${Math.round(client.nextGame.getTime() / 1000)}:d>\n🕒 <t:${Math.round(client.nextGame.getTime() / 1000)}:t>`,
-        //             }
-        //         ]);
-        //
-        //     await message.edit({ content: null, embeds: [embed] });
-        // }
     }
 })
