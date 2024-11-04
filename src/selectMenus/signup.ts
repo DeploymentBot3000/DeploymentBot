@@ -24,7 +24,7 @@ export default new SelectMenu({
         }
 
         const updateEmbed = async () => {
-            await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
+            return await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
         };
 
         const alreadySignedUp = await Signups.findOne({ where: { deploymentId: deployment.id, userId: interaction.user.id } });
