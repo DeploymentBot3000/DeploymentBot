@@ -48,10 +48,8 @@ export default new Button({
         }
 
         if (alreadyQueued) {
-            await Queue.update(
-                { host: true },
-                { where: { user: interaction.user.id } }
-            );
+            alreadyQueued.host = true;
+            await alreadyQueued.save();
         } else {
             await Queue.create({ user: interaction.user.id, host: true });
         }
