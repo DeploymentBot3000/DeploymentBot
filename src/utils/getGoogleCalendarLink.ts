@@ -1,6 +1,7 @@
 import config from "../config.js";
 
 function formatToGoogleCalendarDate(timestamp: number): string {
+    timestamp = Number(timestamp);
     // Ensure timestamp is a valid number
     if (typeof timestamp !== 'number' || isNaN(timestamp)) {
         throw new Error(`Invalid timestamp: ${timestamp}`);
