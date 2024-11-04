@@ -37,6 +37,24 @@ export default new Button({
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
 
+        const now = Date.now();
+        const oneHourBeforeStart = deployment.startTime - 3600000; // 1 hour in milliseconds
+        
+        if (now >= deployment.startTime) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription("You can't edit a deployment that has already started!");
+
+            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        }
+
+        if (now >= oneHourBeforeStart) {
+            const timeUntilStart = Math.floor((deployment.startTime - now) / 60000); // Convert to minutes
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription(`You can't edit a deployment within 1 hour of its start time!\nThis deployment starts in ${timeUntilStart} minutes.`);
+
+            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        }
+
         const selectmenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
             new StringSelectMenuBuilder().setCustomId("editDeployment").setPlaceholder("Select an option").setMaxValues(4).addOptions(
                 { label: "Title", value: "title", emoji: config.editEmoji },
@@ -60,8 +78,8 @@ export default new Button({
             return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
         }
 
-        // Delete the select menu after it's been used
-        await interaction.editReply({ components: [] });
+        // Delete the select menu message
+        await interaction.deleteReply();
 
         const rows = [];
 
@@ -132,17 +150,30 @@ export default new Button({
 
             try {
                 const startDate = new Date(startTimeFormatted);
-                const oneHourFromNow = Date.now() + 3600000; // 1 hour in milliseconds
+                const now = Date.now();
+                const oneHourFromNow = now + 3600000; // 1 hour in milliseconds
 
                 if (isNaN(startDate.getTime())) {
                     throw new Error("Invalid date format");
                 }
 
-                if (startDate.getTime() < oneHourFromNow) {
+                if (startDate.getTime() <= now) {
                     await modalInteraction.reply({
                         embeds: [
                             buildEmbed({ preset: "error" })
-                                .setDescription("Start time must be at least 1 hour from now")
+                                .setDescription("Start time cannot be in the past!")
+                        ],
+                        ephemeral: true
+                    });
+                    return;
+                }
+
+                if (startDate.getTime() < oneHourFromNow) {
+                    const timeUntilStart = Math.floor((startDate.getTime() - now) / 60000); // Convert to minutes
+                    await modalInteraction.reply({
+                        embeds: [
+                            buildEmbed({ preset: "error" })
+                                .setDescription(`Start time must be at least 1 hour from now!\nYou tried to set it to start in ${timeUntilStart} minutes.`)
                         ],
                         ephemeral: true
                     });
