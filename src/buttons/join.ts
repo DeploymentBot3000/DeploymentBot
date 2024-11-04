@@ -47,12 +47,10 @@ export default new Button({
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
 
         if (alreadyQueued) {
-            await Queue.update(
-                { user: interaction.user.id },
-                { host: false }
-            );
+            alreadyQueued.host = false;
+            await alreadyQueued.save();
         } else {
-            await Queue.create({ user: interaction.user.id, host: false }).save();
+            await Queue.create({ user: interaction.user.id, host: false });
         }
 
         await updateQueueMessages(true, client.nextGame.getTime(), false);
