@@ -259,11 +259,13 @@ export default {
 				await Signups.delete({ deploymentId: deployment.id });
 				await Backups.delete({ deploymentId: deployment.id });
 				await Deployment.delete({ id: deployment.id });
+				console.log(`Deleted ${deployment.id} & associated signups & backups`);
 			}
 		})
 
 		cron.schedule("0 0 * * *", async () => {
 			await LatestInput.clear();
+			console.log(`Cleared last input data!`);
 		})
 	},
 } as any;
