@@ -203,6 +203,11 @@ export default new Button({
 
         const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
 
+        // Add a fallback description if none exists
+        if (!embed.data.description) {
+            embed.setDescription("No description available");
+        }
+
         await interaction.message.edit({ embeds: [embed] }).catch(() => null);
     }
 })
