@@ -15,6 +15,7 @@ export default {
     verifiedRoleId: "1300670595918332007",
     guildId: "1218615560049397770",
     departureChannel: "1297304177021685821",
+    bugReportChannelId: "1302748846547533834",
     vcCategory: "1297303880706818109",
     loggingChannels: ["1297709020534013953", "1302855434415116309"],
     backupEmoji: "<:Backup:1289325583905456251>",
@@ -142,6 +143,5 @@ export default {
             style: "Danger"
         }
     },
-    buttonCooldown: 5,
-    bugReportChannelId: "1302748846547533834"
+    buttonCooldown: 5
 }
