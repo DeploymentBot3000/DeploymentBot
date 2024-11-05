@@ -34,13 +34,11 @@ export default new Button({
 
         const joinLogChannel = await client.channels.fetch('1303492344636772392') as GuildTextBasedChannel;
         await joinLogChannel.send(
-            "```\n" +
             "╔═══════════════════════════ QUEUE JOIN ═══════════════════════════╗\n" +
             `║ User    :: <@${interaction.user.id}>${' '.repeat(42 - interaction.user.id.length)}║\n` +
             `║ Type    :: Regular${' '.repeat(43)}║\n` +
             `║ Time    :: <t:${Math.floor(Date.now() / 1000)}:F>${' '.repeat(20)}║\n` +
-            "╚════════════════════════════════════════════════════════════════════╝\n" +
-            "```"
+            "╚════════════════════════════════════════════════════════════════════╝"
         );
 
         await Queue.insert({ user: interaction.user.id, host: false });
