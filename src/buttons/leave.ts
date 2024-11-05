@@ -3,6 +3,7 @@ import { client } from "../index.js";
 import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
+import config from "../config.js";
 
 export default new Button({
     id: "leave",
