@@ -12,7 +12,7 @@ import { log, action, error, warn, success } from "../utils/logger.js";
 
 export default new Button({
     id: "editDeployment",
-    cooldown: 0,
+    cooldown: config.buttonCooldown,
     permissions: [],
     requiredRoles: [],
     func: async function({ interaction }) {

@@ -7,7 +7,7 @@ import updateQueueMessages from "../utils/updateQueueMessage.js";
 
 export default new Button({
     id: "host",
-    cooldown: 0,
+    cooldown: config.buttonCooldown,
     permissions: [],
     requiredRoles: [{ role: config.hostRole, required: true }],
     func: async function({ interaction }) {

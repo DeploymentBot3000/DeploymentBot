@@ -1,10 +1,11 @@
 import Button from "../classes/Button.js";
 import Deployment from "../tables/Deployment.js";
 import { buildEmbed } from "../utils/configBuilders.js";
+import config from "../config.js";
 
 export default new Button({
     id: "deleteDeployment",
-    cooldown: 0,
+    cooldown: config.buttonCooldown,
     permissions: [],
     requiredRoles: [],
     func: async function ({ interaction }) {
