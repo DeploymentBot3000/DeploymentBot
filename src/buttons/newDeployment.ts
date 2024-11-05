@@ -15,7 +15,7 @@ export default new Button({
                 new TextInputBuilder().setCustomId("title").setLabel("Title").setPlaceholder("Deployment Title").setRequired(true).setStyle(TextInputStyle.Short).setValue(latestInput?.title || "").setMaxLength(50)
             ),
             new ActionRowBuilder<TextInputBuilder>().addComponents(
-                new TextInputBuilder().setCustomId("difficulty").setLabel("Difficulty").setPlaceholder("Deployment Difficulty").setRequired(true).setStyle(TextInputStyle.Short).setValue(latestInput?.difficulty || "").setMaxLength(10)
+                new TextInputBuilder().setCustomId("difficulty").setLabel("Difficulty").setPlaceholder("Deployment Difficulty").setRequired(true).setStyle(TextInputStyle.Short).setValue(latestInput?.difficulty || "").setMaxLength(15)
             ),
             new ActionRowBuilder<TextInputBuilder>().addComponents(
                 new TextInputBuilder().setCustomId("description").setLabel("Description").setPlaceholder("Deployment Description").setRequired(true).setStyle(TextInputStyle.Paragraph).setMaxLength(1000).setValue(latestInput?.description || "")
