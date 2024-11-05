@@ -17,7 +17,7 @@ import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
 import VoiceChannel from "../../tables/VoiceChannel.js";
 import { startQueuedGame } from "../../utils/startQueuedGame.js";
-import {LessThanOrEqual } from 'typeorm';
+import {BaseEntity, LessThanOrEqual} from 'typeorm';
 import {DateTime} from 'luxon';
 import cron from 'node-cron';
 import { buildDeploymentEmbed } from "../../utils/signupEmbedBuilder.js"
@@ -85,7 +85,8 @@ export default {
 				const deploymentsNoNotice = await Deployment.find({
 					where: {
 						deleted: false,
-						noticeSent: false
+						noticeSent: false,
+						startTime: LessThanOrEqual(DateTime.now().plus({ minute: -15 }).toMillis())
 					}
 				})
 				const unstartedDeployments = await Deployment.find({
@@ -98,32 +99,32 @@ export default {
 
 				for (const deployment of deploymentsNoNotice) {
 
-					if (deployment.startTime - 900000 <= Date.now()) {
+					if (!(deployment.startTime - 900000 <= Date.now())) continue;
 
-						const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null) as GuildTextBasedChannel;
-						const signups = await Signups.find({ where: { deploymentId: deployment.id } });
-						const backups = await Backups.find({ where: { deploymentId: deployment.id } });
+					const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null) as GuildTextBasedChannel;
+					const signups = await Signups.find({ where: { deploymentId: deployment.id } });
+					const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
-						const signupsFormatted = signups.map(signup => {
-							if (signup.userId == deployment.user) return;
-							const role = config.roles.find(role => role.name === signup.role);
-							return `${role.emoji} <@${signup.userId}>`;
-						}).filter(s => s).join("\n") || "` - `";
+					const signupsFormatted = signups.map(signup => {
+						if (signup.userId == deployment.user) return;
+						const role = config.roles.find(role => role.name === signup.role);
+						return `${role.emoji} <@${signup.userId}>`;
+					}).filter(s => s).join("\n") || "` - `";
 
-						const backupsFormatted = backups.map(backup => `<@${backup.userId}>`).join("\n");
+					const backupsFormatted = backups.map(backup => `<@${backup.userId}>`).join("\n");
 
-						const operationRegex = /^(op(p)?eration|operration|opperation|operacion):?\s*/i;
-						const formattedTitle = operationRegex.test(deployment.title) 
-							? deployment.title 
-							: `Operation: ${deployment.title}`;
+					const operationRegex = /^(op(p)?eration|operration|opperation|operacion):?\s*/i;
+					const formattedTitle = operationRegex.test(deployment.title)
+						? deployment.title
+						: `Operation: ${deployment.title}`;
 
-						await departureChannel.send({
-							content: `-------------------------------------------\n\n# <:Helldivers:1226464844534779984> ATTENTION HELLDIVERS <:Helldivers:1226464844534779984>\n\n\n**${formattedTitle}**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**. <@${deployment.user}> will open communication channels in the next **5 minutes** and Divers are expected to be present.\n\n**Difficulty:** **${deployment.difficulty}**\n\n**Deployment Lead:**\n<@${deployment.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\n${backupsFormatted.length ? `**Standby divers:**\n${backupsFormatted}\n\n` : ""}You are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------` });
+					await departureChannel.send({
+						content: `-------------------------------------------\n\n# <:Helldivers:1226464844534779984> ATTENTION HELLDIVERS <:Helldivers:1226464844534779984>\n\n\n**${formattedTitle}**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**. <@${deployment.user}> will open communication channels in the next **5 minutes** and Divers are expected to be present.\n\n**Difficulty:** **${deployment.difficulty}**\n\n**Deployment Lead:**\n<@${deployment.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\n${backupsFormatted.length ? `**Standby divers:**\n${backupsFormatted}\n\n` : ""}You are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------` });
 
-						deployment.noticeSent = true;
+					deployment.noticeSent = true;
 
-						await deployment.save();
-					}
+					await deployment.save();
+
 				}
 
 				for (const deployment of unstartedDeployments) {
@@ -268,12 +269,22 @@ export default {
 					await Signups.delete({ deploymentId: deployment.id });
 					await Backups.delete({ deploymentId: deployment.id });
 					await Deployment.delete({ id: deployment.id });
-					console.log(`Deleted ${deployment.id} & associated signups & backups`);
+					console.log(`Deleted deployment: ${deployment.id} & associated signups & backups`);
 				}
 			})
 
 			cron.schedule("0 0 * * *", async () => {
+				const deployments = await Deployment.find();
+				const signups = await Signups.find();
+				const backups = await Backups.find();
+				const deploymentsIDs = deployments.map(deployment => deployment.id);
+				const signupsToDelete = signups.filter(s => deploymentsIDs.includes(s.id)).map(s => s.id);
+				const backupsToDelete = backups.filter(b => deploymentsIDs.includes(b.id)).map(b => b.id);
+				await Signups.delete(signupsToDelete);
+				await Backups.delete(backupsToDelete);
 				await LatestInput.clear();
+
+				console.log(`Cleared invalid signups!`);
 				console.log(`Cleared last input data!`);
 			})
 
