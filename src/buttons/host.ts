@@ -4,39 +4,25 @@ import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import config from "../config.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
-import { GuildMember } from "discord.js";
-import { log, action, success, warn, debug } from "../utils/logger.js";
 
 export default new Button({
     id: "host",
-    cooldown: 5,
+    cooldown: 0,
     permissions: [],
-    requiredRoles: [],
+    requiredRoles: [{ role: config.hostRole, required: true }],
     func: async function({ interaction }) {
         await interaction.deferUpdate();
 
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
 
-        if (alreadyQueued && !alreadyQueued.host) {
-            await Queue.update(
-                { user: interaction.user.id },
-                { host: true }
-            );
-            await updateQueueMessages(true, client.nextGame.getTime(), false);
-            return;
-        }
-
-        if (alreadyQueued?.host) {
+        if (alreadyQueued) {
             const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("You are already queued as host");
-            return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true })
-                .then(msg => setTimeout(() => msg.delete().catch(() => {}), 45000));
+                .setDescription("You are already in the queue");
+
+            return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        await Queue.create({
-            user: interaction.user.id,
-            host: true
-        }).save();
+        await Queue.insert({ user: interaction.user.id, host: true });
 
         await updateQueueMessages(true, client.nextGame.getTime(), false);
     }
