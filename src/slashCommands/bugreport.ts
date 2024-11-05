@@ -144,9 +144,9 @@ export default new Slashcommand({
             // Handle other errors
             console.error('Error handling bug report modal:', err);
             
-            // Only attempt to reply if the interaction is still valid
+            // Try to respond to the interaction using the appropriate method
             try {
-                await interaction.followUp({
+                const response = {
                     embeds: [buildEmbed({
                         preset: "error",
                         placeholders: {
@@ -154,7 +154,13 @@ export default new Slashcommand({
                         }
                     })],
                     ephemeral: true
-                });
+                };
+
+                if (err.code === 'InteractionAlreadyReplied') {
+                    await modalSubmission.editReply(response);
+                } else {
+                    await interaction.followUp(response);
+                }
             } catch (replyErr) {
                 // If we can't reply, just log it
                 warn(`Could not send error message to user: ${replyErr}`, "BugReport");
