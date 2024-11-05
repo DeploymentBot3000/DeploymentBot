@@ -108,7 +108,7 @@ export default new Button({
                 case "difficulty":
                     rows.push(
                         new ActionRowBuilder().addComponents(
-                            new TextInputBuilder().setCustomId("difficulty").setLabel("Difficulty").setPlaceholder("Deployment Difficulty").setRequired(true).setStyle(TextInputStyle.Short).setMaxLength(10).setValue(deployment.difficulty)
+                            new TextInputBuilder().setCustomId("difficulty").setLabel("Difficulty").setPlaceholder("Deployment Difficulty").setRequired(true).setStyle(TextInputStyle.Short).setMaxLength(15).setValue(deployment.difficulty)
                         )
                     );
                     break;
