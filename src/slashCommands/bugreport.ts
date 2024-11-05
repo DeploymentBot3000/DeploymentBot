@@ -56,9 +56,11 @@ export default new Slashcommand({
         await interaction.showModal(modal);
 
         // Wait for modal submission
+        let modalSubmission; // Declare outside try block to make it accessible in catch
+
         try {
             const filter = (i: ModalSubmitInteraction) => i.customId === 'bugReportModal';
-            const modalSubmission = await interaction.awaitModalSubmit({ filter, time: 300000 }); // 5 minute timeout
+            modalSubmission = await interaction.awaitModalSubmit({ filter, time: 300000 }); // 5 minute timeout
 
             // Add a check to ensure the modal submission is from the same user
             if (modalSubmission.user.id !== interaction.user.id) {
@@ -156,7 +158,7 @@ export default new Slashcommand({
                     ephemeral: true
                 };
 
-                if (err.code === 'InteractionAlreadyReplied') {
+                if (modalSubmission && err.code === 'InteractionAlreadyReplied') {
                     await modalSubmission.editReply(response);
                 } else {
                     await interaction.followUp(response);
