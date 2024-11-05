@@ -53,10 +53,11 @@ export default new Button({
         // Attempt to add to queue
         try {
             debug(`Adding ${interaction.user.tag} to queue`, "QueueJoin");
-            await Queue.create({ 
+            const queueEntry = Queue.create({ 
                 user: interaction.user.id,
                 host: false 
-            }).save();
+            });
+            await queueEntry.save();
             success(`${interaction.user.tag} successfully joined queue`, "QueueJoin");
 
             // Update queue messages
