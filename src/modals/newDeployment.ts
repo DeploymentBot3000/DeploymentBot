@@ -7,6 +7,7 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
+import { log, action, success, error, debug } from "../utils/logger.js";
 
 async function storeLatestInput(interaction, { title, difficulty, description }) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
@@ -29,7 +30,11 @@ async function storeLatestInput(interaction, { title, difficulty, description })
 export default new Modal({
     id: "newDeployment",
     func: async function({ interaction }) {
+        action(`User ${interaction.user.tag} creating new deployment`, "NewDeployment");
+        
         const title = interaction.fields.getTextInputValue("title");
+        debug(`Title: ${title}`, "NewDeployment");
+        
         const difficulty = interaction.fields.getTextInputValue("difficulty");
         const description = interaction.fields.getTextInputValue("description");
         const startTime = interaction.fields.getTextInputValue("startTime");
@@ -168,8 +173,10 @@ export default new Modal({
             await interaction.editReply({
                 // your response content
             });
+
+            success(`New deployment "${title}" created by ${interaction.user.tag}`, "NewDeployment");
         } catch (error) {
-            console.error('Failed to handle interaction:', error);
+            error(`Failed to handle interaction: ${error}`, "NewDeployment");
             // Optionally try to send a follow-up if the initial reply failed
             try {
                 const errorEmbed = buildEmbed({ preset: "error" })

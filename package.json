@@ -5,10 +5,10 @@
   "main": "index.js",
   "type": "module",
   "engines": {
-    "node": "21.6.2"
+    "node": "23.1.0"
   },
   "scripts": {
-    "start": "/usr/local/node/21.6.2/bin/node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts",
+    "start": "node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts",
     "dev": "concurrently \"nodemon --exec node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts\"",
     "build": "tsc"
   },
@@ -32,5 +32,7 @@
     "@types/luxon": "^3.4.2",
     "concurrently": "^7.3.0",
     "nodemon": "^3.0.1"
-  }
+  },
+  "nodeVersion": "23.1.0",
+  "file": "bot.js"
 }

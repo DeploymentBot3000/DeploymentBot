@@ -8,6 +8,7 @@ import Backups from "../tables/Backups.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
 import getStartTime from "../utils/getStartTime.js";
+import { log, action, error, warn, success } from "../utils/logger.js";
 
 export default new Button({
     id: "editDeployment",
@@ -15,9 +16,12 @@ export default new Button({
     permissions: [],
     requiredRoles: [],
     func: async function({ interaction }) {
+        action(`User ${interaction.user.tag} attempting to edit deployment`, "EditDeployment");
+        
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
 
         if (!deployment) {
+            error("Deployment not found", "EditDeployment");
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Deployment not found");
 
@@ -25,6 +29,7 @@ export default new Button({
         }
 
         if (deployment.user !== interaction.user.id) {
+            warn(`Unauthorized edit attempt by ${interaction.user.tag}`, "EditDeployment");
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You do not have permission to edit this deployment");
 
@@ -96,21 +101,21 @@ export default new Button({
                 case "title":
                     rows.push(
                         new ActionRowBuilder().addComponents(
-                            new TextInputBuilder().setCustomId("title").setLabel("Title").setPlaceholder("Deployment Title").setRequired(true).setStyle(TextInputStyle.Short).setValue(deployment.title)
+                            new TextInputBuilder().setCustomId("title").setLabel("Title").setPlaceholder("Deployment Title").setRequired(true).setStyle(TextInputStyle.Short).setMaxLength(50).setValue(deployment.title)
                         )
                     );
                     break;
                 case "difficulty":
                     rows.push(
                         new ActionRowBuilder().addComponents(
-                            new TextInputBuilder().setCustomId("difficulty").setLabel("Difficulty").setPlaceholder("Deployment Difficulty").setRequired(true).setStyle(TextInputStyle.Short).setValue(deployment.difficulty)
+                            new TextInputBuilder().setCustomId("difficulty").setLabel("Difficulty").setPlaceholder("Deployment Difficulty").setRequired(true).setStyle(TextInputStyle.Short).setMaxLength(15).setValue(deployment.difficulty)
                         )
                     );
                     break;
                 case "description":
                     rows.push(
                         new ActionRowBuilder().addComponents(
-                            new TextInputBuilder().setCustomId("description").setLabel("Description").setPlaceholder("Deployment Description").setRequired(true).setStyle(TextInputStyle.Paragraph).setMaxLength(1024).setValue(deployment.description)
+                            new TextInputBuilder().setCustomId("description").setLabel("Description").setPlaceholder("Deployment Description").setRequired(true).setStyle(TextInputStyle.Paragraph).setMaxLength(1000).setValue(deployment.description)
                         )
                     );
                     break;
@@ -119,7 +124,7 @@ export default new Button({
 
                     rows.push(
                         new ActionRowBuilder().addComponents(
-                            new TextInputBuilder().setCustomId("startTime").setLabel("Start Time").setPlaceholder("YYYY-MM-DD HH UTC+2").setRequired(true).setStyle(TextInputStyle.Short).setValue(`${date.getUTCFullYear()}-${date.getUTCMonth() + 1}-${date.getUTCDate()} ${date.getUTCHours()}:${date.getUTCMinutes()} UTC+0`)
+                            new TextInputBuilder().setCustomId("startTime").setLabel("Start Time").setPlaceholder("YYYY-MM-DD HH UTC+2").setRequired(true).setStyle(TextInputStyle.Short).setMaxLength(30).setValue(`${date.getUTCFullYear()}-${date.getUTCMonth() + 1}-${date.getUTCDate()} ${date.getUTCHours()}:${date.getUTCMinutes()} UTC+0`)
                         )
                     );
                     break;
@@ -165,5 +170,7 @@ export default new Button({
         const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
 
         await interaction.message.edit({ embeds: [embed] }).catch(() => null);
+
+        success(`Deployment ${deployment.title} edited successfully by ${interaction.user.tag}`, "EditDeployment");
     }
 })

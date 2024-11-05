@@ -16,20 +16,15 @@ function generateRandomCode() {
 }
 
 export const startQueuedGame = async (deploymentTime: number) => {
-    console.log(`Starting queued game. Deployment time: ${new Date(deploymentTime).toISOString()}`);
-
     const queue = await Queue.find();
-    console.log(`Total queue entries: ${queue.length}`);
 
     const hosts = queue.filter(q => q.host);
     const players = queue.filter(q => !q.host);
-    console.log(`Hosts: ${hosts.length}, Players: ${players.length}`);
 
     const now = Date.now();
 
     // Read the deployment interval from the file
     const deploymentIntervalMs = await getDeploymentTime();
-    console.log(`Deployment interval read from file: ${deploymentIntervalMs} ms`);
 
     // Calculate the next deployment time
     client.nextGame = new Date(now + deploymentIntervalMs);
@@ -41,14 +36,10 @@ export const startQueuedGame = async (deploymentTime: number) => {
     );
 
     if (hosts.length < 1 || players.length < 3) {
-        console.log(`Not enough players or hosts. Hosts: ${hosts.length}, Players: ${players.length}`);
-        // Update queue messages with "Not enough players" message
         await updateQueueMessages(true, nextDeploymentTime);
     } else {
-        console.log(`Sufficient players and hosts. Creating groups.`);
         const hostPlayerGroups = hosts.map(host => {
             const assignedPlayers = players.splice(0, 3);
-            console.log(`Created group. Host: ${host.user}, Players: ${assignedPlayers.map(p => p.user).join(', ')}`);
             return {
                 host: host,
                 players: assignedPlayers
@@ -61,15 +52,7 @@ export const startQueuedGame = async (deploymentTime: number) => {
             const host = group.host;
             const selectedPlayers = group.players;
 
-            console.log(`Processing group. Host: ${host?.user}, Players: ${selectedPlayers.map(p => p.user).join(', ')}`);
-
-            if (!host || selectedPlayers.length < 3) {
-                console.log(`Skipping group due to insufficient players. Host: ${host?.user}, Players: ${selectedPlayers.length}`);
-                continue;
-            }
-
             const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null) as GuildTextBasedChannel;
-            console.log(`Departure channel fetched: ${departureChannel?.id}`);
 
             const signupsFormatted = selectedPlayers.map(player => {
                 return `<@${player.user}>`;
@@ -77,7 +60,6 @@ export const startQueuedGame = async (deploymentTime: number) => {
 
             // Fetch the GuildMember object for the host
             const hostMember: GuildMember = await departureChannel.guild.members.fetch(host.user).catch(() => null);
-            console.log(`Host member fetched: ${hostMember?.id}`);
 
             // Use the nickname if available, otherwise fall back to the username
             const hostDisplayName = hostMember?.nickname || hostMember?.user.username || 'Unknown Host';
@@ -88,12 +70,12 @@ export const startQueuedGame = async (deploymentTime: number) => {
             await Promise.all(selectedPlayers.map(async player => {
                 return await client.users.fetch(player.user).catch(() => null);
             }));
-            console.log(`All player users fetched`);
 
             const vc = await departureChannel.guild.channels.create({
                 name: `🔊| HOTDROP ${randomCode} ${hostDisplayName}`,
                 type: ChannelType.GuildVoice,
                 parent: config.vcCategory,
+                userLimit: 4,
                 permissionOverwrites: [
                     {
                         id: departureChannel.guild.roles.everyone.id,
@@ -101,8 +83,7 @@ export const startQueuedGame = async (deploymentTime: number) => {
                     },
                     {
                         id: config.verifiedRoleId,
-                        allow: ["ViewChannel"],
-                        deny: ["Connect"]
+                        allow: ["ViewChannel", "Connect"],
                     },
                     {
                         id: host.user,
@@ -116,30 +97,25 @@ export const startQueuedGame = async (deploymentTime: number) => {
                     }) as any
                 ]
             });
-            console.log(`Voice channel created: ${vc.id}`);
 
             await VoiceChannel.insert({ channel: vc.id, expires: Date.now() + 3600000, guild: vc.guild.id }); // 3600000
-            console.log(`Voice channel inserted into database`);
 
             await departureChannel.send({ content: `-------------------------------------------\n\n# <:Helldivers:1226464844534779984> ATTENTION HELLDIVERS <:Helldivers:1226464844534779984>\n\n\n**HOTDROP:** **${randomCode} (${hostDisplayName})**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**.\n**Communication Channel:** <#${vc.id}>.\n\n**Deployment Lead:**\n<@${host.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\nYou are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------` }).catch(() => null);
-            console.log(`Deployment message sent`);
 
             // remove the players from the queue
             for (const player of selectedPlayers) {
                 await Queue.delete({ user: player.user });
-                console.log(`Player removed from queue: ${player.user}`);
             }
 
             // remove the host from the queue
             await Queue.delete({ user: host.user });
-            console.log(`Host removed from queue: ${host.user}`);
 
             // Mark that a deployment was created
             deploymentCreated = true;
 
             // edit the queue message
             await updateQueueMessages(false, nextDeploymentTime, deploymentCreated);
-            console.log(`Queue messages updated`); // LOL
+            console.log('\x1b[33m%s\x1b[0m', `Queue messages updated for next deployment at ${new Date(nextDeploymentTime).toLocaleTimeString()}`);
 
             // Log to all logging channels
             for (const loggingChannel of loggingChannels) {
@@ -181,6 +157,8 @@ export const startQueuedGame = async (deploymentTime: number) => {
 
                         await loggingChannel.send({ embeds: [deploymentEmbed] })
                             .catch(error => console.error('Failed to send deployment log:', error));
+
+                        console.log('\x1b[35m%s\x1b[0m', `Successfully created deployment for ${hostDisplayName}`);
                     } catch (error) {
                         console.error('Error creating deployment log:', error);
                     }
