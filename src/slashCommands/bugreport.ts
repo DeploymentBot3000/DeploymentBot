@@ -55,21 +55,13 @@ export default new Slashcommand({
         // Show the modal
         await interaction.showModal(modal);
 
-        // Wait for modal submission
-        let modalSubmission; // Declare outside try block to make it accessible in catch
-
         try {
             const filter = (i: ModalSubmitInteraction) => i.customId === 'bugReportModal';
-            modalSubmission = await interaction.awaitModalSubmit({ filter, time: 300000 }); // 5 minute timeout
+            const modalSubmission = await interaction.awaitModalSubmit({ filter, time: 300000 });
 
-            // Add a check to ensure the modal submission is from the same user
-            if (modalSubmission.user.id !== interaction.user.id) {
-                return;
-            }
+            if (modalSubmission.user.id !== interaction.user.id) return;
 
             const bugTitle = modalSubmission.fields.getTextInputValue('bugTitle');
-            debug(`Bug report title: ${bugTitle}`, "BugReport");
-
             const bugDescription = modalSubmission.fields.getTextInputValue('bugDescription');
             const reproSteps = modalSubmission.fields.getTextInputValue('reproSteps');
 
@@ -124,8 +116,8 @@ export default new Slashcommand({
                 embeds: [bugReportEmbed]
             });
 
-            // Confirm submission to user
-            await modalSubmission.reply({
+            const replyMethod = modalSubmission.replied ? 'editReply' : 'reply';
+            await modalSubmission[replyMethod]({
                 embeds: [buildEmbed({
                     preset: "success",
                     placeholders: {
@@ -137,35 +129,9 @@ export default new Slashcommand({
 
             success(`Bug report "${bugTitle}" submitted by ${interaction.user.tag}`, "BugReport");
         } catch (err) {
-            // Check if it's a timeout error
             if (err.code === 'InteractionCollectorError') {
                 warn(`${interaction.user.tag} bug report modal timed out`, "BugReport");
                 return;
-            }
-
-            // Handle other errors
-            console.error('Error handling bug report modal:', err);
-            
-            // Try to respond to the interaction using the appropriate method
-            try {
-                const response = {
-                    embeds: [buildEmbed({
-                        preset: "error",
-                        placeholders: {
-                            description: "Failed to submit bug report. Please try again later."
-                        }
-                    })],
-                    ephemeral: true
-                };
-
-                if (modalSubmission && err.code === 'InteractionAlreadyReplied') {
-                    await modalSubmission.editReply(response);
-                } else {
-                    await interaction.followUp(response);
-                }
-            } catch (replyErr) {
-                // If we can't reply, just log it
-                warn(`Could not send error message to user: ${replyErr}`, "BugReport");
             }
 
             error(`Bug report submission failed: ${err}`, "BugReport");
