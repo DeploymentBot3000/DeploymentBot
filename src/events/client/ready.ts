@@ -88,7 +88,7 @@ export default {
 					where: {
 						deleted: false,
 						noticeSent: false,
-						startTime: LessThanOrEqual(DateTime.now().plus({minute: -15}).toMillis())
+						startTime: LessThanOrEqual(DateTime.now().plus({minute: 15}).toMillis())
 					}
 				})
 				const unstartedDeployments = await Deployment.find({
@@ -101,7 +101,7 @@ export default {
 
 				for (const deployment of deploymentsNoNotice) {
 
-					if (!(deployment.startTime - 900000 <= Date.now())) continue;
+					//if (!(deployment.startTime - 900000 <= Date.now())) continue;
 
 					const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null) as GuildTextBasedChannel;
 					const signups = await Signups.find({ where: { deploymentId: deployment.id } });
