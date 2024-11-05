@@ -49,6 +49,10 @@ export const startQueuedGame = async (deploymentTime: number) => {
         let deploymentCreated = false;
 
         for (const group of hostPlayerGroups) {
+            if (group.players.length < 3) {
+                continue;
+            }
+            
             const host = group.host;
             const selectedPlayers = group.players;
 
