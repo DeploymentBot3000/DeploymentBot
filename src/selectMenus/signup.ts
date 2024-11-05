@@ -4,26 +4,16 @@ import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import { buildEmbed } from "../utils/configBuilders.js";
-import config from "../config.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
 import checkBlacklist from "../utils/checkBlacklist.js";
-import { handleCooldown } from "../utils/cooldownManager.js";
 
 export default new SelectMenu({
     id: "signup",
-    cooldown: 0,
+    cooldown: 5,
     permissions: [],
     requiredRoles: [],
     func: async function({ interaction }) {
-        const cooldownResult = handleCooldown(interaction.user.id, "signup");
-        if (cooldownResult.onCooldown) {
-            const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription(`Please wait ${cooldownResult.remainingTime.toFixed(1)} seconds before using this again.`);
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true })
-                .then(msg => setTimeout(() => msg.delete().catch(() => {}), 45000));
-        }
-
         if (await checkBlacklist(interaction.user.id, interaction.guild)) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are blacklisted from participating in deployments");
