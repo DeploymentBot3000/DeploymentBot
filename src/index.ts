@@ -30,6 +30,7 @@ class CustomClient extends Client {
     buttons: Collection<String, Button> = new Collection();
     nextGame: Date;
     interval: NodeJS.Timeout;
+    modalSubmitInteractions: Collection<string, any>;
 }
 
 // Initialize the extended client
