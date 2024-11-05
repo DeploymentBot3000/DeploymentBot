@@ -82,11 +82,13 @@ export default {
 				.catch((err) => console.log(err));
 
 			const checkDeployments = async () => {
+				console.log(DateTime.now().plus({ minute: -15 }).toMillis())
+				console.log(DateTime.now().plus({ minute: -15 }))
 				const deploymentsNoNotice = await Deployment.find({
 					where: {
 						deleted: false,
 						noticeSent: false,
-						startTime: LessThanOrEqual(DateTime.now().plus({ minute: -15 }).toMillis())
+						startTime: LessThanOrEqual(DateTime.now().plus({minute: -15}).toMillis())
 					}
 				})
 				const unstartedDeployments = await Deployment.find({
