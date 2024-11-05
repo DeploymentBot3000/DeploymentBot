@@ -1,10 +1,11 @@
 import Button from "../classes/Button.js";
-import { client } from "../index.js";
+import { client, queueJoinTimes } from "../index.js";
 import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
 import checkBlacklist from "../utils/checkBlacklist.js";
 import config from "../config.js";
+import { GuildTextBasedChannel } from "discord.js";
 
 export default new Button({
     id: "join",
@@ -28,6 +29,11 @@ export default new Button({
 
             return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
+
+        queueJoinTimes.set(interaction.user.id, new Date());
+
+        const joinLogChannel = await client.channels.fetch('1303492344636772392') as GuildTextBasedChannel;
+        await joinLogChannel.send(`[${new Date().toISOString()}] <@${interaction.user.id}> joined the queue`);
 
         await Queue.insert({ user: interaction.user.id, host: false });
 

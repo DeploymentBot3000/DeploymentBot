@@ -4,6 +4,7 @@ import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import config from "../config.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
+import { GuildTextBasedChannel } from "discord.js";
 
 export default new Button({
     id: "host",
@@ -21,6 +22,9 @@ export default new Button({
 
             return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
+
+        const joinLogChannel = await client.channels.fetch('1303492344636772392') as GuildTextBasedChannel;
+        await joinLogChannel.send(`[${new Date().toISOString()}] <@${interaction.user.id}> joined the queue as host`);
 
         await Queue.insert({ user: interaction.user.id, host: true });
 

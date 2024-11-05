@@ -1,13 +1,13 @@
 import Button from "../classes/Button.js";
-import { client } from "../index.js";
+import { client, queueJoinTimes } from "../index.js";
 import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
-import config from "../config.js";
+import { GuildTextBasedChannel } from "discord.js";
 
 export default new Button({
     id: "leave",
-    cooldown: config.buttonCooldown,
+    cooldown: 0,
     permissions: [],
     requiredRoles: [],
     func: async function ({ interaction }) {
@@ -28,15 +28,28 @@ export default new Button({
                 return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             }
 
+            const queueBefore = await Queue.find();
+            const beforeCount = queueBefore.length;
+
+            const joinTime = queueJoinTimes.get(interaction.user.id);
+            const leaveTime = new Date();
+
             await Queue.delete({ user: interaction.user.id });
+            queueJoinTimes.delete(interaction.user.id);
             await interaction.deferUpdate();
 
-            const queue = await Queue.find().catch(() => []);
-            if (!queue) {
-                const errorEmbed = buildEmbed({ preset: "error" })
-                    .setDescription("Failed to fetch queue data");
-                return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
-            }
+            const queueAfter = await Queue.find();
+            const afterCount = queueAfter.length;
+
+            const leaveLogChannel = await client.channels.fetch('1303492344636772392') as GuildTextBasedChannel;
+            await leaveLogChannel.send(
+                `**Queue Leave Report**\n` +
+                `User: <@${interaction.user.id}>\n` +
+                `Join Time: ${joinTime?.toISOString() || 'Unknown'}\n` +
+                `Leave Time: ${leaveTime.toISOString()}\n` +
+                `Queue Size: ${beforeCount} → ${afterCount}\n` +
+                `Database Removal: ✅`
+            );
 
             await updateQueueMessages(true, client.nextGame.getTime(), false);
 

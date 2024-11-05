@@ -59,6 +59,8 @@ export const setDeploymentTime = async (time: string) => {
     }, Number(time));
 };
 
+export const queueJoinTimes = new Map<string, Date>();
+
 if (database.isInitialized) log("Successfully connected to the database");
 idkHowToCallThisHandler.init();
 eventHandler.function();
