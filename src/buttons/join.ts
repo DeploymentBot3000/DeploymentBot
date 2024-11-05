@@ -22,14 +22,20 @@ export default new Button({
         await interaction.deferUpdate();
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
 
-        if (alreadyQueued) {
+        if (alreadyQueued && !alreadyQueued.host) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are already in the queue");
 
             return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        await Queue.insert({ user: interaction.user.id, host: false });
+        if (alreadyQueued) {
+            // Update existing queue entry to regular queue
+            await Queue.update({ user: interaction.user.id }, { host: false });
+        } else {
+            // Create new regular queue entry
+            await Queue.create({ user: interaction.user.id, host: false }).save();
+        }
 
         await updateQueueMessages(true, client.nextGame.getTime(), false);
     }
