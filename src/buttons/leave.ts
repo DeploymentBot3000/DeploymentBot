@@ -43,15 +43,13 @@ export default new Button({
 
             const leaveLogChannel = await client.channels.fetch('1303492344636772392') as GuildTextBasedChannel;
             await leaveLogChannel.send(
-                "```\n" +
                 "╔═══════════════════════════ QUEUE LEAVE ══════════════════════════╗\n" +
                 `║ User      :: <@${interaction.user.id}>${' '.repeat(40 - interaction.user.id.length)}║\n` +
                 `║ Join Time :: <t:${Math.floor(joinTime?.getTime() / 1000) || 0}:F>${' '.repeat(20)}║\n` +
                 `║ Leave Time:: <t:${Math.floor(leaveTime.getTime() / 1000)}:F>${' '.repeat(20)}║\n` +
                 `║ Queue     :: ${beforeCount} → ${afterCount}${' '.repeat(41 - beforeCount.toString().length - afterCount.toString().length)}║\n` +
                 `║ DB Remove :: ✅${' '.repeat(45)}║\n` +
-                "╚════════════════════════════════════════════════════════════════════╝\n" +
-                "```"
+                "╚════════════════════════════════════════════════════════════════════╝"
             );
 
             await updateQueueMessages(true, client.nextGame.getTime(), false);
