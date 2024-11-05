@@ -4,6 +4,8 @@ import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import { handleCooldown } from "../utils/cooldownManager.js";
 import { log, action, success, warn } from "../utils/logger.js";
+import updateQueueMessages from "../utils/updateQueueMessage.js";
+import config from "../config.js";
 
 export default new Button({
     id: "leave",
@@ -33,28 +35,7 @@ export default new Button({
         }
 
         await Queue.delete({ user: interaction.user.id });
+        await updateQueueMessages(true, client.nextGame.getTime(), false);
         success(`${interaction.user.tag} successfully left queue`, "QueueLeave");
-
-        const queue = await Queue.find();
-
-        const embed = buildEmbed({ name: "queuePanel" })
-            .addFields([
-                {
-                    name: "Hosts:",
-                    value: queue.filter(q => q.host).map(host => `<@${host.user}>`).join("\n") || "` - `",
-                    inline: true
-                },
-                {
-                    name: "Participants:",
-                    value: queue.filter(q => !q.host).map(player => `<@${player.user}>`).join("\n") || "` - `",
-                    inline: true
-                },
-                {
-                    name: "Next game:",
-                    value: `📅 <t:${Math.round(client.nextGame.getTime() / 1000)}:d>\n🕒 <t:${Math.round(client.nextGame.getTime() / 1000)}:t>`,
-                }
-            ]);
-
-        return await interaction.update({ embeds: [embed] });
     }
 })
