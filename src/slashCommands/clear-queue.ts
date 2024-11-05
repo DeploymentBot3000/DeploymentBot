@@ -5,6 +5,7 @@ import Queue from "../tables/Queue.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
+import { log, action, success } from "../utils/logger.js";
 
 export default new Slashcommand({
     name: "clear-queue",
@@ -14,7 +15,10 @@ export default new Slashcommand({
     cooldown: 0,
     options: [],
     func: async function({ interaction }) {
+        action(`${interaction.user.tag} clearing queue`, "QueueClear");
+        
         await Queue.clear();
+        success(`Queue cleared by ${interaction.user.tag}`, "QueueClear");
 
         const embed = buildEmbed({ preset: "success" })
             .setTitle("Queue cleared")
