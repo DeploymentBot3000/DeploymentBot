@@ -6,6 +6,7 @@ import Backups from "../tables/Backups.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import { Like } from "typeorm";
 import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
+import { log, action, success, warn, error } from "../utils/logger.js";
 
 export default new Slashcommand({
     name: "remove",
@@ -57,6 +58,8 @@ export default new Slashcommand({
         const targetUser = interaction.options.getUser("user");
         const deploymentTitle = interaction.options.getString("deployment");
 
+        action(`${interaction.user.tag} attempting to remove ${targetUser.tag} from deployment "${deploymentTitle}"`, "Remove");
+
         // Find the deployment
         const deployment = await Deployment.findOne({ 
             where: { 
@@ -67,11 +70,8 @@ export default new Slashcommand({
         });
 
         if (!deployment) {
-            return await interaction.reply({ 
-                embeds: [buildEmbed({ preset: "error" })
-                    .setDescription("Deployment not found or has already started/ended")], 
-                ephemeral: true 
-            });
+            warn(`Attempted removal from non-existent deployment "${deploymentTitle}"`, "Remove");
+            return;
         }
 
         // Check if user is admin or deployment host
@@ -79,11 +79,8 @@ export default new Slashcommand({
         const isHost = deployment.user === interaction.user.id;
 
         if (!isAdmin && !isHost) {
-            return await interaction.reply({ 
-                embeds: [buildEmbed({ preset: "error" })
-                    .setDescription("You must be an administrator or the deployment host to remove users")], 
-                ephemeral: true 
-            });
+            warn(`${interaction.user.tag} attempted unauthorized removal from deployment`, "Remove");
+            return;
         }
 
         // Prevent removing self
@@ -155,6 +152,8 @@ export default new Slashcommand({
             });
             return;
         }
+
+        success(`${targetUser.tag} removed from deployment "${deploymentTitle}" by ${interaction.user.tag}`, "Remove");
 
         await interaction.reply({ 
             embeds: [buildEmbed({ preset: "success" })

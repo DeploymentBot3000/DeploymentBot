@@ -2,6 +2,7 @@ import { ActionRowBuilder, ApplicationCommandType, ModalBuilder, TextInputBuilde
 import Slashcommand from "../classes/Slashcommand.js";
 import Config from "../config.js";
 import { buildEmbed } from "../utils/configBuilders.js";
+import { log, action, success, error, debug, warn } from "../utils/logger.js";
 
 export default new Slashcommand({
     name: "bugreport",
@@ -11,6 +12,8 @@ export default new Slashcommand({
     requiredRoles: [{ role: Config.verifiedRoleId, required: true }],
     options: [],
     func: async function({ interaction }) {
+        action(`${interaction.user.tag} initiated bug report`, "BugReport");
+
         // Create the modal
         const modal = new ModalBuilder()
             .setCustomId('bugReportModal')
@@ -59,6 +62,8 @@ export default new Slashcommand({
 
             if (modalSubmission) {
                 const bugTitle = modalSubmission.fields.getTextInputValue('bugTitle');
+                debug(`Bug report title: ${bugTitle}`, "BugReport");
+
                 const bugDescription = modalSubmission.fields.getTextInputValue('bugDescription');
                 const reproSteps = modalSubmission.fields.getTextInputValue('reproSteps');
 
@@ -123,11 +128,13 @@ export default new Slashcommand({
                     })],
                     ephemeral: true
                 });
+
+                success(`Bug report "${bugTitle}" submitted by ${interaction.user.tag}`, "BugReport");
             }
         } catch (error) {
             // Check if it's a timeout error
             if (error.code === 'InteractionCollectorError') {
-                // Don't need to respond since the modal was likely closed/timed out
+                warn(`${interaction.user.tag} bug report modal timed out`, "BugReport");
                 return;
             }
 
@@ -142,6 +149,8 @@ export default new Slashcommand({
                 })],
                 ephemeral: true
             });
+
+            error(`Bug report submission failed: ${error}`, "BugReport");
         }
     }
 });

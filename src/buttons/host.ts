@@ -6,6 +6,7 @@ import config from "../config.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
 import { handleCooldown } from "../utils/cooldownManager.js";
 import { GuildMember } from "discord.js";
+import { log, action, success, warn, debug } from "../utils/logger.js";
 
 export default new Button({
     id: "host",
