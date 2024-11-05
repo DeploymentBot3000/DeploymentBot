@@ -82,8 +82,6 @@ export default {
 				.catch((err) => console.log(err));
 
 			const checkDeployments = async () => {
-				console.log(DateTime.now().plus({ minute: -15 }).toMillis())
-				console.log(DateTime.now().plus({ minute: -15 }))
 				const deploymentsNoNotice = await Deployment.find({
 					where: {
 						deleted: false,
@@ -100,9 +98,6 @@ export default {
 				});
 
 				for (const deployment of deploymentsNoNotice) {
-
-					//if (!(deployment.startTime - 900000 <= Date.now())) continue;
-
 					const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null) as GuildTextBasedChannel;
 					const signups = await Signups.find({ where: { deploymentId: deployment.id } });
 					const backups = await Backups.find({ where: { deploymentId: deployment.id } });
