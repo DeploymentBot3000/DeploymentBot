@@ -1,10 +1,11 @@
 import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import Button from "../classes/Button.js";
 import LatestInput from "../tables/LatestInput.js";
+import config from "../config.js";
 
 export default new Button({
     id: "newDeployment",
-    cooldown: 0,
+    cooldown: config.buttonCooldown,
     permissions: [],
     requiredRoles: [],
     func: async function({ interaction }) {

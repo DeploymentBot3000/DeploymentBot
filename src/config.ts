@@ -142,6 +142,6 @@ export default {
             style: "Danger"
         }
     },
-
+    buttonCooldown: 5,
     bugReportChannelId: "1302748846547533834"
 }

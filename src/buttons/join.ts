@@ -4,10 +4,11 @@ import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
 import checkBlacklist from "../utils/checkBlacklist.js";
+import config from "../config.js";
 
 export default new Button({
     id: "join",
-    cooldown: 0,
+    cooldown: config.buttonCooldown,
     permissions: [],
     requiredRoles: [],
     func: async function ({ interaction }) {
