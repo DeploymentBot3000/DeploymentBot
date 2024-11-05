@@ -6,7 +6,7 @@ import updateQueueMessages from "../utils/updateQueueMessage.js";
 
 export default new Button({
     id: "leave",
-    cooldown: 0,
+    cooldown: config.buttonCooldown,
     permissions: [],
     requiredRoles: [],
     func: async function ({ interaction }) {
