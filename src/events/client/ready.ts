@@ -268,7 +268,7 @@ export default {
 					await Signups.delete({ deploymentId: deployment.id });
 					await Backups.delete({ deploymentId: deployment.id });
 					await Deployment.delete({ id: deployment.id });
-					console.log(`Deleted ${deployment.id} & associated signups & backups`);
+					console.log(`Deleted deployment: ${deployment.id} & associated signups & backups`);
 				}
 			})
 
