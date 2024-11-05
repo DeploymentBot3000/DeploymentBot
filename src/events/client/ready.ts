@@ -2,7 +2,7 @@ import config from "../../config.js";
 import colors from "colors";
 import path from "path";
 import { fileURLToPath } from 'url';
-import { log, error } from "../../utils/logger.js";
+import { log, error, action, success, debug } from "../../utils/logger.js";
 import { client, getDeploymentTime } from "../../index.js";
 import { readdirSync, statSync } from "fs";
 import { REST } from "@discordjs/rest";
@@ -36,242 +36,251 @@ export default {
 	name: "ready",
 	once: false,
 	function: async function () {
-		log(`Logged in as ${colors.red(client.user!.tag)}`);
+		action(`Bot starting up`, "Startup");
 
-		const __filename:string = fileURLToPath(import.meta.url);
-		const __dirname:string = path.dirname(__filename);
+		try {
+			log(`Logged in as ${colors.red(client.user!.tag)}`);
 
-		const commands: Command[] = [];
+			const __filename:string = fileURLToPath(import.meta.url);
+			const __dirname:string = path.dirname(__filename);
 
-		const registerDir = async (dirName: string) => {
-			const COMMAND_DIR = path.resolve(__dirname, `../../${dirName}`);
-			const readDir = async (dir: string) => {
-				const files = readdirSync(dir);
-				for await (const file of files) {
-					if (statSync(`${dir}/${file}`).isDirectory()) await readDir(`${dir}/${file}`);
-					else {
-						const fileToImport = process.platform === "win32" ? `${convertURLs(dir)}/${file}` : `${dir}/${file}`;
-						const command = (await import(fileToImport)).default;
-						if (command?.name) {
-							commands.push({
-								name: command.name,
-								type: command.type,
-								description: command.description || null,
-								options: command.options || null
-							});
-							log(`${dir}/${file} has been registered!`);
-						} else {
-							error(`${dir}/${file} has no name!`);
+			const commands: Command[] = [];
+
+			const registerDir = async (dirName: string) => {
+				const COMMAND_DIR = path.resolve(__dirname, `../../${dirName}`);
+				const readDir = async (dir: string) => {
+					const files = readdirSync(dir);
+					for await (const file of files) {
+						if (statSync(`${dir}/${file}`).isDirectory()) await readDir(`${dir}/${file}`);
+						else {
+							const fileToImport = process.platform === "win32" ? `${convertURLs(dir)}/${file}` : `${dir}/${file}`;
+							const command = (await import(fileToImport)).default;
+							if (command?.name) {
+								commands.push({
+									name: command.name,
+									type: command.type,
+									description: command.description || null,
+									options: command.options || null
+								});
+								log(`${dir}/${file} has been registered!`);
+							} else {
+								error(`${dir}/${file} has no name!`);
+							}
 						}
 					}
-				}
+				};
+				await readDir(COMMAND_DIR);
 			};
-			await readDir(COMMAND_DIR);
-		};
 
-		await registerDir("slashCommands");
-		await registerDir("contextMenus");
+			await registerDir("slashCommands");
+			await registerDir("contextMenus");
 
-		const rest = new REST({ version: '10' }).setToken(config.token);
-		rest
-			.put(Routes.applicationCommands(client.user!.id), { body: commands })
-			.then(() => log('Commands have been registered successfully!'))
-			.catch((err) => console.log(err));
+			const rest = new REST({ version: '10' }).setToken(config.token);
+			rest
+				.put(Routes.applicationCommands(client.user!.id), { body: commands })
+				.then(() => log('Commands have been registered successfully!'))
+				.catch((err) => console.log(err));
 
-		const checkDeployments = async () => {
-			const deploymentsNoNotice = await Deployment.find({
-				where: {
-					deleted: false,
-					noticeSent: false
+			const checkDeployments = async () => {
+				const deploymentsNoNotice = await Deployment.find({
+					where: {
+						deleted: false,
+						noticeSent: false
+					}
+				})
+				const unstartedDeployments = await Deployment.find({
+					where: {
+						deleted: false,
+						started: false,
+						startTime: LessThanOrEqual(DateTime.now().toMillis()),
+					}
+				});
+
+				for (const deployment of deploymentsNoNotice) {
+
+					if (deployment.startTime - 900000 <= Date.now()) {
+
+						const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null) as GuildTextBasedChannel;
+						const signups = await Signups.find({ where: { deploymentId: deployment.id } });
+						const backups = await Backups.find({ where: { deploymentId: deployment.id } });
+
+						const signupsFormatted = signups.map(signup => {
+							if (signup.userId == deployment.user) return;
+							const role = config.roles.find(role => role.name === signup.role);
+							return `${role.emoji} <@${signup.userId}>`;
+						}).filter(s => s).join("\n") || "` - `";
+
+						const backupsFormatted = backups.map(backup => `<@${backup.userId}>`).join("\n");
+
+						const operationRegex = /^(op(p)?eration|operration|opperation|operacion):?\s*/i;
+						const formattedTitle = operationRegex.test(deployment.title) 
+							? deployment.title 
+							: `Operation: ${deployment.title}`;
+
+						await departureChannel.send({
+							content: `-------------------------------------------\n\n# <:Helldivers:1226464844534779984> ATTENTION HELLDIVERS <:Helldivers:1226464844534779984>\n\n\n**${formattedTitle}**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**. <@${deployment.user}> will open communication channels in the next **5 minutes** and Divers are expected to be present.\n\n**Difficulty:** **${deployment.difficulty}**\n\n**Deployment Lead:**\n<@${deployment.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\n${backupsFormatted.length ? `**Standby divers:**\n${backupsFormatted}\n\n` : ""}You are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------` });
+
+						deployment.noticeSent = true;
+
+						await deployment.save();
+					}
 				}
-			})
-			const unstartedDeployments = await Deployment.find({
-				where: {
-					deleted: false,
-					started: false,
-					startTime: LessThanOrEqual(DateTime.now().toMillis()),
-				}
-			});
 
-			for (const deployment of deploymentsNoNotice) {
+				for (const deployment of unstartedDeployments) {
+					const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
+					const message = await channel.messages.fetch(deployment.message).catch(() => null);
 
-				if (deployment.startTime - 900000 <= Date.now()) {
+					if (!message) continue;
 
-					const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null) as GuildTextBasedChannel;
-					const signups = await Signups.find({ where: { deploymentId: deployment.id } });
-					const backups = await Backups.find({ where: { deploymentId: deployment.id } });
+					try {
+						const embed = await buildDeploymentEmbed(deployment, message.guild, "Red", true);
+						await message.edit({ content: "", embeds: [embed], components: [] });
 
-					const signupsFormatted = signups.map(signup => {
-						if (signup.userId == deployment.user) return;
-						const role = config.roles.find(role => role.name === signup.role);
-						return `${role.emoji} <@${signup.userId}>`;
-					}).filter(s => s).join("\n") || "` - `";
+						// Fetch all logging channels and send to each
+						for (const channelId of config.loggingChannels) {
+							const loggingChannel = await client.channels.fetch(channelId).catch(() => null) as GuildTextBasedChannel;
+							if (loggingChannel) {
+								const signups = await Signups.find({ where: { deploymentId: deployment.id } });
+								const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
-					const backupsFormatted = backups.map(backup => `<@${backup.userId}>`).join("\n");
+								const signupsFormatted = signups.map(signup => {
+									if (signup.userId == deployment.user) return;
+									const role = config.roles.find(role => role.name === signup.role);
+									const member = message.guild.members.cache.get(signup.userId);
+									return `${role.emoji} ${member?.nickname || member?.user.username || signup.userId}`;
+								}).filter(s => s).join("\n") || "- None -";
 
-					const operationRegex = /^(op(p)?eration|operration|opperation|operacion):?\s*/i;
-					const formattedTitle = operationRegex.test(deployment.title) 
-						? deployment.title 
-						: `Operation: ${deployment.title}`;
+								const backupsFormatted = backups.map(backup => {
+									const member = message.guild.members.cache.get(backup.userId);
+									return member?.nickname || member?.user.username || backup.userId;
+								}).join("\n") || "- None -";
 
-					await departureChannel.send({
-						content: `-------------------------------------------\n\n# <:Helldivers:1226464844534779984> ATTENTION HELLDIVERS <:Helldivers:1226464844534779984>\n\n\n**${formattedTitle}**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**. <@${deployment.user}> will open communication channels in the next **5 minutes** and Divers are expected to be present.\n\n**Difficulty:** **${deployment.difficulty}**\n\n**Deployment Lead:**\n<@${deployment.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\n${backupsFormatted.length ? `**Standby divers:**\n${backupsFormatted}\n\n` : ""}You are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------` });
+								const logEmbed = new EmbedBuilder()
+									.setColor("Yellow")
+									.setTitle("Deployment Started")
+									.addFields(
+										{ name: "Title", value: deployment.title, inline: true },
+										{ name: "Host", value: message.guild.members.cache.get(deployment.user)?.nickname || deployment.user, inline: true },
+										{ name: "Difficulty", value: deployment.difficulty, inline: true },
+										{ name: "Time", value: `<t:${Math.floor(deployment.startTime / 1000)}:F>`, inline: false },
+										{ name: "Players", value: signupsFormatted, inline: true },
+										{ name: "Backups", value: backupsFormatted, inline: true },
+										{ name: "Description", value: deployment.description || "No description provided" }
+									)
+									.setTimestamp();
 
-					deployment.noticeSent = true;
+								await loggingChannel.send({ embeds: [logEmbed] });
+							}
+						}
+					} catch (err) {
+						console.error(`Error building deployment embed for deployment ${deployment.id}:`, err);
+					}
 
+					deployment.started = true;
 					await deployment.save();
 				}
-			}
 
-			for (const deployment of unstartedDeployments) {
-				const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
-				const message = await channel.messages.fetch(deployment.message).catch(() => null);
-
-				if (!message) continue;
-
-				try {
-					const embed = await buildDeploymentEmbed(deployment, message.guild, "Red", true);
-					await message.edit({ content: "", embeds: [embed], components: [] });
-
-					// Fetch all logging channels and send to each
-					for (const channelId of config.loggingChannels) {
-						const loggingChannel = await client.channels.fetch(channelId).catch(() => null) as GuildTextBasedChannel;
-						if (loggingChannel) {
-							const signups = await Signups.find({ where: { deploymentId: deployment.id } });
-							const backups = await Backups.find({ where: { deploymentId: deployment.id } });
-
-							const signupsFormatted = signups.map(signup => {
-								if (signup.userId == deployment.user) return;
-								const role = config.roles.find(role => role.name === signup.role);
-								const member = message.guild.members.cache.get(signup.userId);
-								return `${role.emoji} ${member?.nickname || member?.user.username || signup.userId}`;
-							}).filter(s => s).join("\n") || "- None -";
-
-							const backupsFormatted = backups.map(backup => {
-								const member = message.guild.members.cache.get(backup.userId);
-								return member?.nickname || member?.user.username || backup.userId;
-							}).join("\n") || "- None -";
-
-							const logEmbed = new EmbedBuilder()
-								.setColor("Yellow")
-								.setTitle("Deployment Started")
-								.addFields(
-									{ name: "Title", value: deployment.title, inline: true },
-									{ name: "Host", value: message.guild.members.cache.get(deployment.user)?.nickname || deployment.user, inline: true },
-									{ name: "Difficulty", value: deployment.difficulty, inline: true },
-									{ name: "Time", value: `<t:${Math.floor(deployment.startTime / 1000)}:F>`, inline: false },
-									{ name: "Players", value: signupsFormatted, inline: true },
-									{ name: "Backups", value: backupsFormatted, inline: true },
-									{ name: "Description", value: deployment.description || "No description provided" }
-								)
-								.setTimestamp();
-
-							await loggingChannel.send({ embeds: [logEmbed] });
-						}
+				const deploymentsToDelete = await Deployment.find({
+					where: {
+						deleted: false,
+						endTime: LessThanOrEqual(DateTime.now().toMillis())
 					}
-				} catch (err) {
-					console.error(`Error building deployment embed for deployment ${deployment.id}:`, err);
+				});
+
+				for (const deployment of deploymentsToDelete) {
+					const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
+					const message = await channel.messages.fetch(deployment.message).catch(() => null);
+
+					if (message) {
+						await message.delete().catch(() => null);
+					}
+					deployment.deleted = true;
+					await deployment.save();
 				}
-
-				deployment.started = true;
-				await deployment.save();
-			}
-
-			const deploymentsToDelete = await Deployment.find({
-				where: {
-					deleted: false,
-					endTime: LessThanOrEqual(DateTime.now().toMillis())
-				}
-			});
-
-			for (const deployment of deploymentsToDelete) {
-				const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
-				const message = await channel.messages.fetch(deployment.message).catch(() => null);
-
-				if (message) {
-					await message.delete().catch(() => null);
-				}
-				deployment.deleted = true;
-				await deployment.save();
-			}
-		};
+			};
 
 
-		await checkDeployments();
-		cron.schedule('* * * * *', checkDeployments);
+			await checkDeployments();
+			cron.schedule('* * * * *', checkDeployments);
 
 
-		cron.schedule('0 8,20 * * *', async () => {
-			const channel = await client.channels.fetch('1218616472289673267').catch(() => null) as GuildTextBasedChannel;
-			if (channel) {
-				await channel.send("Good morning battalion!");
-			}
-		});
-
-		const deploymentTime = await getDeploymentTime();
-		await startQueuedGame(deploymentTime);
-
-		const interval = setInterval(() => {
-			startQueuedGame(deploymentTime);
-		}, deploymentTime);
-		client.interval = interval;
-
-		if (!client.nextGame) {
-			client.nextGame = new Date(Date.now() + deploymentTime);
-		}
-
-		// Dynamically delete pickdrop VCs as soon as everyone leaves
-		client.on('voiceStateUpdate', async (oldState, newState) => {
-			const channel = oldState.channel || newState.channel;
-			if(!(channel.parent.id == config.vcCategory)) return;
-
-			const vc = await VoiceChannel.findOne({
-				where: {
-					channel: channel.id,
-					expires: LessThanOrEqual(DateTime.now().toMillis())
+			cron.schedule('0 8,20 * * *', async () => {
+				const channel = await client.channels.fetch('1218616472289673267').catch(() => null) as GuildTextBasedChannel;
+				if (channel) {
+					await channel.send("Good morning battalion!");
 				}
 			});
 
-			if (!vc) return;
+			const deploymentTime = await getDeploymentTime();
+			await startQueuedGame(deploymentTime);
 
-			if(channel && !channel.members.size) {
-				await channel.delete().catch((err) => console.log(err));
-				await vc.remove().catch((err) => console.log(err));
-				console.log(`Expired & empty channel ${channel.id} deleted`);
+			const interval = setInterval(() => {
+				startQueuedGame(deploymentTime);
+			}, deploymentTime);
+			client.interval = interval;
+
+			if (!client.nextGame) {
+				client.nextGame = new Date(Date.now() + deploymentTime);
 			}
-		});
 
-		cron.schedule("* * * * *", async () => {
-			const vcs = await VoiceChannel.find({ where: { expires: LessThanOrEqual(DateTime.now().toMillis()) } });
+			// Dynamically delete pickdrop VCs as soon as everyone leaves
+			client.on('voiceStateUpdate', async (oldState, newState) => {
+				const channel = oldState.channel || newState.channel;
+				if(!(channel.parent.id == config.vcCategory)) return;
 
-			for (const vc of vcs) {
-				const channel = await client.channels.fetch(vc.channel).catch(() => null) as BaseGuildVoiceChannel;
+				const vc = await VoiceChannel.findOne({
+					where: {
+						channel: channel.id,
+						expires: LessThanOrEqual(DateTime.now().toMillis())
+					}
+				});
 
-				if (!channel) {
+				if (!vc) return;
+
+				if(channel && !channel.members.size) {
+					await channel.delete().catch((err) => console.log(err));
+					await vc.remove().catch((err) => console.log(err));
+					console.log(`Expired & empty channel ${channel.id} deleted`);
+				}
+			});
+
+			cron.schedule("* * * * *", async () => {
+				const vcs = await VoiceChannel.find({ where: { expires: LessThanOrEqual(DateTime.now().toMillis()) } });
+
+				for (const vc of vcs) {
+					const channel = await client.channels.fetch(vc.channel).catch(() => null) as BaseGuildVoiceChannel;
+
+					if (!channel) {
+						await vc.remove();
+						return;
+					}
+
+					if (channel.members.size > 0) return;
+
+					await channel.delete().catch(() => null);
 					await vc.remove();
-					return;
 				}
+			});
 
-				if (channel.members.size > 0) return;
+			cron.schedule("0 * * * *", async () => {
+				const deletedDeployments:Deployment[] = await Deployment.find({ where: { deleted: true }});
+				for(const deployment of deletedDeployments) {
+					await Signups.delete({ deploymentId: deployment.id });
+					await Backups.delete({ deploymentId: deployment.id });
+					await Deployment.delete({ id: deployment.id });
+					console.log(`Deleted ${deployment.id} & associated signups & backups`);
+				}
+			})
 
-				await channel.delete().catch(() => null);
-				await vc.remove();
-			}
-		});
+			cron.schedule("0 0 * * *", async () => {
+				await LatestInput.clear();
+				console.log(`Cleared last input data!`);
+			})
 
-		cron.schedule("0 * * * *", async () => {
-			const deletedDeployments:Deployment[] = await Deployment.find({ where: { deleted: true }});
-			for(const deployment of deletedDeployments) {
-				await Signups.delete({ deploymentId: deployment.id });
-				await Backups.delete({ deploymentId: deployment.id });
-				await Deployment.delete({ id: deployment.id });
-				console.log(`Deleted ${deployment.id} & associated signups & backups`);
-			}
-		})
-
-		cron.schedule("0 0 * * *", async () => {
-			await LatestInput.clear();
-			console.log(`Cleared last input data!`);
-		})
+			success(`Bot startup complete`, "Startup");
+		} catch (e) {
+			error(`Startup failed: ${e}`, "Startup");
+			throw e;
+		}
 	},
 } as any;

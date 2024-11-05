@@ -8,6 +8,7 @@ import Backups from "../tables/Backups.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
 import getStartTime from "../utils/getStartTime.js";
+import { log, action, error, warn, success } from "../utils/logger.js";
 
 export default new Button({
     id: "editDeployment",
@@ -15,9 +16,12 @@ export default new Button({
     permissions: [],
     requiredRoles: [],
     func: async function({ interaction }) {
+        action(`User ${interaction.user.tag} attempting to edit deployment`, "EditDeployment");
+        
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
 
         if (!deployment) {
+            error("Deployment not found", "EditDeployment");
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Deployment not found");
 
@@ -25,6 +29,7 @@ export default new Button({
         }
 
         if (deployment.user !== interaction.user.id) {
+            warn(`Unauthorized edit attempt by ${interaction.user.tag}`, "EditDeployment");
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You do not have permission to edit this deployment");
 
@@ -165,5 +170,7 @@ export default new Button({
         const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
 
         await interaction.message.edit({ embeds: [embed] }).catch(() => null);
+
+        success(`Deployment ${deployment.title} edited successfully by ${interaction.user.tag}`, "EditDeployment");
     }
 })
