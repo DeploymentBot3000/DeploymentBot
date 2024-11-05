@@ -7,7 +7,6 @@ import { EmbedBuilder } from "discord.js";
 import config from "../config.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
-import { handleCooldown } from "../utils/cooldownManager.js";
 
 export default new Button({
     id: "leaveDeployment",
@@ -15,14 +14,6 @@ export default new Button({
     permissions: [],
     requiredRoles: [],
     func: async function({ interaction }) {
-        const cooldownResult = handleCooldown(interaction.user.id, "leaveDeployment");
-        if (cooldownResult.onCooldown) {
-            const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription(`Please wait ${cooldownResult.remainingTime.toFixed(1)} seconds before using this again.`);
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true })
-                .then(msg => setTimeout(() => msg.delete().catch(() => {}), 45000));
-        }
-
         try {
             // Fetch the member to ensure they still exist in the guild
             const member = await interaction.guild.members.fetch(interaction.user.id).catch(() => null);
