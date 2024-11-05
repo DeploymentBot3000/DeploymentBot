@@ -49,7 +49,14 @@ export const startQueuedGame = async (deploymentTime: number) => {
         let deploymentCreated = false;
 
         for (const group of hostPlayerGroups) {
+            console.log('\x1b[36m%s\x1b[0m', 'Checking group:', {
+                hostId: group.host.user,
+                playerCount: group.players.length,
+                players: group.players.map(p => p.user)
+            });
+            
             if (group.players.length < 3) {
+                console.log('\x1b[31m%s\x1b[0m', 'Skipping group due to insufficient players');
                 continue;
             }
             
