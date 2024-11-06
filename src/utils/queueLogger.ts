@@ -15,7 +15,7 @@ export async function logQueueAction(options: {
     
     const embed = new HackedEmbedBuilder()
         .setTitle(`Queue ${options.type.charAt(0).toUpperCase() + options.type.slice(1)}`)
-        .addFields({ name: `<:Susdiver:1303685727627903006>┃User: <@${options.userId}>` })
+        .addFields({ value: `<:Susdiver:1303685727627903006>┃User: <@${options.userId}>` })
         .setTimestamp();
 
     switch (options.type) {
@@ -23,16 +23,16 @@ export async function logQueueAction(options: {
             embed.setColor('#00FF00')
                 .setTitle('✅┃Queue Join')
                 .addFields(
-                    { name: 'Type', value: 'Regular' },
-                    { name: 'Join Time', value: `<t:${Math.floor(new Date().getTime() / 1000)}:F>` }
+                    { name: `🪖┃Type: Diver` },
+                    { name: `⏰┃Join Time: <t:${Math.floor(new Date().getTime() / 1000)}:F>` }
                 );
             break;
         case 'host':
             embed.setColor('#FFFF00')
                 .setTitle('👑┃Queue Host')
                 .addFields(
-                    { name: 'Type', value: 'Host' },
-                    { name: 'Join Time', value: `<t:${Math.floor(new Date().getTime() / 1000)}:F>` }
+                    { name: `🪖┃Type: Host` },
+                    { name: `⏰┃Join Time: <t:${Math.floor(new Date().getTime() / 1000)}:F>` }
                 );
             break;
         case 'leave':
