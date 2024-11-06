@@ -44,7 +44,8 @@ export default new Button({
             "╚═══════════════════════════════════════════════════════════════════╝"
         );
 
-        await Queue.insert({ user: interaction.user.id, host: false });
+        if(alreadyQueued.host) await Queue.update(alreadyQueued.id, { host: false })
+        else await Queue.insert({ user: interaction.user.id, host: false });
 
         await updateQueueMessages(true, client.nextGame.getTime(), false);
     }
