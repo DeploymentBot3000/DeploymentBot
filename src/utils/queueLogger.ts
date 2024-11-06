@@ -15,7 +15,7 @@ export async function logQueueAction(options: {
     
     const embed = new HackedEmbedBuilder()
         .setTitle(`Queue ${options.type.charAt(0).toUpperCase() + options.type.slice(1)}`)
-        .addFields({ name: 'User', value: `<@${options.userId}>` })
+        .addFields({ name: `<:Susdiver:1303685727627903006>┃User: <@${options.userId}>` })
         .setTimestamp();
 
     switch (options.type) {
@@ -68,7 +68,7 @@ export async function logQueueAction(options: {
                 embed.addFields({ name: `<a:Bigbooty:1303683116723998821>┃Queue Change: ${options.queueBefore} → ${options.queueAfter}` });
             }
             if (options.dbStatus !== undefined) {
-                embed.addFields({ name: `┃DB Remove: ${options.dbStatus ? '🟢 Success' : '🔴 Failed'}` });
+                embed.addFields({ name: `┃DB Remove: ${options.dbStatus ? '✅' : '❌'}` });
             }
             break;
     }
