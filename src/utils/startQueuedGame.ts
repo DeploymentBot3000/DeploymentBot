@@ -128,15 +128,15 @@ export const startQueuedGame = async (deploymentTime: number) => {
             await updateQueueMessages(false, nextDeploymentTime, deploymentCreated);
             console.log('\x1b[33m%s\x1b[0m', `Queue messages updated for next deployment at ${new Date(nextDeploymentTime).toLocaleTimeString()}`);
 
+            // Fetch all player members to get their nicknames
+            const playerMembers = await Promise.all(
+                selectedPlayers.map(p => departureChannel.guild.members.fetch(p.user).catch(() => null))
+            );
+
             // Log to all logging channels
             for (const loggingChannel of loggingChannels) {
                 if (loggingChannel && loggingChannel instanceof TextChannel) {
                     try {
-                        // Fetch all player members to get their nicknames
-                        const playerMembers = await Promise.all(
-                            selectedPlayers.map(p => departureChannel.guild.members.fetch(p.user).catch(() => null))
-                        );
-
                         const deploymentEmbed = {
                             color: 0x00FF00,
                             title: '<:Helldivers:1226464844534779984> Queue Deployment <:Helldivers:1226464844534779984>',
@@ -168,13 +168,12 @@ export const startQueuedGame = async (deploymentTime: number) => {
 
                         await loggingChannel.send({ embeds: [deploymentEmbed] })
                             .catch(error => console.error('Failed to send deployment log:', error));
-
-                        console.log('\x1b[35m%s\x1b[0m', `Successfully created deployment for ${hostDisplayName}`);
                     } catch (error) {
                         console.error('Error creating deployment log:', error);
                     }
                 }
             }
+            console.log('\x1b[35m%s\x1b[0m', `Successfully created deployment for ${hostDisplayName}`);
         }
     }
 };
