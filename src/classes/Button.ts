@@ -34,7 +34,16 @@ export default class Button {
         this.cooldown = cooldown;
         this.permissions = permissions;
         this.requiredRoles = requiredRoles;
-        this.function = func;
+        const originalFunc = func;
+        this.function = async (params) => {
+            const canRun = await this.checkCooldown(params.interaction.user.id);
+            if (!canRun) {
+                const errorEmbed = buildEmbed({ preset: "error" })
+                    .setDescription("Please wait before using this button again");
+                return await params.interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            }
+            return await originalFunc(params);
+        };
     }
 
     public async checkCooldown(userId: string): Promise<boolean> {
