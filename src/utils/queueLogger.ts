@@ -68,7 +68,7 @@ export async function logQueueAction(options: {
                 embed.addFields({ name: `<a:Bigbooty:1303683116723998821>┃Queue Change: ${options.queueBefore} → ${options.queueAfter}` });
             }
             if (options.dbStatus !== undefined) {
-                embed.addFields({ name: `┃DB Remove: ${options.dbStatus ? '✅' : '❌'}` });
+                embed.addFields({ name: `💣┃DB Remove: ${options.dbStatus ? '✅' : '❌'}` });
             }
             break;
     }
