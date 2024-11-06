@@ -61,13 +61,13 @@ export async function logQueueAction(options: {
                 );
             }
             if (options.leaveTime) {
-                embed.addFields({ name: 'Leave Time', value: `<t:${Math.floor(options.leaveTime.getTime() / 1000)}:F>` });
+                embed.addFields({ name: '⏰ Leave Time', value: `<t:${Math.floor(options.leaveTime.getTime() / 1000)}:F>` });
             }
             if (options.queueBefore !== undefined && options.queueAfter !== undefined) {
-                embed.addFields({ name: 'Queue Change', value: `${options.queueBefore} → ${options.queueAfter}` });
+                embed.addFields({ name: '<a:Bigbooty:1303683116723998821> Queue Change', value: `${options.queueBefore} → ${options.queueAfter}` });
             }
             if (options.dbStatus !== undefined) {
-                embed.addFields({ name: 'DB Remove', value: options.dbStatus ? '✅' : '❌' });
+                embed.addFields({ name: '💣 DB Remove', value: options.dbStatus ? '🟢 Success' : '🔴 Failed' });
             }
             break;
     }
