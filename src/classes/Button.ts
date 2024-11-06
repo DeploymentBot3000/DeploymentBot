@@ -1,6 +1,6 @@
 import { ButtonInteraction, PermissionsString } from "discord.js";
 import { requiredRolesType } from "./Slashcommand.js";
-import { buildEmbed } from "../utils/configBuilders.js";
+import {buildEmbed} from "../utils/configBuilders.js";
 
 /**
  * @class Button
@@ -43,7 +43,7 @@ export default class Button {
                     .setDescription("Please wait before using this button again");
                 return await params.interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             }
-            return await originalFunc(params);
+            return originalFunc(params);
         };
     }
 
