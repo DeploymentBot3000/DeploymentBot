@@ -10,7 +10,8 @@ import { requiredRolesType } from "./Slashcommand.js";
  * @param {requiredRolesType} requiredRoles The roles required to run the button
  * @param {function} func The function to run when the button is used
  */
-export default class {
+export default class Button {
+    private static lastRun = new Map<string, number>();
     public id: string;
     public cooldown?: number;
     public permissions?: PermissionsString[];
@@ -34,5 +35,19 @@ export default class {
         this.permissions = permissions;
         this.requiredRoles = requiredRoles;
         this.function = func;
+    }
+
+    public async checkCooldown(userId: string): Promise<boolean> {
+        if (!this.cooldown) return true;
+        
+        const last = Button.lastRun.get(`${this.id}-${userId}`);
+        const now = Date.now();
+        
+        if (!last || now - last >= this.cooldown * 1000) {
+            Button.lastRun.set(`${this.id}-${userId}`, now);
+            return true;
+        }
+        
+        return false;
     }
 }
