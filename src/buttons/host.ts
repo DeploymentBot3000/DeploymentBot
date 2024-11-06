@@ -16,15 +16,12 @@ export default new Button({
 
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
 
-        if (alreadyQueued && alreadyQueued?.host) {
+        if ((alreadyQueued ? true : false) && alreadyQueued?.host) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are already in the queue");
 
             return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
-
-        if(!alreadyQueued.host)
-            await Queue.update(alreadyQueued.id, { host: true })
 
         const joinLogChannel = await client.channels.fetch('1303492344636772392') as GuildTextBasedChannel;
         await joinLogChannel.send(

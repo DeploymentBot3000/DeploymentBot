@@ -26,15 +26,12 @@ export default new Button({
         console.log(typeof alreadyQueued);
         console.log(alreadyQueued === null);
 
-        if (alreadyQueued != null && !alreadyQueued.host) {
+        if (alreadyQueued && !alreadyQueued.host) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are already in the queue");
 
             return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
-
-        if(alreadyQueued.host)
-            await Queue.update(alreadyQueued.id, { host: false });
 
         queueJoinTimes.set(interaction.user.id, new Date());
 
