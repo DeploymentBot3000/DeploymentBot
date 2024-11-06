@@ -26,7 +26,7 @@ export default new Button({
         console.log(typeof alreadyQueued);
         console.log(alreadyQueued === null);
 
-        if (alreadyQueued && !alreadyQueued?.host) {
+        if (alreadyQueued != null && !alreadyQueued.host) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are already in the queue");
 
