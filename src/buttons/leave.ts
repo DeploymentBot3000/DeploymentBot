@@ -4,6 +4,7 @@ import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
 import { GuildTextBasedChannel } from "discord.js";
+import { logQueueAction } from "../utils/queueLogger.js";
 
 export default new Button({
     id: "leave",
@@ -41,16 +42,15 @@ export default new Button({
             const queueAfter = await Queue.find();
             const afterCount = queueAfter.length;
 
-            const leaveLogChannel = await client.channels.fetch('1303492344636772392') as GuildTextBasedChannel;
-            await leaveLogChannel.send(
-                "╔═══════════════════════════ QUEUE LEAVE ═══════════════════════════╗\n" +
-                `║ User      :: <@${interaction.user.id}>${' '.repeat(50 - interaction.user.id.length)}║\n` +
-                `║ Join Time :: <t:${Math.floor(joinTime?.getTime() / 1000) || 0}:F>${' '.repeat(30)}║\n` +
-                `║ Leave Time:: <t:${Math.floor(leaveTime.getTime() / 1000)}:F>${' '.repeat(30)}║\n` +
-                `║ Queue     :: ${beforeCount} → ${afterCount}${' '.repeat(51 - beforeCount.toString().length - afterCount.toString().length)}║\n` +
-                `║ DB Remove :: ✅${' '.repeat(55)}║\n` +
-                "╚═══════════════════════════════════════════════════════════════════╝"
-            );
+            await logQueueAction({
+                type: 'leave',
+                userId: interaction.user.id,
+                joinTime: joinTime,
+                leaveTime: leaveTime,
+                queueBefore: beforeCount,
+                queueAfter: afterCount,
+                dbStatus: true
+            });
 
             await updateQueueMessages(true, client.nextGame.getTime(), false);
 

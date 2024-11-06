@@ -5,6 +5,7 @@ import { buildEmbed } from "../utils/configBuilders.js";
 import config from "../config.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
 import { GuildTextBasedChannel } from "discord.js";
+import { logQueueAction } from "../utils/queueLogger.js";
 
 export default new Button({
     id: "host",
@@ -23,17 +24,13 @@ export default new Button({
             return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        const joinLogChannel = await client.channels.fetch('1303492344636772392') as GuildTextBasedChannel;
-        await joinLogChannel.send(
-            "╔═════════���═════════════════ QUEUE JOIN ═══════════════════════════╗\n" +
-            `║ User    :: <@${interaction.user.id}>${' '.repeat(52 - interaction.user.id.length)}║\n` +
-            `║ Type    :: Host${' '.repeat(55)}║\n` +
-            `║ Time    :: <t:${Math.floor(Date.now() / 1000)}:F>${' '.repeat(30)}║\n` +
-            "╚═══════════════════════════════════════════════════════════════════╝"
-        );
-
-        if(alreadyQueued && !alreadyQueued.host) await Queue.update(alreadyQueued.id, { host: true })
+        if (alreadyQueued && !alreadyQueued.host) await Queue.update(alreadyQueued.id, { host: true })
         else await Queue.insert({ user: interaction.user.id, host: true });
+
+        await logQueueAction({
+            type: 'host',
+            userId: interaction.user.id
+        });
 
         await updateQueueMessages(true, client.nextGame.getTime(), false);
     }
