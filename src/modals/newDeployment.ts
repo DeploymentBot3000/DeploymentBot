@@ -14,19 +14,23 @@ function removeEmojis(str: string): string {
 }
 
 async function storeLatestInput(interaction, { title, difficulty, description }) {
+    const cleanTitle = removeEmojis(title);
+    const cleanDifficulty = removeEmojis(difficulty);
+    const cleanDescription = removeEmojis(description);
+
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
 
     if (latestInput) {
-        latestInput.title = title;
-        latestInput.difficulty = difficulty;
-        latestInput.description = description;
+        latestInput.title = cleanTitle;
+        latestInput.difficulty = cleanDifficulty;
+        latestInput.description = cleanDescription;
         await latestInput.save();
     } else {
         await LatestInput.insert({
             userId: interaction.user.id,
-            title,
-            difficulty,
-            description
+            title: cleanTitle,
+            difficulty: cleanDifficulty,
+            description: cleanDescription
         });
     }
 }
@@ -36,12 +40,12 @@ export default new Modal({
     func: async function({ interaction }) {
         action(`User ${interaction.user.tag} creating new deployment`, "NewDeployment");
         
-        const title = removeEmojis(interaction.fields.getTextInputValue("title"));
+        const title = interaction.fields.getTextInputValue("title");
         debug(`Title: ${title}`, "NewDeployment");
         
-        const difficulty = removeEmojis(interaction.fields.getTextInputValue("difficulty"));
-        const description = removeEmojis(interaction.fields.getTextInputValue("description"));
-        const startTime = removeEmojis(interaction.fields.getTextInputValue("startTime"));
+        const difficulty = interaction.fields.getTextInputValue("difficulty");
+        const description = interaction.fields.getTextInputValue("description");
+        const startTime = interaction.fields.getTextInputValue("startTime");
 
         let startDate:Date = null;
 
@@ -157,9 +161,9 @@ export default new Modal({
                 channel: channel.channel,
                 message: msg.id,
                 user: interaction.user.id,
-                title,
-                difficulty,
-                description,
+                title: removeEmojis(title),
+                difficulty: removeEmojis(difficulty),
+                description: removeEmojis(description),
                 startTime: startDate.getTime(),
                 endTime: startDate.getTime() + 7200000,
                 started: false,
