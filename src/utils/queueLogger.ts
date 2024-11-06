@@ -42,9 +42,22 @@ export async function logQueueAction(options: {
                     ? Math.floor((options.leaveTime.getTime() - options.joinTime.getTime()) / 1000)
                     : Math.floor((new Date().getTime() - options.joinTime.getTime()) / 1000);
                 
+                const formatDuration = (seconds: number): string => {
+                    const hours = Math.floor(seconds / 3600);
+                    const minutes = Math.floor((seconds % 3600) / 60);
+                    const remainingSeconds = seconds % 60;
+                    
+                    const parts = [];
+                    if (hours > 0) parts.push(`${hours}h`);
+                    if (minutes > 0) parts.push(`${minutes}m`);
+                    if (remainingSeconds > 0 || parts.length === 0) parts.push(`${remainingSeconds}s`);
+                    
+                    return parts.join(' ');
+                };
+
                 embed.addFields(
-                    { name: 'Join Time', value: `<t:${Math.floor(options.joinTime.getTime() / 1000)}:F>` },
-                    { name: 'Time in Queue', value: `<t:${Math.floor(new Date().getTime() / 1000)}:R>` }
+                    { name: '⏰ Join Time', value: `<t:${Math.floor(options.joinTime.getTime() / 1000)}:F>` },
+                    { name: '⏱️ Time in Queue', value: formatDuration(queueDuration) }
                 );
             }
             if (options.leaveTime) {
