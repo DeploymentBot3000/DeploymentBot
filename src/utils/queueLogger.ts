@@ -20,6 +20,7 @@ export async function logQueueAction(options: {
     switch (options.type) {
         case 'join':
             embed.setColor('#00FF00')
+                .setTitle('✅ Queue Join')
                 .addFields(
                     { name: 'Type', value: 'Regular' },
                     { name: 'Join Time', value: `<t:${Math.floor(new Date().getTime() / 1000)}:F>` }
@@ -27,15 +28,24 @@ export async function logQueueAction(options: {
             break;
         case 'host':
             embed.setColor('#FFFF00')
+                .setTitle('👑 Queue Host')
                 .addFields(
                     { name: 'Type', value: 'Host' },
                     { name: 'Join Time', value: `<t:${Math.floor(new Date().getTime() / 1000)}:F>` }
                 );
             break;
         case 'leave':
-            embed.setColor('#FF0000');
+            embed.setColor('#FF0000')
+                .setTitle('❌ Queue Leave');
             if (options.joinTime) {
-                embed.addFields({ name: 'Join Time', value: `<t:${Math.floor(options.joinTime.getTime() / 1000)}:F>` });
+                const queueDuration = options.leaveTime 
+                    ? Math.floor((options.leaveTime.getTime() - options.joinTime.getTime()) / 1000)
+                    : Math.floor((new Date().getTime() - options.joinTime.getTime()) / 1000);
+                
+                embed.addFields(
+                    { name: 'Join Time', value: `<t:${Math.floor(options.joinTime.getTime() / 1000)}:F>` },
+                    { name: 'Time in Queue', value: `<t:${Math.floor(new Date().getTime() / 1000)}:R>` }
+                );
             }
             if (options.leaveTime) {
                 embed.addFields({ name: 'Leave Time', value: `<t:${Math.floor(options.leaveTime.getTime() / 1000)}:F>` });
