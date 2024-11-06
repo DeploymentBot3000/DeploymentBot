@@ -1,5 +1,6 @@
 import { ButtonInteraction, PermissionsString } from "discord.js";
 import { requiredRolesType } from "./Slashcommand.js";
+import { buildEmbed } from "../utils/configBuilders.js";
 
 /**
  * @class Button

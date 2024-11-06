@@ -9,6 +9,10 @@ import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
 import { log, action, success, error, debug } from "../utils/logger.js";
 
+function removeEmojis(str: string): string {
+    return str.replace(/[\u{1F300}-\u{1F9FF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{1F191}-\u{1F251}]|[\u{1F004}]|[\u{1F0CF}]|[\u{1F170}-\u{1F171}]|[\u{1F17E}-\u{1F17F}]|[\u{1F18E}]|[\u{3030}]|[\u{2B50}]|[\u{2B55}]|[\u{2934}-\u{2935}]|[\u{2B05}-\u{2B07}]|[\u{2B1B}-\u{2B1C}]|[\u{3297}]|[\u{3299}]|[\u{303D}]|[\u{00A9}]|[\u{00AE}]|[\u{2122}]/gu, '').trim();
+}
+
 async function storeLatestInput(interaction, { title, difficulty, description }) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
 
@@ -32,12 +36,12 @@ export default new Modal({
     func: async function({ interaction }) {
         action(`User ${interaction.user.tag} creating new deployment`, "NewDeployment");
         
-        const title = interaction.fields.getTextInputValue("title");
+        const title = removeEmojis(interaction.fields.getTextInputValue("title"));
         debug(`Title: ${title}`, "NewDeployment");
         
-        const difficulty = interaction.fields.getTextInputValue("difficulty");
-        const description = interaction.fields.getTextInputValue("description");
-        const startTime = interaction.fields.getTextInputValue("startTime");
+        const difficulty = removeEmojis(interaction.fields.getTextInputValue("difficulty"));
+        const description = removeEmojis(interaction.fields.getTextInputValue("description"));
+        const startTime = removeEmojis(interaction.fields.getTextInputValue("startTime"));
 
         let startDate:Date = null;
 
