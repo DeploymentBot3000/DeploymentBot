@@ -23,6 +23,8 @@ export default new Button({
         await interaction.deferUpdate();
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
 
+        console.log(alreadyQueued);
+
         if (alreadyQueued && !alreadyQueued.host) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are already in the queue");
