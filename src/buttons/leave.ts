@@ -5,10 +5,11 @@ import { buildEmbed } from "../utils/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
 import { GuildTextBasedChannel } from "discord.js";
 import { logQueueAction } from "../utils/queueLogger.js";
+import config from "../config.js";
 
 export default new Button({
     id: "leave",
-    cooldown: 0,
+    cooldown: config.buttonCooldown,
     permissions: [],
     requiredRoles: [],
     func: async function ({ interaction }) {
