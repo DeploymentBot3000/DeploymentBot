@@ -1,14 +1,6 @@
-import { ActionRowBuilder, ApplicationCommandType, ModalBuilder, TextInputBuilder, TextInputStyle, ModalSubmitInteraction, TextChannel, Collection } from 'discord.js';
+import { ActionRowBuilder, ApplicationCommandType, ModalBuilder, TextInputBuilder, TextInputStyle, Collection } from 'discord.js';
 import Slashcommand from "../classes/Slashcommand.js";
 import Config from "../config.js";
-import { buildEmbed } from "../utils/configBuilders.js";
-import { log, action, success, error, debug, warn } from "../utils/logger.js";
-
-declare module 'discord.js' {
-    interface Client {
-        modalSubmitInteractions: Collection<string, any>;
-    }
-}
 
 export default new Slashcommand({
     name: "bugreport",
@@ -18,14 +10,6 @@ export default new Slashcommand({
     requiredRoles: [{ role: Config.verifiedRoleId, required: true }],
     options: [],
     func: async function({ interaction }) {
-        // Clear any existing collectors for this user
-        const existingCollector = interaction.client.modalSubmitInteractions?.get(interaction.user.id);
-        if (existingCollector) {
-            existingCollector.stop();
-        }
-
-        action(`${interaction.user.tag} initiated bug report`, "BugReport");
-
         // Create the modal
         const modal = new ModalBuilder()
             .setCustomId(`bugReport`)
