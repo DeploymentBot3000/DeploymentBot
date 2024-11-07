@@ -7,7 +7,7 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
-import { log, action, success, error, debug } from "../utils/logger.js";
+import { action, success, error, debug } from "../utils/logger.js";
 import { validateAndRemoveEmojis } from "../utils/emojiHandler.js";
 
 async function storeLatestInput(interaction, { title, difficulty, description }) {
@@ -195,8 +195,8 @@ export default new Modal({
             });
 
             success(`New deployment "${cleanedTitle}" created by ${interaction.user.tag}`, "NewDeployment");
-        } catch (error) {
-            error(`Failed to handle interaction: ${error}`, "NewDeployment");
+        } catch (err) {
+            error(`Failed to handle interaction: ${err}`, "NewDeployment");
             // Optionally try to send a follow-up if the initial reply failed
             try {
                 const errorEmbed = buildEmbed({ preset: "error" })
