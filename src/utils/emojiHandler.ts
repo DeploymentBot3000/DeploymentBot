@@ -1,5 +1,4 @@
-import emoji from 'node-emoji';
-
+import * as emoji from 'node-emoji'
 export function removeEmojis(text: string): string {
     return emoji.strip(text).trim();
 }
