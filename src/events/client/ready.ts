@@ -270,7 +270,7 @@ export default {
 				}
 			})
 
-			cron.schedule("52 7 * * *", async () => {
+			cron.schedule("* 0 * * *", async () => {
 				const deployments = await Deployment.find();
 				const signups = await Signups.find();
 				const backups = await Backups.find();
@@ -281,7 +281,9 @@ export default {
 				await Backups.delete({ id: In(backupsToDelete) });
 				await LatestInput.clear();
 
-				console.log(`Cleared invalid signups!`);
+				console.log("Database Purge:")
+				console.log(`Cleared ${signupsToDelete.length} invalid signups!`);
+				console.log(`Cleared ${backupsToDelete.length} invalid backups!`);
 				console.log(`Cleared last input data!`);
 			})
 
