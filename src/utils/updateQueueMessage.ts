@@ -7,13 +7,13 @@ export default async function updateQueueMessages(notEnoughPlayers: boolean = fa
     console.log("Starting updateQueueMessages function");
 
     const queueMessages = await QueueStatusMsg.find();
-    if(!queueMessages.length) return null;
     const queueMessage = queueMessages[0];
-
-    console.log(`Next deployment time: ${new Date(nextDeploymentTime).toISOString()} (${nextDeploymentTime})`);
-
     const channel = await client.channels.fetch(queueMessage.channel).catch(() => null) as GuildTextBasedChannel;
     const message = await channel.messages.fetch(queueMessage.message).catch(() => null);
+
+    if(!message) return null;
+
+    console.log(`Next deployment time: ${new Date(nextDeploymentTime).toISOString()} (${nextDeploymentTime})`);
 
     let { embed, content } = await buildQueueEmbed(notEnoughPlayers, nextDeploymentTime, deploymentCreated, channel);
 

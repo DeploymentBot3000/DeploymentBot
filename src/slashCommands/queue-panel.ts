@@ -41,8 +41,15 @@ export default new Slashcommand({
             } else await QueueStatusMsg.insert({ channel: interaction.channelId, message: msg.id });
 
             success(`Queue panel created by ${interaction.user.tag}`, "QueuePanel");
+
+            const successEmbed = buildEmbed({ preset: "success" })
+                .setDescription("Queue panel sent");
+            await interaction.reply({ embeds: [successEmbed], ephemeral: true });
         } catch (e) {
             error(`Failed to create queue panel: ${e}`, "QueuePanel");
+            const successEmbed = buildEmbed({ preset: "error" })
+                .setDescription(`Failed to create queue panel: ${e}`);
+            await interaction.reply({ embeds: [successEmbed], ephemeral: true });
             throw e;
         }
     }

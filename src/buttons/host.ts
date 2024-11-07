@@ -4,6 +4,8 @@ import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import config from "../config.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
+import { GuildTextBasedChannel } from "discord.js";
+import { logQueueAction } from "../utils/queueLogger.js";
 
 export default new Button({
     id: "host",
@@ -15,14 +17,20 @@ export default new Button({
 
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
 
-        if (alreadyQueued) {
+        if (alreadyQueued && alreadyQueued?.host) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are already in the queue");
 
             return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        await Queue.insert({ user: interaction.user.id, host: true });
+        if (alreadyQueued && !alreadyQueued.host) await Queue.update(alreadyQueued.id, { host: true })
+        else await Queue.insert({ user: interaction.user.id, host: true });
+
+        await logQueueAction({
+            type: 'host',
+            userId: interaction.user.id
+        });
 
         await updateQueueMessages(true, client.nextGame.getTime(), false);
     }

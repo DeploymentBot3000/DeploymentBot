@@ -1,5 +1,6 @@
 import { ButtonInteraction, PermissionsString } from "discord.js";
 import { requiredRolesType } from "./Slashcommand.js";
+import {buildEmbed} from "../utils/configBuilders.js";
 
 /**
  * @class Button
@@ -10,7 +11,8 @@ import { requiredRolesType } from "./Slashcommand.js";
  * @param {requiredRolesType} requiredRoles The roles required to run the button
  * @param {function} func The function to run when the button is used
  */
-export default class {
+export default class Button {
+    private static lastRun = new Map<string, number>();
     public id: string;
     public cooldown?: number;
     public permissions?: PermissionsString[];
@@ -33,6 +35,29 @@ export default class {
         this.cooldown = cooldown;
         this.permissions = permissions;
         this.requiredRoles = requiredRoles;
-        this.function = func;
+        const originalFunc = func;
+        this.function = async (params) => {
+            const canRun = await this.checkCooldown(params.interaction.user.id);
+            if (!canRun) {
+                const errorEmbed = buildEmbed({ preset: "error" })
+                    .setDescription("Please wait before using this button again");
+                return await params.interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            }
+            return originalFunc(params);
+        };
+    }
+
+    public async checkCooldown(userId: string): Promise<boolean> {
+        if (!this.cooldown) return true;
+        
+        const last = Button.lastRun.get(`${this.id}-${userId}`);
+        const now = Date.now();
+        
+        if (!last || now - last >= this.cooldown * 1000) {
+            Button.lastRun.set(`${this.id}-${userId}`, now);
+            return true;
+        }
+        
+        return false;
     }
 }
