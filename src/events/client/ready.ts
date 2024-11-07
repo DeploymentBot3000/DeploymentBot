@@ -17,7 +17,7 @@ import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
 import VoiceChannel from "../../tables/VoiceChannel.js";
 import { startQueuedGame } from "../../utils/startQueuedGame.js";
-import {BaseEntity, LessThanOrEqual} from 'typeorm';
+import {BaseEntity, In, LessThanOrEqual} from 'typeorm';
 import {DateTime} from 'luxon';
 import cron from 'node-cron';
 import { buildDeploymentEmbed } from "../../utils/signupEmbedBuilder.js"
@@ -270,15 +270,15 @@ export default {
 				}
 			})
 
-			cron.schedule("0 0 * * *", async () => {
+			cron.schedule("40 2 * * *", async () => {
 				const deployments = await Deployment.find();
 				const signups = await Signups.find();
 				const backups = await Backups.find();
 				const deploymentsIDs = deployments.map(deployment => deployment.id);
-				const signupsToDelete = signups.filter(s => deploymentsIDs.includes(s.id)).map(s => s.id);
-				const backupsToDelete = backups.filter(b => deploymentsIDs.includes(b.id)).map(b => b.id);
-				await Signups.delete(signupsToDelete);
-				await Backups.delete(backupsToDelete);
+				const signupsToDelete = signups.filter(s => !deploymentsIDs.includes(s.deploymentId)).map(s => s.id);
+				const backupsToDelete = backups.filter(b => !deploymentsIDs.includes(b.deploymentId)).map(b => b.id);
+				await Signups.delete({ id: In(signupsToDelete) });
+				await Backups.delete({ id: In(backupsToDelete) });
 				await LatestInput.clear();
 
 				console.log(`Cleared invalid signups!`);
