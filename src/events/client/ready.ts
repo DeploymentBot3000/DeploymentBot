@@ -270,7 +270,7 @@ export default {
 				}
 			})
 
-			cron.schedule("40 2 * * *", async () => {
+			cron.schedule("52 7 * * *", async () => {
 				const deployments = await Deployment.find();
 				const signups = await Signups.find();
 				const backups = await Backups.find();
