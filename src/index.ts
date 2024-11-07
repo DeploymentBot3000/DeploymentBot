@@ -30,7 +30,6 @@ class CustomClient extends Client {
     buttons: Collection<String, Button> = new Collection();
     nextGame: Date;
     interval: NodeJS.Timeout;
-    modalSubmitInteractions: Collection<string, any>;
 }
 
 // Initialize the extended client
@@ -39,10 +38,10 @@ export const client = new CustomClient({
     partials: [Partials.Message, Partials.GuildMember, Partials.Channel, Partials.Reaction, Partials.User]
 });
 
-// Add status when client is ready
-//client.on('ready', () => {
-//    client.user?.setActivity(config.status.text, { type: ActivityType.Watching });
-//});
+//Add status when client is ready
+client.on('ready', () => {
+   client.user?.setActivity(config.satus.text, { type: ActivityType.Watching });
+});
 
 export const getDeploymentTime = async () => {
     const deploymentTime = await fs.readFile("./deploymentTime.txt", "utf-8");

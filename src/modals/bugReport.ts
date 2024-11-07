@@ -1,29 +1,21 @@
-import {CommandInteraction, ModalSubmitInteraction, TextChannel} from "discord.js";
+import { TextChannel} from "discord.js";
 import Config from "../config.js";
 import {buildEmbed} from "../utils/configBuilders.js";
-import {error, success, warn} from "../utils/logger.js"; // Import CommandInteraction type
+import {action, error, success, warn} from "../utils/logger.js"; // Import CommandInteraction type
 
 export default {
     id: "bugReport",
     function: async function ({ interaction }) {
         try {
-            // const filter = (i: ModalSubmitInteraction) =>
-            //     i.customId === `bugReportModal_${interaction.user.id}` &&
-            //     i.user.id === interaction.user.id;
-            //
-            // const modalSubmission = await interaction.awaitModalSubmit({ filter, time: 300000 });
-            //
-            // if (modalSubmission.user.id !== interaction.user.id) return;
+            action(`${interaction.user.tag} initiated bug report`, "BugReport");
 
-            const modalSubmission = interaction;
-
-            const bugTitle = modalSubmission.fields.getTextInputValue('bugTitle');
-            const bugDescription = modalSubmission.fields.getTextInputValue('bugDescription');
-            const reproSteps = modalSubmission.fields.getTextInputValue('reproSteps');
+            const bugTitle = interaction.fields.getTextInputValue('bugTitle');
+            const bugDescription = interaction.fields.getTextInputValue('bugDescription');
+            const reproSteps = interaction.fields.getTextInputValue('reproSteps');
 
             // Get the bug report channel
             if (!Config.bugReportChannelId) {
-                await modalSubmission.reply({
+                await interaction.reply({
                     embeds: [buildEmbed({
                         preset: "error",
                         placeholders: {
@@ -35,10 +27,10 @@ export default {
                 return;
             }
 
-            const channel = modalSubmission.client.channels.cache.get(Config.bugReportChannelId) as TextChannel;
+            const channel = interaction.client.channels.cache.get(Config.bugReportChannelId) as TextChannel;
 
             if (!channel) {
-                await modalSubmission.reply({
+                await interaction.reply({
                     embeds: [buildEmbed({
                         preset: "error",
                         placeholders: {
@@ -55,7 +47,7 @@ export default {
                 name: "Bug Report"
             })
                 .setTitle(`🐛 Bug Report: ${bugTitle}`)
-                .setDescription(`**Reported by:** <@${modalSubmission.user.id}>\n**User ID:** ${modalSubmission.user.id}`)
+                .setDescription(`**Reported by:** <@${interaction.user.id}>\n**User ID:** ${interaction.user.id}`)
                 .addFields(
                     { name: '📝 Description', value: bugDescription },
                     { name: '🔄 Steps to Reproduce', value: reproSteps }
@@ -67,7 +59,7 @@ export default {
                 embeds: [bugReportEmbed]
             });
 
-            await modalSubmission.reply({
+            await interaction.reply({
                 embeds: [buildEmbed({
                     preset: "success",
                     placeholders: {
@@ -77,7 +69,7 @@ export default {
                 ephemeral: true
             });
 
-            success(`Bug report "${bugTitle}" submitted by ${modalSubmission.user.tag}`, "BugReport");
+            success(`Bug report "${bugTitle}" submitted by ${interaction.user.tag}`, "BugReport");
         } catch (err) {
             if (err.code === 'InteractionCollectorError') {
                 warn(`${interaction.user.tag} bug report modal timed out`, "BugReport");
