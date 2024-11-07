@@ -8,29 +8,22 @@ import Signups from "../tables/Signups.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
 import { log, action, success, error, debug } from "../utils/logger.js";
-
-function removeEmojis(str: string): string {
-    return str.replace(/[\u{1F300}-\u{1F9FF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{1F191}-\u{1F251}]|[\u{1F004}]|[\u{1F0CF}]|[\u{1F170}-\u{1F171}]|[\u{1F17E}-\u{1F17F}]|[\u{1F18E}]|[\u{3030}]|[\u{2B50}]|[\u{2B55}]|[\u{2934}-\u{2935}]|[\u{2B05}-\u{2B07}]|[\u{2B1B}-\u{2B1C}]|[\u{3297}]|[\u{3299}]|[\u{303D}]|[\u{00A9}]|[\u{00AE}]|[\u{2122}]/gu, '').trim();
-}
+import { validateAndRemoveEmojis } from "../utils/emojiHandler.js";
 
 async function storeLatestInput(interaction, { title, difficulty, description }) {
-    const cleanTitle = removeEmojis(title);
-    const cleanDifficulty = removeEmojis(difficulty);
-    const cleanDescription = removeEmojis(description);
-
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
 
     if (latestInput) {
-        latestInput.title = cleanTitle;
-        latestInput.difficulty = cleanDifficulty;
-        latestInput.description = cleanDescription;
+        latestInput.title = title;
+        latestInput.difficulty = difficulty;
+        latestInput.description = description;
         await latestInput.save();
     } else {
         await LatestInput.insert({
             userId: interaction.user.id,
-            title: cleanTitle,
-            difficulty: cleanDifficulty,
-            description: cleanDescription
+            title: title,
+            difficulty: difficulty,
+            description: description
         });
     }
 }
@@ -46,6 +39,25 @@ export default new Modal({
         const difficulty = interaction.fields.getTextInputValue("difficulty");
         const description = interaction.fields.getTextInputValue("description");
         const startTime = interaction.fields.getTextInputValue("startTime");
+
+        let cleanedFields;
+        try {
+            cleanedFields = validateAndRemoveEmojis({
+                Title: title,
+                Difficulty: difficulty,
+                Description: description
+            });
+        } catch (e) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription(e.message);
+            
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return;
+        }
+
+        const cleanedTitle = cleanedFields.Title;
+        const cleanedDifficulty = cleanedFields.Difficulty;
+        const cleanedDescription = cleanedFields.Description;
 
         let startDate:Date = null;
 
@@ -101,18 +113,18 @@ export default new Modal({
 
             const offenseRole = config.roles.find(role => role.name === "Offense");
 
-            const googleCalendarLink = getGoogleCalendarLink(title, description, startDate.getTime(), (startDate.getTime() + 7200000))
+            const googleCalendarLink = getGoogleCalendarLink(cleanedTitle, cleanedDescription, startDate.getTime(), (startDate.getTime() + 7200000))
 
             const embed = new EmbedBuilder()
-                .setTitle(title)
+                .setTitle(cleanedTitle)
                 .addFields([
                     {
                         name: "Event Info:",
-                        value: `📅 <t:${Math.round(startDate.getTime() / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(startDate.getTime() / 1000)}:t> - <t:${Math.round((startDate.getTime() + 7200000) / 1000)}:t>\n🪖 ${difficulty}`
+                        value: `📅 <t:${Math.round(startDate.getTime() / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(startDate.getTime() / 1000)}:t> - <t:${Math.round((startDate.getTime() + 7200000) / 1000)}:t>\n🪖 ${cleanedDifficulty}`
                     },
                     {
                         name: "Description:",
-                        value: description
+                        value: cleanedDescription
                     },
                     {   
                         name: "Signups:",
@@ -161,9 +173,9 @@ export default new Modal({
                 channel: channel.channel,
                 message: msg.id,
                 user: interaction.user.id,
-                title: removeEmojis(title),
-                difficulty: removeEmojis(difficulty),
-                description: removeEmojis(description),
+                title: cleanedTitle,
+                difficulty: cleanedDifficulty,
+                description: cleanedDescription,
                 startTime: startDate.getTime(),
                 endTime: startDate.getTime() + 7200000,
                 started: false,
@@ -182,7 +194,7 @@ export default new Modal({
                 // your response content
             });
 
-            success(`New deployment "${title}" created by ${interaction.user.tag}`, "NewDeployment");
+            success(`New deployment "${cleanedTitle}" created by ${interaction.user.tag}`, "NewDeployment");
         } catch (error) {
             error(`Failed to handle interaction: ${error}`, "NewDeployment");
             // Optionally try to send a follow-up if the initial reply failed
