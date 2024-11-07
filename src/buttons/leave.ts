@@ -1,8 +1,10 @@
 import Button from "../classes/Button.js";
-import { client } from "../index.js";
+import { client, queueJoinTimes } from "../index.js";
 import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
+import { GuildTextBasedChannel } from "discord.js";
+import { logQueueAction } from "../utils/queueLogger.js";
 import config from "../config.js";
 
 export default new Button({
@@ -28,15 +30,28 @@ export default new Button({
                 return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             }
 
+            const queueBefore = await Queue.find();
+            const beforeCount = queueBefore.length;
+
+            const joinTime = queueJoinTimes.get(interaction.user.id);
+            const leaveTime = new Date();
+
             await Queue.delete({ user: interaction.user.id });
+            queueJoinTimes.delete(interaction.user.id);
             await interaction.deferUpdate();
 
-            const queue = await Queue.find().catch(() => []);
-            if (!queue) {
-                const errorEmbed = buildEmbed({ preset: "error" })
-                    .setDescription("Failed to fetch queue data");
-                return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
-            }
+            const queueAfter = await Queue.find();
+            const afterCount = queueAfter.length;
+
+            await logQueueAction({
+                type: 'leave',
+                userId: interaction.user.id,
+                joinTime: joinTime,
+                leaveTime: leaveTime,
+                queueBefore: beforeCount,
+                queueAfter: afterCount,
+                dbStatus: true
+            });
 
             await updateQueueMessages(true, client.nextGame.getTime(), false);
 

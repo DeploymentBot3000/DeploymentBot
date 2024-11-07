@@ -7,7 +7,8 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
-import { log, action, success, error, debug } from "../utils/logger.js";
+import { action, success, error, debug } from "../utils/logger.js";
+import { validateAndRemoveEmojis } from "../utils/emojiHandler.js";
 
 async function storeLatestInput(interaction, { title, difficulty, description }) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
@@ -20,9 +21,9 @@ async function storeLatestInput(interaction, { title, difficulty, description })
     } else {
         await LatestInput.insert({
             userId: interaction.user.id,
-            title,
-            difficulty,
-            description
+            title: title,
+            difficulty: difficulty,
+            description: description
         });
     }
 }
@@ -38,6 +39,25 @@ export default new Modal({
         const difficulty = interaction.fields.getTextInputValue("difficulty");
         const description = interaction.fields.getTextInputValue("description");
         const startTime = interaction.fields.getTextInputValue("startTime");
+
+        let cleanedFields;
+        try {
+            cleanedFields = validateAndRemoveEmojis({
+                Title: title,
+                Difficulty: difficulty,
+                Description: description
+            });
+        } catch (e) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription(e.message);
+            
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return;
+        }
+
+        const cleanedTitle = cleanedFields.Title;
+        const cleanedDifficulty = cleanedFields.Difficulty;
+        const cleanedDescription = cleanedFields.Description;
 
         let startDate:Date = null;
 
@@ -93,18 +113,18 @@ export default new Modal({
 
             const offenseRole = config.roles.find(role => role.name === "Offense");
 
-            const googleCalendarLink = getGoogleCalendarLink(title, description, startDate.getTime(), (startDate.getTime() + 7200000))
+            const googleCalendarLink = getGoogleCalendarLink(cleanedTitle, cleanedDescription, startDate.getTime(), (startDate.getTime() + 7200000))
 
             const embed = new EmbedBuilder()
-                .setTitle(title)
+                .setTitle(cleanedTitle)
                 .addFields([
                     {
                         name: "Event Info:",
-                        value: `📅 <t:${Math.round(startDate.getTime() / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(startDate.getTime() / 1000)}:t> - <t:${Math.round((startDate.getTime() + 7200000) / 1000)}:t>\n🪖 ${difficulty}`
+                        value: `📅 <t:${Math.round(startDate.getTime() / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(startDate.getTime() / 1000)}:t> - <t:${Math.round((startDate.getTime() + 7200000) / 1000)}:t>\n🪖 ${cleanedDifficulty}`
                     },
                     {
                         name: "Description:",
-                        value: description
+                        value: cleanedDescription
                     },
                     {   
                         name: "Signups:",
@@ -153,9 +173,9 @@ export default new Modal({
                 channel: channel.channel,
                 message: msg.id,
                 user: interaction.user.id,
-                title,
-                difficulty,
-                description,
+                title: cleanedTitle,
+                difficulty: cleanedDifficulty,
+                description: cleanedDescription,
                 startTime: startDate.getTime(),
                 endTime: startDate.getTime() + 7200000,
                 started: false,
@@ -174,9 +194,9 @@ export default new Modal({
                 // your response content
             });
 
-            success(`New deployment "${title}" created by ${interaction.user.tag}`, "NewDeployment");
-        } catch (error) {
-            error(`Failed to handle interaction: ${error}`, "NewDeployment");
+            success(`New deployment "${cleanedTitle}" created by ${interaction.user.tag}`, "NewDeployment");
+        } catch (err) {
+            error(`Failed to handle interaction: ${err}`, "NewDeployment");
             // Optionally try to send a follow-up if the initial reply failed
             try {
                 const errorEmbed = buildEmbed({ preset: "error" })
