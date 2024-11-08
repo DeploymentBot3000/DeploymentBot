@@ -30,6 +30,8 @@ export default {
             endTime: this.startTime ? this.startTime.getTime() + 7200000 : null
         }
 
+        console.log(deployment)
+
         for(const key in details)
             if(details[key]) console.log(details[key])
 
