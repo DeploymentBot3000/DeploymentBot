@@ -20,6 +20,7 @@ export default {
 			//
 			// return interaction.reply({ embeds: [cooldownEmbed], ephemeral: true });
 
+			console.log("Run!")
 			const cooldownEmbed = buildEmbed({ preset: "error" })
 				.setDescription("Please wait before using this button again");
 			return await interaction.reply({ embeds: [cooldownEmbed], ephemeral: true });
