@@ -11,6 +11,8 @@ export default {
         const deployment = await Deployment.findOne({ where: { id: interaction.customId.split("-")[1] } });
         if(!deployment) return;
 
+        console.log(deployment)
+
         const startTimeInput = async () => {
             if(!interaction.fields.getField("startTime")) return null;
             const startTime = interaction.fields.getTextInputValue("startTime");
@@ -29,8 +31,6 @@ export default {
             startTime: startTimeInput(),
             endTime: this.startTime ? this.startTime.getTime() + 7200000 : null
         }
-
-        console.log(deployment)
 
         for(const key in details)
             if(details[key]) console.log(details[key])
