@@ -16,9 +16,13 @@ export default {
 
 		const existingCooldown = client.cooldowns.get(`${interaction.user.id}-${button.id}`);
 		if (existingCooldown && !existingCooldown.isExpired()) {
-			const cooldownEmbed = buildEmbed({ name: "cooldown", preset: "error", placeholders: { timestamp: `<t:${Math.round(existingCooldown.getRemainingTime() / 1000)}:R>` } });
+			// const cooldownEmbed = buildEmbed({ name: "cooldown", preset: "error", placeholders: { timestamp: `<t:${Math.round(existingCooldown.getRemainingTime() / 1000)}:R>` } });
+			//
+			// return interaction.reply({ embeds: [cooldownEmbed], ephemeral: true });
 
-			return interaction.reply({ embeds: [cooldownEmbed], ephemeral: true });
+			const cooldownEmbed = buildEmbed({ preset: "error" })
+				.setDescription("Please wait before using this button again");
+			return await interaction.reply({ embeds: [cooldownEmbed], ephemeral: true });
 		}
 
 		if (button.permissions.length) {
