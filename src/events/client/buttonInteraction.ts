@@ -15,6 +15,7 @@ export default {
 		if (!button) return;
 
 		const existingCooldown = client.cooldowns.get(`${interaction.user.id}-${button.id}`);
+		console.log(existingCooldown)
 		if (existingCooldown && !existingCooldown.isExpired()) {
 			// const cooldownEmbed = buildEmbed({ name: "cooldown", preset: "error", placeholders: { timestamp: `<t:${Math.round(existingCooldown.getRemainingTime() / 1000)}:R>` } });
 			//
