@@ -222,6 +222,7 @@ export default {
 			}
 
 			// Dynamically delete pickdrop VCs as soon as everyone leaves
+			// Move to event listener dir
 			client.on('voiceStateUpdate', async (oldState, newState) => {
 				const channel = oldState.channel || newState.channel;
 				if(!(channel.parent.id == config.vcCategory)) return;

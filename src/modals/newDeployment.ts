@@ -119,7 +119,7 @@ export default new Modal({
                 .setTitle(cleanedTitle)
                 .addFields([
                     {
-                        name: "Event Info:",
+                        name: "Deployment Details:",
                         value: `📅 <t:${Math.round(startDate.getTime() / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(startDate.getTime() / 1000)}:t> - <t:${Math.round((startDate.getTime() + 7200000) / 1000)}:t>\n🪖 ${cleanedDifficulty}`
                     },
                     {
