@@ -55,7 +55,7 @@ export default {
                 .setTimestamp();
 
             await channel.send({
-                content: '<@486987675384020995> <@320766564116725761>',
+                content: '<@1303812241941860373>',
                 embeds: [bugReportEmbed]
             });
 
