@@ -36,7 +36,7 @@ export default {
         }
 
         for(const key in details)
-            if(details[key]) console.log(details[key])
+            if(details[key]) deployment[key] = details[key];
 
         await deployment.save();
 
