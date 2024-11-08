@@ -11,10 +11,13 @@ export default {
         const deployment = await Deployment.findOne({ where: { id: interaction.customId.split("-")[1] } });
         if(!deployment) return;
 
-        console.log(deployment)
+        const getFieldValue = (customId: string): string | null => {
+            try { return interaction.fields.getTextInputValue(customId)}
+            catch { return null }
+        }
 
         const startTimeInput = async () => {
-            if(!interaction.fields.getField("startTime")) return null;
+            if(getFieldValue("startTime")) return null;
             const startTime = interaction.fields.getTextInputValue("startTime");
             let startDate:Date = null;
 
@@ -25,26 +28,15 @@ export default {
         }
 
         const details = {
-            title: interaction.fields.getField("title") ? interaction.fields.getTextInputValue("title") : null,
-            difficulty: interaction.fields.getField("difficulty") ? interaction.fields.getTextInputValue("difficulty") : null,
-            description: interaction.fields.getField("description") ? interaction.fields.getTextInputValue("description") : null,
-            startTime: startTimeInput(),
-            endTime: this.startTime ? this.startTime.getTime() + 7200000 : null
+            title: getFieldValue("title"),
+            difficulty: getFieldValue("difficulty"),
+            description: getFieldValue("description"),
+            startTime: await startTimeInput(),
+            endTime: this.startTime ? this.startTime + 7200000 : null
         }
 
         for(const key in details)
             if(details[key]) console.log(details[key])
-
-        // if (selectmenuInteraction.values.includes("startTime")) {
-        //     const startTime = modalInteraction.fields.getTextInputValue("startTime");
-        //     let startDate:Date = null;
-        //
-        //     try { startDate = await getStartTime(startTime, modalInteraction); }
-        //     catch (e) { return; }
-        //
-        //     deployment.startTime = startDate.getTime();
-        //     deployment.endTime = startDate.getTime() + 7200000;
-        // }
 
         await deployment.save();
 
