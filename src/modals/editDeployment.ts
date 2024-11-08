@@ -1,9 +1,10 @@
-import { CommandInteraction } from "discord.js";
+import {CommandInteraction, GuildTextBasedChannel} from "discord.js";
 import getStartTime from "../utils/getStartTime.js";
 import {buildEmbed} from "../utils/configBuilders.js";
 import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
 import {success} from "../utils/logger.js";
-import Deployment from "../tables/Deployment.js"; // Import CommandInteraction type
+import Deployment from "../tables/Deployment.js";
+import {client} from "../index.js"; // Import CommandInteraction type
 
 export default {
     id: "editDeployment",
@@ -47,7 +48,9 @@ export default {
 
         const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
 
-        await interaction.message.edit({ embeds: [embed] }).catch(() => null);
+        const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
+        const message = await channel.messages.fetch(deployment.message).catch(() => null);
+        await message.edit({ embeds: [embed] }).catch(() => null);
 
         success(`Deployment ${deployment.title} edited successfully by ${interaction.user.tag}`, "EditDeployment");
     }
