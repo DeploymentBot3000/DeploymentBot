@@ -17,7 +17,7 @@ export default {
         }
 
         const startTimeInput = async () => {
-            if(getFieldValue("startTime")) return null;
+            if(!getFieldValue("startTime")) return null;
             const startTime = interaction.fields.getTextInputValue("startTime");
             let startDate:Date = null;
 
