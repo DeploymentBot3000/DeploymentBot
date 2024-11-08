@@ -221,28 +221,6 @@ export default {
 				client.nextGame = new Date(Date.now() + deploymentTime);
 			}
 
-			// Dynamically delete pickdrop VCs as soon as everyone leaves
-			// Move to event listener dir
-			client.on('voiceStateUpdate', async (oldState, newState) => {
-				const channel = oldState.channel || newState.channel;
-				if(!(channel.parent.id == config.vcCategory)) return;
-
-				const vc = await VoiceChannel.findOne({
-					where: {
-						channel: channel.id,
-						expires: LessThanOrEqual(DateTime.now().toMillis())
-					}
-				});
-
-				if (!vc) return;
-
-				if(channel && !channel.members.size) {
-					await channel.delete().catch((err) => console.log(err));
-					await vc.remove().catch((err) => console.log(err));
-					console.log(`Expired & empty channel ${channel.id} deleted`);
-				}
-			});
-
 			cron.schedule("* * * * *", async () => {
 				const vcs = await VoiceChannel.find({ where: { expires: LessThanOrEqual(DateTime.now().toMillis()) } });
 
