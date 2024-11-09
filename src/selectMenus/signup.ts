@@ -65,6 +65,12 @@ export default new SelectMenu({
                     .setDescription("Backup slots are full");
                 return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             }
+
+            await alreadySignedUp.remove();
+            await Backups.insert({
+                deploymentId: deployment.id,
+                userId: interaction.user.id
+            });
         } else if(newRole == "backup" && alreadySignedUpBackup && !alreadySignedUp) {
             await alreadySignedUpBackup.remove();
         } else if(alreadySignedUp && alreadySignedUp?.role == newRole) {
