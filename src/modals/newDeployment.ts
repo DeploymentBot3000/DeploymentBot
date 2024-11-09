@@ -7,7 +7,7 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
-import { action, success, error, debug } from "../utils/logger.js";
+import {action, success, error, debug, log} from "../utils/logger.js";
 import { validateAndRemoveEmojis } from "../utils/emojiHandler.js";
 
 async function storeLatestInput(interaction, { title, difficulty, description }) {
@@ -64,6 +64,7 @@ export default new Modal({
         try { startDate = await getStartTime(startTime, interaction); }
         catch (e) {
             await storeLatestInput(interaction, { title, difficulty, description });
+            log(`Invalid Start time!`, "NewDeployment");
             return;
         }
 
@@ -169,26 +170,34 @@ export default new Modal({
 
             const msg = await ch.send({ content: `<@&1302268594817597541> <@${interaction.user.id}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
 
-            const deployment = await Deployment.create({
-                channel: channel.channel,
-                message: msg.id,
-                user: interaction.user.id,
-                title: cleanedTitle,
-                difficulty: cleanedDifficulty,
-                description: cleanedDescription,
-                startTime: startDate.getTime(),
-                endTime: startDate.getTime() + 7200000,
-                started: false,
-                deleted: false,
-                edited: false,
-                noticeSent: false
-            }).save();
+            try {
+                const deployment = await Deployment.create({
+                    channel: channel.channel,
+                    message: msg.id,
+                    user: interaction.user.id,
+                    title: cleanedTitle,
+                    difficulty: cleanedDifficulty,
+                    description: cleanedDescription,
+                    startTime: startDate.getTime(),
+                    endTime: startDate.getTime() + 7200000,
+                    started: false,
+                    deleted: false,
+                    edited: false,
+                    noticeSent: false
+                }).save();
 
-            await Signups.insert({
-                deploymentId: deployment.id,
-                userId: interaction.user.id,
-                role: "Offense"
-            });
+                await Signups.insert({
+                    deploymentId: deployment.id,
+                    userId: interaction.user.id,
+                    role: "Offense"
+                });
+                success(`New deployment "${cleanedTitle}" created by ${interaction.user.tag} added to the database!`)
+            } catch(e) {
+                error(`New deployment "${cleanedTitle}" created by ${interaction.user.tag} could not be added to the database!`, "NewDeployment")
+                debug(e, "NewDeployment");
+                await msg.delete().then(() => success(`${cleanedTitle} signup embed deleted successfully`, "NewDeployment"))
+                    .catch(() => error(`Failed to delete ${cleanedTitle} signup embed`, "NewDeployment"));
+            }
 
             await interaction.editReply({
                 // your response content
