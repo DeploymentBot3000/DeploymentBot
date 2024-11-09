@@ -67,7 +67,7 @@ export default new SelectMenu({
             }
         } else if(newRole == "backup" && alreadySignedUpBackup && !alreadySignedUp) {
             await alreadySignedUpBackup.remove();
-        } else if(alreadySignedUp.role == newRole) {
+        } else if(alreadySignedUp && alreadySignedUp?.role == newRole) {
             if (deployment.user == interaction.user.id) {
                 const errorEmbed = buildEmbed({ preset: "error" })
                     .setDescription("You cannot abandon your own deployment!");
