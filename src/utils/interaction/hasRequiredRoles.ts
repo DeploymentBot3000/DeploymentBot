@@ -4,6 +4,7 @@ import ReplyableInteraction from "./ReplyableInteraction.js";
 
 export default async function hasRequiredRoles(interaction:ReplyableInteraction, requiredRoles: requiredRolesType):Promise<boolean> {
     if (requiredRoles.length) return true;
+    console.log("Again wtf")
     if (!interaction.inCachedGuild()) {
         const embed = buildEmbed({preset: "error"})
             .setDescription(":x: **This command can only be used in a server!**");
