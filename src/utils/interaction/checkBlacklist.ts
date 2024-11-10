@@ -3,6 +3,7 @@ import ReplyableInteraction from "./ReplyableInteraction.js";
 
 export default async function checkBlacklist(interaction: ReplyableInteraction, blacklist: string[]):Promise<boolean> {
     console.log(typeof blacklist)
+    console.log(blacklist.length)
     if(blacklist.length) console.log("What in the fuck")
     if(blacklist.length) return;
     console.log("blacklist")
