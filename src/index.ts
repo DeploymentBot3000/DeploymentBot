@@ -28,7 +28,7 @@ class CustomClient extends Client {
     modals: Collection<String, Modal> = new Collection();
     contextMenus: Collection<String, ContextMenu> = new Collection();
     buttons: Collection<String, Button> = new Collection();
-    queueJoinTimes: Collection<String, Date>
+    queueJoinTimes: Collection<String, Date> = new Collection<String, Date>();
     nextGame: Date;
     interval: NodeJS.Timeout;
 }
