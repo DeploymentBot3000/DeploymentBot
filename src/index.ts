@@ -28,6 +28,7 @@ class CustomClient extends Client {
     modals: Collection<String, Modal> = new Collection();
     contextMenus: Collection<String, ContextMenu> = new Collection();
     buttons: Collection<String, Button> = new Collection();
+    queueJoinTimes: Collection<String, Date>
     nextGame: Date;
     interval: NodeJS.Timeout;
 }
@@ -57,8 +58,6 @@ export const setDeploymentTime = async (time: string) => {
         startQueuedGame(Number(time));
     }, Number(time));
 };
-
-export const queueJoinTimes = new Map<string, Date>();
 
 if (database.isInitialized) log("Successfully connected to the database");
 idkHowToCallThisHandler.init();

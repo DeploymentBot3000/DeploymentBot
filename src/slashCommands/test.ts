@@ -6,6 +6,7 @@ export default new Slashcommand({
 	description: "testing",
 	permissions: ["Administrator"],
 	requiredRoles: [],
+	blacklistedRoles: [],
 	cooldown: 0,
 	options: [{ name: "what", description: "you want what?", required: true, type: ApplicationCommandOptionType.String }],
 	func: ({ interaction }) => {

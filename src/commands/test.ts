@@ -1,4 +1,5 @@
 import Command from "../classes/Command.js";
+import config from "../config.js";
 
 export default new Command({
     name: "test",
@@ -7,16 +8,17 @@ export default new Command({
     cooldown: 0,
     permissions: ["Administrator"],
     requiredRoles: [],
+    blacklistedRoles: [],
     func: async ({ message, args }) => {
         if (!args[0]) {
             const msg = await message.reply({ content: "you didn't say anything!" });
 
-            message.delete();
+            await message.delete();
             return setTimeout(() => msg.delete(), 5000);
         }
         const msg = await message.reply({ content: `you said: ${args.join(" ")}` });
         
-        message.delete();
+        await message.delete();
         setTimeout(() => msg.delete(), 5000);
     }
 })

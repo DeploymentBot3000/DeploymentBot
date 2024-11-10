@@ -8,6 +8,7 @@ export default new Slashcommand({
     cooldown: 0,
     permissions: ["Administrator"],
     requiredRoles: [],
+    blacklistedRoles: [],
     options: [],
     func: async function({ interaction }) {
         const embed = buildEmbed({ name: "panel" });

@@ -23,16 +23,18 @@ export default class Button {
      * Otherwise the user can run the command with a higher role.
      */
     public requiredRoles?: requiredRolesType;
+    public blacklistedRoles?: string[];
     public function: (params: {
         interaction: ButtonInteraction;
     }) => void;
-    public constructor({ id, cooldown, permissions, requiredRoles, func }: { id: string, cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, func: (params: {
+    public constructor({ id, cooldown, permissions, requiredRoles, blacklistedRoles, func }: { id: string, cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], func: (params: {
         interaction: ButtonInteraction;
     }) => void }) {
         this.id = id;
         this.cooldown = cooldown;
         this.permissions = permissions;
         this.requiredRoles = requiredRoles;
+        this.blacklistedRoles = blacklistedRoles;
         this.function = func;
     }
 }

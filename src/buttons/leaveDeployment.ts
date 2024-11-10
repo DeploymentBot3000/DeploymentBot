@@ -13,6 +13,7 @@ export default new Button({
     cooldown: 0,
     permissions: [],
     requiredRoles: [],
+    blacklistedRoles: [...config.blacklistedRoles],
     func: async function({ interaction }) {
         try {
             // Fetch the member to ensure they still exist in the guild
