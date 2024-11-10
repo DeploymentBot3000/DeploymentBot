@@ -6,7 +6,7 @@ export default async function checkBlacklist(interaction: ReplyableInteraction, 
     console.log(blacklist.length)
     console.log(blacklist.length === 0)
     if(blacklist.length) console.log("What in the fuck")
-    if(blacklist.length) return;
+    if(blacklist.length === 0) return;
     console.log("blacklist")
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const br = blacklist.filter(roleId => member.roles.cache.has(roleId));
