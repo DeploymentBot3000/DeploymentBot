@@ -5,6 +5,7 @@ import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
 import {success} from "../utils/logger.js";
 import Deployment from "../tables/Deployment.js";
 import {client} from "../index.js"; // Import CommandInteraction type
+import * as emoji from 'node-emoji'
 
 export default {
     id: "editDeployment",
@@ -28,16 +29,24 @@ export default {
             return startDate.getTime();
         }
 
-        const details = {
-            title: getFieldValue("title"),
-            difficulty: getFieldValue("difficulty"),
-            description: getFieldValue("description"),
-            startTime: await startTimeInput(),
-            endTime: this.startTime ? this.startTime + 7200000 : null
-        }
+        try {
+            const details = {
+                title: emoji.strip(getFieldValue("title")).trim(),
+                difficulty: emoji.strip(getFieldValue("difficulty")).trim(),
+                description: emoji.strip(getFieldValue("description")).trim(),
+                startTime: await startTimeInput(),
+                endTime: this.startTime ? this.startTime + 7200000 : null
+            }
 
-        for(const key in details)
-            if(details[key]) deployment[key] = details[key];
+            for(const key in details)
+                if(details[key]) deployment[key] = details[key];
+        } catch (e) {
+            const errorEmbed = buildEmbed({ preset: "error" })
+                .setDescription(e.message);
+
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return;
+        }
 
         await deployment.save();
 
