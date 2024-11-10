@@ -4,7 +4,6 @@ import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import config from "../config.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
-import { GuildTextBasedChannel } from "discord.js";
 import { logQueueAction } from "../utils/queueLogger.js";
 
 export default new Button({
@@ -12,6 +11,7 @@ export default new Button({
     cooldown: config.buttonCooldown,
     permissions: [],
     requiredRoles: [{ role: config.hostRole, required: true }],
+    blacklistedRoles: [...config.blacklistedRoles],
     func: async function({ interaction }) {
         await interaction.deferUpdate();
 

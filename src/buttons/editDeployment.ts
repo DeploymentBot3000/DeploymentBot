@@ -15,6 +15,7 @@ export default new Button({
     cooldown: config.buttonCooldown,
     permissions: [],
     requiredRoles: [],
+    blacklistedRoles: [...config.blacklistedRoles],
     func: async function({ interaction }) {
         action(`User ${interaction.user.tag} attempting to edit deployment`, "EditDeployment");
         

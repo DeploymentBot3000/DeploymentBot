@@ -1,9 +1,8 @@
 import Button from "../classes/Button.js";
-import { client, queueJoinTimes } from "../index.js";
+import { client } from "../index.js";
 import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
-import { GuildTextBasedChannel } from "discord.js";
 import { logQueueAction } from "../utils/queueLogger.js";
 import config from "../config.js";
 
@@ -12,6 +11,7 @@ export default new Button({
     cooldown: config.buttonCooldown,
     permissions: [],
     requiredRoles: [],
+    blacklistedRoles: [...config.blacklistedRoles],
     func: async function ({ interaction }) {
         try {
             const member = await interaction.guild?.members.fetch(interaction.user.id).catch(() => null);
@@ -33,11 +33,11 @@ export default new Button({
             const queueBefore = await Queue.find();
             const beforeCount = queueBefore.length;
 
-            const joinTime = queueJoinTimes.get(interaction.user.id);
+            const joinTime = client.queueJoinTimes.get(interaction.user.id);
             const leaveTime = new Date();
 
             await Queue.delete({ user: interaction.user.id });
-            queueJoinTimes.delete(interaction.user.id);
+            client.queueJoinTimes.delete(interaction.user.id);
             await interaction.deferUpdate();
 
             const queueAfter = await Queue.find();

@@ -6,20 +6,15 @@ import Signups from "../tables/Signups.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
-import checkBlacklist from "../utils/checkBlacklist.js";
+import checkBlacklist from "../utils/interaction/checkBlacklist.js";
 
 export default new SelectMenu({
     id: "signup",
     cooldown: 5,
     permissions: [],
     requiredRoles: [],
+    blacklistedRoles: [],
     func: async function({ interaction }) {
-        if (await checkBlacklist(interaction.user.id, interaction.guild)) {
-            const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("You are blacklisted from participating in deployments");
-
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-        }
 
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
 

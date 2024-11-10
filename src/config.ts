@@ -21,6 +21,7 @@ export default {
     loggingChannels: ["1297709020534013953", "1302855434415116309"],
     backupEmoji: "<:Backup:1289325583905456251>",
     hostRole: "1296482820067295284",
+    blacklistedRoles: ["1303095979507056702"],
     editEmoji: "🔧",
     roles: [
         {
