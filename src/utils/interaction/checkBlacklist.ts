@@ -3,6 +3,7 @@ import ReplyableInteraction from "./ReplyableInteraction.js";
 
 export default async function checkBlacklist(interaction: ReplyableInteraction, blacklist: string[]):Promise<boolean> {
     if(blacklist.length) return;
+    console.log("blacklist")
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const br = blacklist.filter(roleId => member.roles.cache.has(roleId));
     if(br.length) return; // return false is they are not on the blacklist
