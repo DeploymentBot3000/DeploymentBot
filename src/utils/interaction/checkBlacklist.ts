@@ -2,6 +2,7 @@ import {buildEmbed} from "../configBuilders.js";
 import ReplyableInteraction from "./ReplyableInteraction.js";
 
 export default async function checkBlacklist(interaction: ReplyableInteraction, blacklist: string[]):Promise<boolean> {
+    console.log(blacklist)
     if(blacklist.length) return;
     console.log("blacklist")
     const member = await interaction.guild.members.fetch(interaction.user.id);
