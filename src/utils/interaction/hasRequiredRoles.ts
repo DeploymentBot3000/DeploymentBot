@@ -3,7 +3,6 @@ import {requiredRolesType} from "../../classes/Slashcommand.js";
 import ReplyableInteraction from "./ReplyableInteraction.js";
 
 export default async function hasRequiredRoles(interaction:ReplyableInteraction, requiredRoles: requiredRolesType):Promise<boolean> {
-    console.log(requiredRoles)
     if (requiredRoles.length) return true;
     if (!interaction.inCachedGuild()) {
         const embed = buildEmbed({preset: "error"})
