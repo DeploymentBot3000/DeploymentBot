@@ -2,16 +2,10 @@ import {buildEmbed} from "../configBuilders.js";
 import ReplyableInteraction from "./ReplyableInteraction.js";
 
 export default async function checkBlacklist(interaction: ReplyableInteraction, blacklist: string[]):Promise<boolean> {
-    console.log(typeof blacklist)
-    console.log(blacklist.length)
-    console.log(blacklist.length === 0)
-    if(blacklist.length === 0) console.log("What in the fuck")
-    if(blacklist.length === 0) return;
+    if(blacklist.length) return;
     console.log("blacklist")
     const member = await interaction.guild.members.fetch(interaction.user.id);
     const br = blacklist.filter(roleId => member.roles.cache.has(roleId));
-    console.log(br)
-    console.log(br.length)
     if(br.length) return; // return false is they are not on the blacklist
     const description = `${br.length >= 3 ? `${br.slice(0, -1).join(', ')}, & ${br[br.length - 1]}` : `${br.join(" & ")}`} are not permitted to to use this interaction `;
     const errorEmbed = buildEmbed({ preset: "error" })
