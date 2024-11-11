@@ -7,13 +7,14 @@ import { buildEmbed } from "../utils/configBuilders.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
 import checkBlacklist from "../utils/interaction/checkBlacklist.js";
+import config from "../config.js";
 
 export default new SelectMenu({
     id: "signup",
     cooldown: 5,
     permissions: [],
     requiredRoles: [],
-    blacklistedRoles: [],
+    blacklistedRoles: [...config.blacklistedRoles],
     func: async function({ interaction }) {
 
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
