@@ -13,9 +13,9 @@ export default {
         const deployment = await Deployment.findOne({ where: { id: interaction.customId.split("-")[1] } });
         if(!deployment) return;
 
-        const getFieldValue = (customId: string): string | null => {
+        const getFieldValue = (customId: string): string => {
             try { return interaction.fields.getTextInputValue(customId)}
-            catch { return null }
+            catch { return "" }
         }
 
         const startTimeInput = async () => {
