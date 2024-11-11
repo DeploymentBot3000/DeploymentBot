@@ -3,7 +3,7 @@ import { PermissionsBitField, PermissionsString} from "discord.js";
 import ReplyableInteraction from "./ReplyableInteraction.js";
 
 export default async function hasRequiredPermissions(interaction: ReplyableInteraction, permissions: PermissionsString[]):Promise<boolean> {
-    if(permissions.length) return true;
+    if(!permissions.length) return true;
     if (!interaction.inCachedGuild()) {
         const embed = buildEmbed({ preset: "error" })
             .setDescription(":x: **This command can only be used in a server!**");
