@@ -46,7 +46,8 @@ export default new Modal({
             description = emoji.strip(description).trim();
         } catch (e) {
             const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription(e.message);
+                .setTitle("Parsing Error!")
+                .setDescription("Please do not use emojis in any deployment fields!\n");
             
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             return;
