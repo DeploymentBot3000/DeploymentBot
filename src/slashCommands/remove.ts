@@ -13,6 +13,7 @@ export default new Slashcommand({
     description: "Remove a user from a deployment",
     permissions: ["SendMessages"],
     requiredRoles: [{ role: "Verified", required: true }],
+    blacklistedRoles: [],
     cooldown: 0,
     options: [
         {

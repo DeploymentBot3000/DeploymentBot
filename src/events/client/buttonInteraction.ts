@@ -4,6 +4,10 @@ import { client } from "../../index.js";
 import { PermissionsBitField, ButtonInteraction, PermissionsString } from "discord.js";
 import { buildEmbed } from "../../utils/configBuilders.js";
 import Cooldown from "../../classes/Cooldown.js";
+import checkBlacklist from "../../utils/interaction/checkBlacklist.js";
+import hasRequiredPermissions from "../../utils/interaction/hasRequiredPermissions.js";
+import checkCooldowns from "../../utils/interaction/checkCooldown.js";
+import hasRequiredRoles from "../../utils/interaction/hasRequiredRoles.js";
 
 export default {
 	name: "interactionCreate",
@@ -14,50 +18,10 @@ export default {
 		const button = client.buttons.get(interaction.customId) || client.buttons.get(interaction.customId.split("-")[0]);
 		if (!button) return;
 
-		const existingCooldown = client.cooldowns.get(`${interaction.user.id}-${button.id}`);
-		if (existingCooldown && !existingCooldown.isExpired()) {
-			const cooldownEmbed = buildEmbed({ name: "cooldown", preset: "error", placeholders: { timestamp: `<t:${Math.round(existingCooldown.getRemainingTime() / 1000)}:R>` } });
-
-			return interaction.reply({ embeds: [cooldownEmbed], ephemeral: true });
-		}
-
-		if (button.permissions.length) {
-			if (!interaction.inCachedGuild()) {
-				const embed = buildEmbed({ preset: "error" })
-					.setDescription(":x: **This command can only be used in a server!**");
-
-				return await interaction.reply({ embeds: [embed], ephemeral: true });
-			}
-
-			const invalidPerms: PermissionsString[] = [];
-			const memberPerms: PermissionsBitField = interaction.member!.permissions as PermissionsBitField;
-			for (const perm of button.permissions) {
-				if (!memberPerms.has(perm)) invalidPerms.push(perm);
-			}
-			if (invalidPerms.length) {
-				const embed = buildEmbed({ preset: "error" })
-					.setTitle("Missing Permissions")
-					.setDescription(`You are missing the following permissions:\n${invalidPerms.map(p => `- ${p}`).join("\n")}`);
-
-				return await interaction.reply({ embeds: [embed], ephemeral: true });
-			}
-		}
-
-		if (button.requiredRoles.length) {
-			if (!interaction.inCachedGuild()) {
-				const embed = buildEmbed({ preset: "error" })
-					.setDescription(":x: **This command can only be used in a server!**");
-
-				return await interaction.reply({ embeds: [embed], ephemeral: true });
-			}
-
-			for (const role of button.requiredRoles) {
-				const roleObj = interaction.guild!.roles.cache.find(r => r.id === role.role || r.name === role.role) || await interaction.guild!.roles.fetch(role.role).catch(() => null);
-				if (!roleObj) return interaction.reply({ content: `:x: **The role \`${role.role}\` does not exist!**`, ephemeral: true });
-				if (role.required && !interaction.member.roles.cache.has(roleObj.id)) return interaction.reply({ content: `:x: **You don't have the required role ${roleObj.name}!**`, ephemeral: true });
-				if (!role.required && interaction.member.roles.highest.comparePositionTo(roleObj) < 0) return interaction.reply({ content: `:x: **You don't have the required role ${roleObj.name}!**`, ephemeral: true });
-			}
-		}
+		if(await checkBlacklist(interaction, button.blacklistedRoles)) return;
+		if(!(await hasRequiredRoles(interaction, button.requiredRoles))) return;
+		if(!(await hasRequiredPermissions(interaction, button.permissions))) return;
+		if(await checkCooldowns(interaction, client.cooldowns.get(`${interaction.user.id}-${button.id}`))) return;
 
 		try {
 			log(`${colors.cyan('[Button Clicked]')} ${colors.yellow(interaction.customId)} ${colors.blue('||')} ${colors.green('Author:')} ${colors.magenta(interaction.user.username)}`);

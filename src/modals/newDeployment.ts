@@ -7,8 +7,8 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
-import { action, success, error, debug } from "../utils/logger.js";
-import { validateAndRemoveEmojis } from "../utils/emojiHandler.js";
+import {action, success, error, debug, log} from "../utils/logger.js";
+import * as emoji from 'node-emoji'
 
 async function storeLatestInput(interaction, { title, difficulty, description }) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
@@ -33,37 +33,34 @@ export default new Modal({
     func: async function({ interaction }) {
         action(`User ${interaction.user.tag} creating new deployment`, "NewDeployment");
         
-        const title = interaction.fields.getTextInputValue("title");
+        let title = interaction.fields.getTextInputValue("title");
         debug(`Title: ${title}`, "NewDeployment");
         
-        const difficulty = interaction.fields.getTextInputValue("difficulty");
-        const description = interaction.fields.getTextInputValue("description");
+        let difficulty = interaction.fields.getTextInputValue("difficulty");
+        let description = interaction.fields.getTextInputValue("description");
         const startTime = interaction.fields.getTextInputValue("startTime");
 
-        let cleanedFields;
         try {
-            cleanedFields = validateAndRemoveEmojis({
-                Title: title,
-                Difficulty: difficulty,
-                Description: description
-            });
+            title = emoji.strip(title).trim();
+            difficulty = emoji.strip(difficulty).trim();
+            description = emoji.strip(description).trim();
+
+            if(!(title && difficulty && description)) throw new Error();
         } catch (e) {
             const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription(e.message);
+                .setTitle("Parsing Error!")
+                .setDescription("Please do not use emojis in any deployment fields!\n");
             
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             return;
         }
-
-        const cleanedTitle = cleanedFields.Title;
-        const cleanedDifficulty = cleanedFields.Difficulty;
-        const cleanedDescription = cleanedFields.Description;
 
         let startDate:Date = null;
 
         try { startDate = await getStartTime(startTime, interaction); }
         catch (e) {
             await storeLatestInput(interaction, { title, difficulty, description });
+            log(`Invalid Start time!`, "NewDeployment");
             return;
         }
 
@@ -113,18 +110,18 @@ export default new Modal({
 
             const offenseRole = config.roles.find(role => role.name === "Offense");
 
-            const googleCalendarLink = getGoogleCalendarLink(cleanedTitle, cleanedDescription, startDate.getTime(), (startDate.getTime() + 7200000))
+            const googleCalendarLink = getGoogleCalendarLink(title, description, startDate.getTime(), (startDate.getTime() + 7200000))
 
             const embed = new EmbedBuilder()
-                .setTitle(cleanedTitle)
+                .setTitle(title)
                 .addFields([
                     {
-                        name: "Event Info:",
-                        value: `📅 <t:${Math.round(startDate.getTime() / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(startDate.getTime() / 1000)}:t> - <t:${Math.round((startDate.getTime() + 7200000) / 1000)}:t>\n🪖 ${cleanedDifficulty}`
+                        name: "Deployment Details:",
+                        value: `📅 <t:${Math.round(startDate.getTime() / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(startDate.getTime() / 1000)}:t> - <t:${Math.round((startDate.getTime() + 7200000) / 1000)}:t>\n🪖 ${difficulty}`
                     },
                     {
                         name: "Description:",
-                        value: cleanedDescription
+                        value: description
                     },
                     {   
                         name: "Signups:",
@@ -169,32 +166,40 @@ export default new Modal({
 
             const msg = await ch.send({ content: `<@&1302268594817597541> <@${interaction.user.id}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
 
-            const deployment = await Deployment.create({
-                channel: channel.channel,
-                message: msg.id,
-                user: interaction.user.id,
-                title: cleanedTitle,
-                difficulty: cleanedDifficulty,
-                description: cleanedDescription,
-                startTime: startDate.getTime(),
-                endTime: startDate.getTime() + 7200000,
-                started: false,
-                deleted: false,
-                edited: false,
-                noticeSent: false
-            }).save();
+            try {
+                const deployment = await Deployment.create({
+                    channel: channel.channel,
+                    message: msg.id,
+                    user: interaction.user.id,
+                    title: title,
+                    difficulty: difficulty,
+                    description: description,
+                    startTime: startDate.getTime(),
+                    endTime: startDate.getTime() + 7200000,
+                    started: false,
+                    deleted: false,
+                    edited: false,
+                    noticeSent: false
+                }).save();
 
-            await Signups.insert({
-                deploymentId: deployment.id,
-                userId: interaction.user.id,
-                role: "Offense"
-            });
+                await Signups.insert({
+                    deploymentId: deployment.id,
+                    userId: interaction.user.id,
+                    role: "Offense"
+                });
+                success(`New deployment "${title}" created by ${interaction.user.tag} added to the database!`)
+            } catch(e) {
+                error(`New deployment "${title}" created by ${interaction.user.tag} could not be added to the database!`, "NewDeployment")
+                debug(e, "NewDeployment");
+                await msg.delete().then(() => success(`${title} signup embed deleted successfully`, "NewDeployment"))
+                    .catch(() => error(`Failed to delete ${title} signup embed`, "NewDeployment"));
+            }
 
             await interaction.editReply({
                 // your response content
             });
 
-            success(`New deployment "${cleanedTitle}" created by ${interaction.user.tag}`, "NewDeployment");
+            success(`New deployment "${title}" created by ${interaction.user.tag}`, "NewDeployment");
         } catch (err) {
             error(`Failed to handle interaction: ${err}`, "NewDeployment");
             // Optionally try to send a follow-up if the initial reply failed

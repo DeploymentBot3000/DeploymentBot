@@ -1,11 +1,9 @@
 import Button from "../classes/Button.js";
-import { client, queueJoinTimes } from "../index.js";
+import { client } from "../index.js";
 import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
-import checkBlacklist from "../utils/checkBlacklist.js";
 import config from "../config.js";
-import { GuildTextBasedChannel } from "discord.js";
 import { logQueueAction } from "../utils/queueLogger.js";
 
 export default new Button({
@@ -13,14 +11,8 @@ export default new Button({
     cooldown: config.buttonCooldown,
     permissions: [],
     requiredRoles: [],
+    blacklistedRoles: [...config.blacklistedRoles],
     func: async function ({ interaction }) {
-        if (await checkBlacklist(interaction.user.id, interaction.guild)) {
-            const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("You are blacklisted from joining queues");
-
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-        }
-
         await interaction.deferUpdate();
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
 
@@ -31,7 +23,7 @@ export default new Button({
             return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        queueJoinTimes.set(interaction.user.id, new Date());
+        client.queueJoinTimes.set(interaction.user.id, new Date());
 
         await logQueueAction({
             type: 'join',

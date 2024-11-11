@@ -15,6 +15,7 @@ export default new Button({
     cooldown: config.buttonCooldown,
     permissions: [],
     requiredRoles: [],
+    blacklistedRoles: [...config.blacklistedRoles],
     func: async function({ interaction }) {
         action(`User ${interaction.user.tag} attempting to edit deployment`, "EditDeployment");
         
@@ -131,46 +132,8 @@ export default new Button({
             }
         }
 
-        const modal = new ModalBuilder().setTitle("Edit Deployment").setCustomId("editDeployment").addComponents(rows)
+        const modal = new ModalBuilder().setTitle("Edit Deployment").setCustomId(`editDeployment-${deployment.id}`).addComponents(rows)
 
         await selectmenuInteraction.showModal(modal);
-
-        const modalInteraction: ModalSubmitInteraction = await selectmenuInteraction.awaitModalSubmit({ time: 2147483647 }).catch(() => null);
-
-        if (!modalInteraction) return;
-
-        if (selectmenuInteraction.values.includes("title")) {
-            deployment.title = modalInteraction.fields.getTextInputValue("title");
-        }
-        if (selectmenuInteraction.values.includes("difficulty")) {
-            deployment.difficulty = modalInteraction.fields.getTextInputValue("difficulty");
-        }
-        if (selectmenuInteraction.values.includes("description")) {
-            deployment.description = modalInteraction.fields.getTextInputValue("description");
-        }
-
-        if (selectmenuInteraction.values.includes("startTime")) {
-            const startTime = modalInteraction.fields.getTextInputValue("startTime");
-            let startDate:Date = null;
-
-            try { startDate = await getStartTime(startTime, modalInteraction); }
-            catch (e) { return; }
-
-            deployment.startTime = startDate.getTime();
-            deployment.endTime = startDate.getTime() + 7200000;
-        }
-
-        await deployment.save();
-
-        const successEmbed = buildEmbed({ preset: "success" })
-            .setDescription("Deployment edited successfully");
-
-        await modalInteraction.reply({ embeds: [successEmbed], components: [], ephemeral: true }).catch(() => null);
-
-        const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
-
-        await interaction.message.edit({ embeds: [embed] }).catch(() => null);
-
-        success(`Deployment ${deployment.title} edited successfully by ${interaction.user.tag}`, "EditDeployment");
     }
 })

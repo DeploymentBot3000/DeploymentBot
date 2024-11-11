@@ -10,7 +10,7 @@ export default class Cooldown {
     public timestamp: number;
     public constructor(id: string, time: number) {
         this.id = id;
-        this.time = time;
+        this.time = time * 1000;
         this.timestamp = Date.now();
     }
     public isExpired(): boolean {

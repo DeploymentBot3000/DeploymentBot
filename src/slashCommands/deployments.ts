@@ -109,6 +109,7 @@ export default new Slashcommand({
     cooldown: 0,
     permissions: [],
     requiredRoles: [{ role: Config.verifiedRoleId, required: true }],
+    blacklistedRoles: [],
     options: [],
     func: async function({ interaction }) {
         const user = interaction.user.id;
