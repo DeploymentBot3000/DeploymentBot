@@ -28,6 +28,7 @@ export default class Slashcommand {
      * Otherwise the user can run the command with a higher role.
      */
     public requiredRoles?: requiredRolesType;
+    public blacklistedRoles?: string[];
     public cooldown?: number;
     public options: ApplicationCommandOption[];
     public function: (params: {
@@ -37,7 +38,7 @@ export default class Slashcommand {
     public autocomplete?: (params: {
         interaction: AutocompleteInteraction;
     }) => void;
-    public constructor({ name, description, permissions, requiredRoles, cooldown, options, func, autocomplete }: { name: string, description: string, permissions: PermissionsString[], requiredRoles: requiredRolesType, cooldown: number, options: ApplicationCommandOption[], func: (params: {
+    public constructor({ name, description, permissions, requiredRoles, blacklistedRoles, cooldown, options, func, autocomplete }: { name: string, description: string, permissions: PermissionsString[], requiredRoles: requiredRolesType, cooldown: number, options: ApplicationCommandOption[], blacklistedRoles: string[], func: (params: {
         interaction: ChatInputCommandInteraction;
         options: OmittedCommandInteractionOptionResolver;
     }) => void, autocomplete?: (params: {
@@ -48,6 +49,7 @@ export default class Slashcommand {
         this.description = description;
         this.permissions = permissions;
         this.requiredRoles = requiredRoles;
+        this.blacklistedRoles = blacklistedRoles;
         this.cooldown = cooldown;
         this.options = options;
         this.function = func;

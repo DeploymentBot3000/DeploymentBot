@@ -8,6 +8,7 @@ export default new Slashcommand({
     cooldown: 60, // 1 minute cooldown to prevent spam
     permissions: [],
     requiredRoles: [{ role: Config.verifiedRoleId, required: true }],
+    blacklistedRoles: [],
     options: [],
     func: async function({ interaction }) {
         // Create the modal

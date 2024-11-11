@@ -27,11 +27,12 @@ export default class Command {
      * Otherwise the user can run the command with a higher role.
      */
     public requiredRoles?: requiredRolesType;
+    public blacklistedRoles?: string[];
     public function: (params: {
         message: Message;
         args: string[];
     }) => void;
-    public constructor({ name, description, aliases, cooldown, permissions, requiredRoles, func }: { name: string, description: string, aliases: string[], cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, func: (params: {
+    public constructor({ name, description, aliases, cooldown, permissions, requiredRoles, blacklistedRoles, func }: { name: string, description: string, aliases: string[], cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], func: (params: {
         message: Message;
         args: string[];
     }) => void }) {
@@ -41,6 +42,7 @@ export default class Command {
         this.cooldown = cooldown;
         this.permissions = permissions;
         this.requiredRoles = requiredRoles;
+        this.blacklistedRoles = blacklistedRoles;
         this.function = func;
     }
 }

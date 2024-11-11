@@ -1,6 +1,5 @@
 import { ButtonInteraction, PermissionsString } from "discord.js";
 import { requiredRolesType } from "./Slashcommand.js";
-import {buildEmbed} from "../utils/configBuilders.js";
 
 /**
  * @class Button
@@ -12,7 +11,6 @@ import {buildEmbed} from "../utils/configBuilders.js";
  * @param {function} func The function to run when the button is used
  */
 export default class Button {
-    private static lastRun = new Map<string, number>();
     public id: string;
     public cooldown?: number;
     public permissions?: PermissionsString[];
@@ -25,39 +23,18 @@ export default class Button {
      * Otherwise the user can run the command with a higher role.
      */
     public requiredRoles?: requiredRolesType;
+    public blacklistedRoles?: string[];
     public function: (params: {
         interaction: ButtonInteraction;
     }) => void;
-    public constructor({ id, cooldown, permissions, requiredRoles, func }: { id: string, cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, func: (params: {
+    public constructor({ id, cooldown, permissions, requiredRoles, blacklistedRoles, func }: { id: string, cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], func: (params: {
         interaction: ButtonInteraction;
     }) => void }) {
         this.id = id;
         this.cooldown = cooldown;
         this.permissions = permissions;
         this.requiredRoles = requiredRoles;
-        const originalFunc = func;
-        this.function = async (params) => {
-            const canRun = await this.checkCooldown(params.interaction.user.id);
-            if (!canRun) {
-                const errorEmbed = buildEmbed({ preset: "error" })
-                    .setDescription("Please wait before using this button again");
-                return await params.interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-            }
-            return originalFunc(params);
-        };
-    }
-
-    public async checkCooldown(userId: string): Promise<boolean> {
-        if (!this.cooldown) return true;
-        
-        const last = Button.lastRun.get(`${this.id}-${userId}`);
-        const now = Date.now();
-        
-        if (!last || now - last >= this.cooldown * 1000) {
-            Button.lastRun.set(`${this.id}-${userId}`, now);
-            return true;
-        }
-        
-        return false;
+        this.blacklistedRoles = blacklistedRoles;
+        this.function = func;
     }
 }

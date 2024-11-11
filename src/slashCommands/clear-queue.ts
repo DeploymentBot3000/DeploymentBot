@@ -12,6 +12,7 @@ export default new Slashcommand({
     description: "Clear the queue",
     permissions: ["Administrator"],
     requiredRoles: [],
+    blacklistedRoles: [],
     cooldown: 0,
     options: [],
     func: async function({ interaction }) {

@@ -12,6 +12,7 @@ export default new Slashcommand({
     description: "Set the deployment time",
     permissions: ["Administrator"],
     requiredRoles: [],
+    blacklistedRoles: [],
     cooldown: 0,
     options: [
         {

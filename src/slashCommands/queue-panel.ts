@@ -12,6 +12,7 @@ export default new Slashcommand({
     cooldown: 0,
     permissions: ["ManageRoles"],
     requiredRoles: [],
+    blacklistedRoles: [],
     options: [],
     func: async function({ interaction }) {
         action(`${interaction.user.tag} creating queue panel`, "QueuePanel");

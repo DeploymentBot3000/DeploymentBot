@@ -8,6 +8,7 @@ export default new Button({
     cooldown: config.buttonCooldown,
     permissions: [],
     requiredRoles: [],
+    blacklistedRoles: [...config.blacklistedRoles],
     func: async function ({ interaction }) {
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
 
