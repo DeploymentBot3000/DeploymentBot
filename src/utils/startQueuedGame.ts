@@ -42,11 +42,21 @@ export const startQueuedGame = async (deploymentTime: number) => {
 
     const groups = [];
     hosts.forEach((host) => {
-        const assignedPlayers = players.splice(0, 3);
-        if(!(assignedPlayers.length < 3)) groups.push({
-            host: host,
-            players: assignedPlayers
-        });
+        // Randomly select 3 players
+        const assignedPlayers = [];
+        for (let i = 0; i < 3; i++) {
+            if (players.length > 0) {
+                const randomIndex = Math.floor(Math.random() * players.length);
+                assignedPlayers.push(players.splice(randomIndex, 1)[0]);
+            }
+        }
+        
+        if (assignedPlayers.length === 3) {
+            groups.push({
+                host: host,
+                players: assignedPlayers
+            });
+        }
     });
 
     let deploymentCreated = false;
