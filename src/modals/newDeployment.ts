@@ -53,7 +53,7 @@ export default new Modal({
             return;
         }
 
-        console.log(title)
+        debug(`Title: ${title}`, "NewDeployment");
 
         let startDate:Date = null;
 
