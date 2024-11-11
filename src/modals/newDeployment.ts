@@ -44,6 +44,8 @@ export default new Modal({
             title = emoji.strip(title).trim();
             difficulty = emoji.strip(difficulty).trim();
             description = emoji.strip(description).trim();
+
+            if(!(title && difficulty && description)) throw new Error();
         } catch (e) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setTitle("Parsing Error!")
@@ -52,8 +54,6 @@ export default new Modal({
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             return;
         }
-
-        debug(`Title: ${title}`, "NewDeployment");
 
         let startDate:Date = null;
 
