@@ -53,6 +53,8 @@ export default new Modal({
             return;
         }
 
+        console.log(title)
+
         let startDate:Date = null;
 
         try { startDate = await getStartTime(startTime, interaction); }
