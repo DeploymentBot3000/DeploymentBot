@@ -55,17 +55,14 @@ export default {
                 .setTimestamp();
 
             await channel.send({
-                content: '<@1303812241941860373>',
+                content: '<@&1303812241941860373>',
                 embeds: [bugReportEmbed]
             });
 
             await interaction.reply({
-                embeds: [buildEmbed({
-                    preset: "success",
-                    placeholders: {
-                        description: "Bug report submitted successfully! Thank you for your feedback."
-                    }
-                })],
+                embeds: [buildEmbed({ preset: "success"})
+                    .setTitle("Report Submitted!")
+                    .setDescription("Bug report submitted successfully! Thank you for your feedback.")],
                 ephemeral: true
             });
 
