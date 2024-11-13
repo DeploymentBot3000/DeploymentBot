@@ -30,12 +30,13 @@ export default {
         }
 
         try {
+            const startTime = await startTimeInput();
             const details = {
                 title: emoji.strip(getFieldValue("title")).trim(),
                 difficulty: emoji.strip(getFieldValue("difficulty")).trim(),
                 description: emoji.strip(getFieldValue("description")).trim(),
-                startTime: await startTimeInput(),
-                endTime: this.startTime ? this.startTime + 7200000 : null
+                startTime,
+                endTime: startTime ? startTime + 7200000 : null
             }
 
             for(const key in details)

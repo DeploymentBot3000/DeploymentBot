@@ -53,6 +53,21 @@ export default new Button({
                 dbStatus: true
             });
 
+            try {
+                await interaction.user.send({
+                    embeds: [buildEmbed({ preset: "info" })
+                        .setTitle("You’ve Disengaged from the Hot Drop")
+                        .setDescription(
+                            `<:Susdiver:1303685727627903006>┃User: <@${interaction.user.id}>\n` +
+                            `⏰┃Leave Time: <t:${Math.floor(leaveTime.getTime() / 1000)}:F>\n` +
+                            `🧨┃DB Remove: ✅`
+                        )
+                    ]
+                });
+            } catch (error) {
+                console.error("Failed to send DM to removed user:", error);
+            }
+
             await updateQueueMessages(true, client.nextGame.getTime(), false);
 
         } catch (error) {

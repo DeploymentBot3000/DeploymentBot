@@ -15,9 +15,9 @@ export default async function updateQueueMessages(notEnoughPlayers: boolean = fa
 
     console.log(`Next deployment time: ${new Date(nextDeploymentTime).toISOString()} (${nextDeploymentTime})`);
 
-    let { embed, content } = await buildQueueEmbed(notEnoughPlayers, nextDeploymentTime, deploymentCreated, channel);
+    let embed = await buildQueueEmbed(notEnoughPlayers, nextDeploymentTime, deploymentCreated, channel);
 
-    await message.edit({ content, embeds: [embed] });
+    await message.edit({ embeds: [embed] });
     console.log(`Queue message updated: ${message.id}`);
     return message;
 }

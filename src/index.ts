@@ -29,6 +29,7 @@ class CustomClient extends Client {
     contextMenus: Collection<String, ContextMenu> = new Collection();
     buttons: Collection<String, Button> = new Collection();
     queueJoinTimes: Collection<String, Date> = new Collection<String, Date>();
+    battalionStrikeMode: boolean = false;
     nextGame: Date;
     interval: NodeJS.Timeout;
 }

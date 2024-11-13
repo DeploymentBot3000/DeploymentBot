@@ -1,6 +1,7 @@
-import { EmbedBuilder, GuildTextBasedChannel } from "discord.js";
+import {EmbedBuilder, GuildTextBasedChannel, TextChannel, VoiceChannel} from "discord.js";
 import { client } from "../index.js";
 import HackedEmbedBuilder from "../classes/HackedEmbedBuilder.js";
+import config from "../config.js";
 
 export async function logQueueAction(options: {
     type: 'join' | 'leave' | 'host',
@@ -11,8 +12,7 @@ export async function logQueueAction(options: {
     queueAfter?: number,
     dbStatus?: boolean
 }) {
-    const logChannel = await client.channels.fetch('1303492344636772392') as GuildTextBasedChannel;
-    
+
     const embed = new HackedEmbedBuilder()
         .setTitle(`Queue ${options.type.charAt(0).toUpperCase() + options.type.slice(1)}`)
         .addFields({ value: `<:Susdiver:1303685727627903006>┃User: <@${options.userId}>` })
@@ -73,5 +73,48 @@ export async function logQueueAction(options: {
             break;
     }
 
-    await logChannel.send({ embeds: [embed] });
-} 
+    for (const id of config.loggingChannels) {
+        const logChannel = await client.channels.fetch(id) as GuildTextBasedChannel;
+        await logChannel.send({ embeds: [embed] }).catch(error => console.error('Failed to send deployment log:', error));
+    }
+}
+
+export async function logQueueDeployment(options: {
+    hostDisplayName: string,
+    playerMembers: any[],
+    vc: VoiceChannel
+}) {
+    const embed = {
+        color: 0x00FF00,
+        title: '<:Helldivers:1226464844534779984> Queue Deployment <:Helldivers:1226464844534779984>',
+        fields: [
+            {
+                name: '👑 Host',
+                value: options.hostDisplayName,
+                inline: false
+            },
+            {
+                name: '👥 Players',
+                value: options.playerMembers
+                    .filter(member => member !== null)
+                    .map(member => `• ${member.nickname || member.user.username}`)
+                    .join('\n') || 'No players found',
+                inline: false
+            },
+            {
+                name: '🎙️ Voice Channel',
+                value: `<#${options.vc.id}>`,
+                inline: false
+            }
+        ],
+        timestamp: new Date().toISOString(),
+        footer: {
+            text: `Channel ID: ${options.vc.id}`
+        }
+    };
+
+    for (const id of config.loggingChannels) {
+        const logChannel = await client.channels.fetch(id) as GuildTextBasedChannel;
+        await logChannel.send({ embeds: [embed] }).catch(error => console.error('Failed to send deployment log:', error));
+    }
+}
