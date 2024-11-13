@@ -5,6 +5,7 @@ import { client } from "../index.js";
 import buildQueueEmbed from "../utils/buildQueueEmbed.js";
 import {ActionRowBuilder, ButtonBuilder, } from "discord.js";
 import { log, action, success, error } from "../utils/logger.js";
+import updateQueueMessages from "../utils/updateQueueMessage.js";
 
 export default new Slashcommand({
     name: "queue-panel",
@@ -23,7 +24,7 @@ export default new Slashcommand({
         }
 
         try {
-            const { embed, content } = await buildQueueEmbed(true, client.nextGame.getTime(), false, interaction.channel);
+            const embed = await buildQueueEmbed(true, client.nextGame.getTime(), false, interaction.channel);
 
             const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
                 buildButton("host"),
@@ -31,7 +32,7 @@ export default new Slashcommand({
                 buildButton("leave")
             );
 
-            const msg = await interaction.channel.send({ content, embeds: [embed], components: [row] });
+            const msg = await interaction.channel.send({ embeds: [embed], components: [row] });
 
             const currentMsgArray = await QueueStatusMsg.find();
             const currentMsg = currentMsgArray[0] || null;

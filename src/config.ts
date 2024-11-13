@@ -102,11 +102,6 @@ export default {
             description: "You’ve survived this long, so what’s one more chaotic deployment? If you feel bold enough to lead another team into almost-certain disaster, click the button below to open the 'Create Deployment' modal. Remember, there's no backing out and make sure you come back in one piece!",
             color: "#00ffff"
         },
-        queuePanel: {
-            title: "Hot Drop Queue",
-            description: "If you are interested in hosting a hot drop deployment, please click on **HOST**🚀\nIf you are interested in joining a hot drop deployment, please click on **JOIN**📝\n\Don't forget to leave the queue if you are no longer available for a hot drop, by clicking **LEAVE**🚫\n\n\n🚨🚨🚨\nAfter being deployed, you have **15 MINUTES** to join the correct voice channel!\n🚨🚨🚨\n\nHot drop deployments are urgent deployments, where random divers from the Queue Panel get selected at the listed interval of time below and sent to their hellpods!",
-            color: "#00ffff"
-        },
         deploymentsCommand: {
             title: {
                 default: "⚠️・Upcoming Deployments・⚠️",

@@ -1,14 +1,10 @@
 import { ChannelType, GuildTextBasedChannel, User, GuildMember, PermissionFlagsBits, TextChannel } from "discord.js";
-import { fileURLToPath } from 'url';
 import { client, getDeploymentTime } from "../index.js";
 import Queue from "../tables/Queue.js";
-import QueueStatusMsg from "../tables/QueueStatusMsg.js";
-import { buildEmbed } from "./configBuilders.js";
 import config from "../config.js";
 import VoiceChannel from "../tables/VoiceChannel.js";
-import fs from 'fs/promises';
-import path from 'path';
 import updateQueueMessages from "./updateQueueMessage.js";
+import {logQueueDeployment} from "./queueLogger.js";
 
 // Add this function to generate a random 4-digit number
 function generateRandomCode() {
@@ -30,11 +26,6 @@ export const startQueuedGame = async (deploymentTime: number) => {
     client.nextGame = new Date(now + deploymentIntervalMs);
     const nextDeploymentTime = client.nextGame.getTime();
 
-    // Fetch the logging channel
-    const loggingChannels = await Promise.all(
-        config.loggingChannels.map(id => client.channels.fetch(id).catch(() => null))
-    );
-
     if (hosts.length < 1 || players.length < 3) {
         await updateQueueMessages(true, nextDeploymentTime);
         return;
@@ -42,22 +33,20 @@ export const startQueuedGame = async (deploymentTime: number) => {
 
     const groups = [];
     hosts.forEach((host) => {
-        // Randomly select 3 players
         const assignedPlayers = [];
-        for (let i = 0; i < 3; i++) {
-            if (players.length > 0) {
-                const randomIndex = Math.floor(Math.random() * players.length);
-                assignedPlayers.push(players.splice(randomIndex, 1)[0]);
-            }
-        }
-        
-        if (assignedPlayers.length === 3) {
-            groups.push({
-                host: host,
-                players: assignedPlayers
-            });
-        }
-    });
+        if(client.battalionStrikeMode) {
+            for (let i = 0; i < 3; i++)
+                if (players.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * players.length);
+                    assignedPlayers.push(players.splice(randomIndex, 1)[0]);
+                }
+        } else assignedPlayers.push(...players.splice(0, 3));
+
+        if (assignedPlayers.length === 3) groups.push({
+            host: host,
+            players: assignedPlayers
+        });
+    })
 
     let deploymentCreated = false;
 
@@ -137,50 +126,14 @@ export const startQueuedGame = async (deploymentTime: number) => {
         console.log('\x1b[33m%s\x1b[0m', `Queue messages updated for next deployment at ${new Date(nextDeploymentTime).toLocaleTimeString()}`);
 
         // Fetch all player members to get their nicknames
-        const playerMembers = await Promise.all(
-            selectedPlayers.map(p => departureChannel.guild.members.fetch(p.user).catch(() => null))
-        );
+        const playerMembers = await Promise.all(selectedPlayers.map(p => departureChannel.guild.members.fetch(p.user).catch(() => null)));
 
         // Log to all logging channels
-        for (const loggingChannel of loggingChannels) {
-            if (loggingChannel && loggingChannel instanceof TextChannel) {
-                try {
-                    const deploymentEmbed = {
-                        color: 0x00FF00,
-                        title: '<:Helldivers:1226464844534779984> Queue Deployment <:Helldivers:1226464844534779984>',
-                        fields: [
-                            {
-                                name: '👑 Host',
-                                value: hostDisplayName,
-                                inline: false
-                            },
-                            {
-                                name: '👥 Players',
-                                value: playerMembers
-                                    .filter(member => member !== null)
-                                    .map(member => `• ${member.nickname || member.user.username}`)
-                                    .join('\n') || 'No players found',
-                                inline: false
-                            },
-                            {
-                                name: '🎙️ Voice Channel',
-                                value: `<#${vc.id}>`,
-                                inline: false
-                            }
-                        ],
-                        timestamp: new Date().toISOString(),
-                        footer: {
-                            text: `Channel ID: ${vc.id}`
-                        }
-                    };
-
-                    await loggingChannel.send({ embeds: [deploymentEmbed] })
-                        .catch(error => console.error('Failed to send deployment log:', error));
-                } catch (error) {
-                    console.error('Error creating deployment log:', error);
-                }
-            }
-        }
+        await logQueueDeployment({
+            hostDisplayName,
+            playerMembers,
+            vc
+        });
         console.log('\x1b[35m%s\x1b[0m', `Successfully created deployment for ${hostDisplayName}`);
     }
 };
