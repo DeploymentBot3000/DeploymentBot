@@ -68,8 +68,7 @@ Please use on of the following formats:\n
 * \`YYYY-MM-DD HH:MM <Time Zone Name>\` - Absolute time with IANA time zone name. E.g. \`2024-11-02 06:23 US/Central\`\n
 * \`YYYY-MM-DD HH:MM UTC(+/-)X\` - Absolute time with UTC offset. E.g. \`2024-11-02 06:23 UTC-7\`\n
 * \`??h??m??s\` - Relative time. E.g. \`1h10m30s\`\n
-Time zone names are available at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones\n
-Log:Error formatting data`;
+Time zone names are available at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones`;
 
 export default async function getStartTime(startTime: string, interaction: ModalSubmitInteraction<CacheType>) {
     // Regex for relative time formats
