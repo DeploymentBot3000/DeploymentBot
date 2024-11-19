@@ -63,7 +63,7 @@ function _parseStartDate(input: string) {
     return new Error('Failed to parse input as absolute or relative time.');
 }
 
-const _kDateInputErrorDescription : string = `**Invalid start time format**\n
+const _kDateInputErrorDescription : string = `# Invalid start time format\n
 Please use on of the following formats:\n
 * \`YYYY-MM-DD HH:MM <Time Zone Name>\` - Absolute time with IANA time zone name. E.g. \`2024-11-02 06:23 US/Central\`\n
 * \`YYYY-MM-DD HH:MM UTC(+/-)X\` - Absolute time with UTC offset. E.g. \`2024-11-02 06:23 UTC-7\`\n
