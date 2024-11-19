@@ -1,6 +1,6 @@
 import Button from "../classes/Button.js";
 import Deployment from "../tables/Deployment.js";
-import { buildEmbed } from "../utils/configBuilders.js";
+import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
 
 export default new Button({

@@ -1,5 +1,5 @@
-import {buildEmbed} from "../configBuilders.js";
-import { PermissionsBitField, PermissionsString} from "discord.js";
+import {buildEmbed} from "../embedBuilders/configBuilders.js";
+import {PermissionsBitField, PermissionsString} from "discord.js";
 import ReplyableInteraction from "./ReplyableInteraction.js";
 
 export default async function hasRequiredPermissions(interaction: ReplyableInteraction, permissions: PermissionsString[]):Promise<boolean> {

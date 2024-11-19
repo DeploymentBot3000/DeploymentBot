@@ -65,7 +65,7 @@ export async function logQueueAction(options: {
                 embed.addFields({ name: `⏰┃Leave Time: <t:${Math.floor(options.leaveTime.getTime() / 1000)}:F>` });
             }
             if (options.queueBefore !== undefined && options.queueAfter !== undefined) {
-                embed.addFields({ name: `<a:Bigbooty:1303683116723998821>┃Queue Change: ${options.queueBefore} → ${options.queueAfter}` });
+                embed.addFields({ name: `<a:Crabrave:1306204480932675606>┃Queue Change: ${options.queueBefore} → ${options.queueAfter}` });
             }
             if (options.dbStatus !== undefined) {
                 embed.addFields({ name: `💣┃DB Remove: ${options.dbStatus ? '✅' : '❌'}` });

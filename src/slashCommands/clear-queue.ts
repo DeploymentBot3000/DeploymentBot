@@ -1,11 +1,9 @@
-import { GuildTextBasedChannel } from "discord.js";
 import Slashcommand from "../classes/Slashcommand.js";
-import { client } from "../index.js";
+import {client} from "../index.js";
 import Queue from "../tables/Queue.js";
-import QueueStatusMsg from "../tables/QueueStatusMsg.js";
-import { buildEmbed } from "../utils/configBuilders.js";
+import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
-import { log, action, success } from "../utils/logger.js";
+import {action, success} from "../utils/logger.js";
 
 export default new Slashcommand({
     name: "clear-queue",

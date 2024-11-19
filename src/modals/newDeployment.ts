@@ -1,13 +1,22 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel, StringSelectMenuBuilder, StringSelectMenuInteraction, GuildMember, ColorResolvable, ChannelType } from "discord.js";
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    EmbedBuilder,
+    GuildMember,
+    GuildTextBasedChannel,
+    StringSelectMenuBuilder,
+    StringSelectMenuInteraction
+} from "discord.js";
 import Modal from "../classes/Modal.js";
 import LatestInput from "../tables/LatestInput.js";
-import { buildButton, buildEmbed } from "../utils/configBuilders.js";
+import {buildButton, buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
-import {action, success, error, debug, log} from "../utils/logger.js";
+import {action, debug, error, log, success} from "../utils/logger.js";
 import * as emoji from 'node-emoji'
 
 async function storeLatestInput(interaction, { title, difficulty, description }) {

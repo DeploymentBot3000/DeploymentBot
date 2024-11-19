@@ -1,7 +1,6 @@
-import { ApplicationCommandOptionType } from "discord.js";
 import Slashcommand from "../classes/Slashcommand.js";
 import {client} from "../index.js";
-import {buildEmbed} from "../utils/configBuilders.js";
+import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
 
 export default new Slashcommand({
@@ -14,7 +13,7 @@ export default new Slashcommand({
     options: [],
     func: ({ interaction }) => {
         client.battalionStrikeMode = !client.battalionStrikeMode;
-        updateQueueMessages(false, client.nextGame.getTime(), false).then(() => null);
+        updateQueueMessages(true, client.nextGame.getTime(), false).then(() => null);
         const successEmbed = buildEmbed({ preset: "success" })
             .setTitle("Battalion Strike Toggle")
             .setDescription(`Battalion Strike mode ${client.battalionStrikeMode ? "enabled" : "disabled"}!`);

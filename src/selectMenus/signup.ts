@@ -1,12 +1,9 @@
-import { EmbedBuilder } from "discord.js";
 import SelectMenu from "../classes/SelectMenu.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
-import { buildEmbed } from "../utils/configBuilders.js";
-import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
-import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
-import checkBlacklist from "../utils/interaction/checkBlacklist.js";
+import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
+import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
 import config from "../config.js";
 
 export default new SelectMenu({

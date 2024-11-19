@@ -2,11 +2,9 @@ import Button from "../classes/Button.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
-import { buildEmbed } from "../utils/configBuilders.js";
-import { EmbedBuilder } from "discord.js";
+import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
-import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
-import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
+import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
 
 export default new Button({
     id: "leaveDeployment",

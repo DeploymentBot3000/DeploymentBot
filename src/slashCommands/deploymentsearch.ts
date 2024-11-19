@@ -1,12 +1,12 @@
 import {LessThanOrEqual, MoreThanOrEqual} from 'typeorm';
-import {ApplicationCommandOptionType } from 'discord.js';
+import {ApplicationCommandOptionType} from 'discord.js';
 import Slashcommand from "../classes/Slashcommand.js";
 import {DateTime} from 'luxon';
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Config from "../config.js";
-import {buildEmbed} from "../utils/configBuilders.js";
+import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import HackedEmbedBuilder from "../classes/HackedEmbedBuilder.js";
 
 

@@ -1,7 +1,7 @@
-import {CommandInteraction, GuildTextBasedChannel} from "discord.js";
+import {GuildTextBasedChannel} from "discord.js";
 import getStartTime from "../utils/getStartTime.js";
-import {buildEmbed} from "../utils/configBuilders.js";
-import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
+import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
+import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
 import {success} from "../utils/logger.js";
 import Deployment from "../tables/Deployment.js";
 import {client} from "../index.js"; // Import CommandInteraction type

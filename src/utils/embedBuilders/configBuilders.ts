@@ -1,5 +1,5 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import config from "../config.js";
+import {ButtonBuilder, ButtonStyle, EmbedBuilder} from "discord.js";
+import config from "../../config.js";
 
 /**
  * @function buildEmbed
