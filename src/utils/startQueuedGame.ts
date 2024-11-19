@@ -20,7 +20,7 @@ async function getParent() {
         const categoryChannel = await client.channels.fetch(category.categoryId) as CategoryChannel;
         if (categoryChannel && categoryChannel.children.cache.size < 50) return category.categoryId;
     }
-    return (await new Category().init()).id;
+    return (await new Category().init())?.id || config.vcCategory;
 }
 
 export const startQueuedGame = async (deploymentTime: number) => {
