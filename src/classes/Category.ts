@@ -47,15 +47,20 @@ export default class Category {
     }
 
     public async reinit(id: string):Promise<string> {
-        const guild = client.guilds.cache.get(config.guildId);
-        const category = await guild.channels.fetch(id) as CategoryChannel;
+        try{
+            const guild = client.guilds.cache.get(config.guildId);
+            const category = await guild.channels.fetch(id) as CategoryChannel;
 
-        this.id = category.id;
-        this.categoryChannel = category;
-        this.boundEventListener = this.categoryEventListener.bind(this);
-        client.battalionStrikeCategories.set(this.id, this);
-        client.on("voiceStateUpdate", this.boundEventListener);
-        return category.name;
+            this.id = category.id;
+            this.categoryChannel = category;
+            this.boundEventListener = this.categoryEventListener.bind(this);
+            client.battalionStrikeCategories.set(this.id, this);
+            client.on("voiceStateUpdate", this.boundEventListener);
+            return category.name;
+        } catch (err) {
+            error(`Failed to initialize category: ${err.message}`, "Strike System");
+            return null;
+        }
     }
 
     private categoryEventListener = async (oldState: VoiceState, newState: VoiceState): Promise<null> => {
@@ -78,9 +83,14 @@ export default class Category {
     };
 
     public async isEmpty(): Promise<boolean> {
-        const category = await StrikeCategory.findOne({ where: { categoryId: this.categoryChannel.id } });
-        const categoryChannel = await client.channels.fetch(category.categoryId) as CategoryChannel;
-        return categoryChannel.children.cache.size === 0;
+        try {
+            const category = await StrikeCategory.findOne({ where: { categoryId: this.categoryChannel.id } });
+            const categoryChannel = await client.channels.fetch(category.categoryId) as CategoryChannel;
+            return categoryChannel.children.cache.size === 0;
+        } catch (err) {
+            error(`Failed to check category size: ${err.message}`, "Strike System");
+            return null;
+        }
     }
 
     public async delete(): Promise<void> {
@@ -89,8 +99,9 @@ export default class Category {
             await this.categoryChannel.delete();
             await category.remove();
             client.off("voiceStateUpdate", this.boundEventListener);
-        } catch (e) {
-            console.log(`Error: ${e}`);
+        } catch (err) {
+            error(`Failed to delete category: ${err.message}`, "Strike System");
+            return null;
         }
     }
 }
