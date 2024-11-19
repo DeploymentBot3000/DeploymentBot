@@ -51,15 +51,15 @@ function _parseRelativeTimeString(input: string): number | Error {
 
 function _parseStartDate(input: string) {
     const parsedDate = _parseAbsoluteDateString(input);
-    console.log(parsedDate);
     if (!(parsedDate instanceof Error)) {
         return parsedDate.toJSDate();
     }
     const deltaMilis = _parseRelativeTimeString(input);
-    console.log(deltaMilis);
     if (!(deltaMilis instanceof Error)) {
         return new Date(Date.now() + deltaMilis);
     }
+    console.log(parsedDate);
+    console.log(deltaMilis);
     return new Error('Failed to parse input as absolute or relative time.');
 }
 
