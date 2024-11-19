@@ -1,9 +1,9 @@
 import colors from "colors";
-import { error, log } from "../../utils/logger.js";
-import { client } from "../../index.js";
+import {error, log} from "../../utils/logger.js";
+import {client} from "../../index.js";
 import config from "../../config.js";
-import { Message, PermissionsBitField, PermissionsString } from "discord.js";
-import { buildEmbed } from "../../utils/configBuilders.js";
+import {Message, PermissionsBitField, PermissionsString} from "discord.js";
+import {buildEmbed} from "../../utils/embedBuilders/configBuilders.js";
 import Cooldown from "../../classes/Cooldown.js";
 
 export default {

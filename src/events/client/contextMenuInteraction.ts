@@ -1,8 +1,8 @@
 import colors from "colors";
-import { error, log } from "../../utils/logger.js";
-import { client } from "../../index.js";
-import { ContextMenuCommandInteraction, PermissionsBitField, PermissionsString } from "discord.js";
-import { buildEmbed } from "../../utils/configBuilders.js";
+import {error, log} from "../../utils/logger.js";
+import {client} from "../../index.js";
+import {ContextMenuCommandInteraction, PermissionsBitField} from "discord.js";
+import {buildEmbed} from "../../utils/embedBuilders/configBuilders.js";
 import Cooldown from "../../classes/Cooldown.js";
 import hasRequiredPermissions from "../../utils/interaction/hasRequiredPermissions.js";
 import checkBlacklist from "../../utils/interaction/checkBlacklist.js";

@@ -1,7 +1,7 @@
 // Package imports
 import config from "./config.js";
-import { error, log } from "./utils/logger.js";
-import { Client, Collection, IntentsBitField, Partials, ActivityType } from "discord.js";
+import {error, log} from "./utils/logger.js";
+import {ActivityType, Client, Collection, IntentsBitField, Partials} from "discord.js";
 
 // Handlers & Database
 import eventHandler from "./handlers/eventHandler.js";
@@ -17,7 +17,9 @@ import Modal from "./classes/Modal.js";
 import ContextMenu from "./classes/ContextMenu.js";
 import Command from "./classes/Command.js";
 import fs from "fs/promises";
-import { startQueuedGame } from "./utils/startQueuedGame.js";
+import {startQueuedGame} from "./utils/startQueuedGame.js";
+import gracefulShutdown from "./utils/gracefulShutdown.js";
+import Category from "./classes/Category.js";
 
 // Define a new class that extends Client
 class CustomClient extends Client {
@@ -29,6 +31,7 @@ class CustomClient extends Client {
     contextMenus: Collection<String, ContextMenu> = new Collection();
     buttons: Collection<String, Button> = new Collection();
     queueJoinTimes: Collection<String, Date> = new Collection<String, Date>();
+    battalionStrikeCategories: Collection<String, Category> = new Collection<String, Category>();
     battalionStrikeMode: boolean = false;
     nextGame: Date;
     interval: NodeJS.Timeout;
@@ -67,5 +70,10 @@ eventHandler.function();
 // Catching all the errors
 process.on("uncaughtException", config.debugMode ? console.error : error);
 process.on("unhandledRejection", config.debugMode ? console.error : error);
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
-client.login(config.token);
+client.login(config.token).catch(error => {
+    console.error('Critical error during startup:', error);
+    process.exit(1);
+});

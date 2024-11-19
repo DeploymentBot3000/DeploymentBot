@@ -1,6 +1,6 @@
-import {buildEmbed} from "./configBuilders.js";
+import {buildEmbed} from "./embedBuilders/configBuilders.js";
 import {CacheType, ChannelType, GuildMember, ModalSubmitInteraction} from "discord.js";
-import { DateTime } from "luxon";
+import {DateTime} from "luxon";
 
 export default async function getStartTime(startTime: string, interaction: ModalSubmitInteraction<CacheType>) {
     // Regex for both absolute and relative time formats

@@ -1,29 +1,26 @@
 import config from "../../config.js";
 import colors from "colors";
 import path from "path";
-import { fileURLToPath } from 'url';
-import { log, error, action, success, debug } from "../../utils/logger.js";
-import { client, getDeploymentTime } from "../../index.js";
-import { readdirSync, statSync } from "fs";
-import { REST } from "@discordjs/rest";
-import { Routes } from "discord-api-types/v10";
-import { convertURLs } from "../../utils/windowsUrlConvertor.js";
+import {fileURLToPath} from 'url';
+import {action, error, log, success} from "../../utils/logger.js";
+import {client, getDeploymentTime} from "../../index.js";
+import {readdirSync, statSync} from "fs";
+import {REST} from '@discordjs/rest';
+import {Routes} from 'discord-api-types/v10';
+import {BaseGuildVoiceChannel, EmbedBuilder, GuildTextBasedChannel} from 'discord.js';
+import {convertURLs} from "../../utils/windowsUrlConvertor.js";
 import Deployment from "../../tables/Deployment.js";
-import {
-	BaseGuildVoiceChannel,
-	GuildTextBasedChannel,
-} from "discord.js";
 import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
 import VoiceChannel from "../../tables/VoiceChannel.js";
-import { startQueuedGame } from "../../utils/startQueuedGame.js";
-import {BaseEntity, In, LessThanOrEqual} from 'typeorm';
+import {startQueuedGame} from "../../utils/startQueuedGame.js";
+import {In, LessThanOrEqual} from 'typeorm';
 import {DateTime} from 'luxon';
 import cron from 'node-cron';
-import { buildDeploymentEmbed } from "../../utils/signupEmbedBuilder.js"
-import { EmbedBuilder } from "discord.js";
-import deployments from "../../slashCommands/deployments.js";
+import {buildDeploymentEmbed} from "../../utils/embedBuilders/signupEmbedBuilder.js"
 import LatestInput from "../../tables/LatestInput.js";
+import StrikeCategory from "../../tables/StrikeCatagory.js";
+import Category from "../../classes/Category.js";
 
 interface Command {
 	name: string;
@@ -51,20 +48,25 @@ export default {
 				const readDir = async (dir: string) => {
 					const files = readdirSync(dir);
 					for await (const file of files) {
-						if (statSync(`${dir}/${file}`).isDirectory()) await readDir(`${dir}/${file}`);
-						else {
-							const fileToImport = process.platform === "win32" ? `${convertURLs(dir)}/${file}` : `${dir}/${file}`;
-							const command = (await import(fileToImport)).default;
-							if (command?.name) {
-								commands.push({
-									name: command.name,
-									type: command.type,
-									description: command.description || null,
-									options: command.options || null
-								});
-								log(`${dir}/${file} has been registered!`);
-							} else {
-								error(`${dir}/${file} has no name!`);
+						if (statSync(`${dir}/${file}`).isDirectory()) {
+							await readDir(`${dir}/${file}`);
+						} else {
+							try {
+								const fileToImport = process.platform === "win32" ? `${convertURLs(dir)}/${file}` : `${dir}/${file}`;
+								const command = (await import(fileToImport)).default;
+								if (command?.name) {
+									commands.push({
+										name: command.name,
+										type: command.type,
+										description: command.description || null,
+										options: command.options || null
+									});
+									log(`Registered command: ${command.name} from ${dir}/${file}`, 'Startup');
+								} else {
+									error(`Failed to register command from ${dir}/${file}: No name property found`, 'Startup');
+								}
+							} catch (err) {
+								error(`Failed to import command from ${dir}/${file}: ${err}`, 'Startup');
 							}
 						}
 					}
@@ -75,11 +77,35 @@ export default {
 			await registerDir("slashCommands");
 			await registerDir("contextMenus");
 
-			const rest = new REST({ version: '10' }).setToken(config.token);
-			rest
-				.put(Routes.applicationCommands(client.user!.id), { body: commands })
-				.then(() => log('Commands have been registered successfully!'))
-				.catch((err) => console.log(err));
+			const rest = new REST().setToken(config.token);
+
+			try {
+				if(config.resetCommands) {
+					await rest.put(Routes.applicationGuildCommands(client.user!.id, config.guildId), {body: []});
+					log(`Successfully removed all commands`, 'Startup')
+				}
+				if(config.synchronizeCommands) {
+					log(`Preparing to register ${commands.length} commands...`, 'Startup');
+					const added = await rest.put(Routes.applicationGuildCommands(client.user!.id, config.guildId), {body: commands})
+					log(`Successfully registered ${Array.isArray(added) ? (added as any[]).length : 0} commands`, 'Startup');
+					commands.forEach(cmd => log(`Registered: ${cmd.name}`, 'Startup'));
+				}
+			} catch(err) {
+				if(config.resetCommands) {
+					error('Failed to register commands:', 'Startup');
+					error(err instanceof Error ? err.message : String(err));
+				}
+				if(config.synchronizeCommands) {
+					error('Failed to remove commands:', 'Startup');
+					error(err instanceof Error ? err.message : String(err));
+				}
+			}
+
+			const categorys = await StrikeCategory.find();
+			for (const category of categorys) {
+				const added = await new Category().reinit(category.categoryId);
+				log(`Re-registered: ${added}`, 'Startup')
+			}
 
 			const checkDeployments = async () => {
 				const deploymentsNoNotice = await Deployment.find({
@@ -223,6 +249,7 @@ export default {
 
 			cron.schedule("* * * * *", async () => {
 				const vcs = await VoiceChannel.find({ where: { expires: LessThanOrEqual(DateTime.now().toMillis()) } });
+				const catIds = await StrikeCategory.find();
 
 				for (const vc of vcs) {
 					const channel = await client.channels.fetch(vc.channel).catch(() => null) as BaseGuildVoiceChannel;
@@ -233,9 +260,13 @@ export default {
 					}
 
 					if (channel.members.size > 0) return;
-
 					await channel.delete().catch(() => null);
 					await vc.remove();
+				}
+
+				for(const catId of catIds) {
+					const category = client.battalionStrikeCategories.get(catId.categoryId)
+					if(await category.isEmpty()) await category.delete();
 				}
 			});
 

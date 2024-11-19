@@ -1,9 +1,9 @@
-import config from "../config.js";
-import Deployment from "../tables/Deployment.js";
-import Signups from "../tables/Signups.js";
-import Backups from "../tables/Backups.js";
+import config from "../../config.js";
+import Deployment from "../../tables/Deployment.js";
+import Signups from "../../tables/Signups.js";
+import Backups from "../../tables/Backups.js";
 import {ColorResolvable, EmbedBuilder, Guild} from "discord.js";
-import getGoogleCalendarLink from "./getGoogleCalendarLink.js";
+import getGoogleCalendarLink from "../getGoogleCalendarLink.js";
 
 
 export async function buildDeploymentEmbed(

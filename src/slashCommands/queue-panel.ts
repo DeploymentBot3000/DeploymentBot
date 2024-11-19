@@ -1,11 +1,10 @@
 import Slashcommand from "../classes/Slashcommand.js";
-import { buildButton, buildEmbed } from "../utils/configBuilders.js";
+import {buildButton, buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
-import { client } from "../index.js";
-import buildQueueEmbed from "../utils/buildQueueEmbed.js";
-import {ActionRowBuilder, ButtonBuilder, } from "discord.js";
-import { log, action, success, error } from "../utils/logger.js";
-import updateQueueMessages from "../utils/updateQueueMessage.js";
+import {client} from "../index.js";
+import buildQueueEmbed from "../utils/embedBuilders/buildQueueEmbed.js";
+import {ActionRowBuilder, ButtonBuilder,} from "discord.js";
+import {action, error, log, success} from "../utils/logger.js";
 
 export default new Slashcommand({
     name: "queue-panel",

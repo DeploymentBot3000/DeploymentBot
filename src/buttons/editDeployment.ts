@@ -1,14 +1,16 @@
-import { ActionRowBuilder, EmbedBuilder, ModalBuilder, ModalSubmitInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from "discord.js";
+import {
+    ActionRowBuilder,
+    ModalBuilder,
+    StringSelectMenuBuilder,
+    StringSelectMenuInteraction,
+    TextInputBuilder,
+    TextInputStyle
+} from "discord.js";
 import Button from "../classes/Button.js";
 import Deployment from "../tables/Deployment.js";
-import { buildEmbed } from "../utils/configBuilders.js";
+import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
-import Signups from "../tables/Signups.js";
-import Backups from "../tables/Backups.js";
-import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
-import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
-import getStartTime from "../utils/getStartTime.js";
-import { log, action, error, warn, success } from "../utils/logger.js";
+import {action, error, warn} from "../utils/logger.js";
 
 export default new Button({
     id: "editDeployment",

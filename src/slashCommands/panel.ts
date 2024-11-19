@@ -1,6 +1,6 @@
-import { ActionRowBuilder, ButtonBuilder } from "discord.js";
+import {ActionRowBuilder, ButtonBuilder} from "discord.js";
 import Slashcommand from "../classes/Slashcommand.js";
-import { buildButton, buildEmbed } from "../utils/configBuilders.js";
+import {buildButton, buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 
 export default new Slashcommand({
     name: "panel",

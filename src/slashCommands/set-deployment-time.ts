@@ -1,10 +1,8 @@
-import { ApplicationCommandOptionType, GuildTextBasedChannel } from "discord.js";
+import {ApplicationCommandOptionType} from "discord.js";
 import Slashcommand from "../classes/Slashcommand.js";
 import ms from "ms";
-import { client, setDeploymentTime } from "../index.js";
-import { buildEmbed } from "../utils/configBuilders.js";
-import Queue from "../tables/Queue.js";
-import QueueStatusMsg from "../tables/QueueStatusMsg.js";
+import {client, setDeploymentTime} from "../index.js";
+import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
 
 export default new Slashcommand({

@@ -1,6 +1,6 @@
-import { TextChannel} from "discord.js";
+import {TextChannel} from "discord.js";
 import Config from "../config.js";
-import {buildEmbed} from "../utils/configBuilders.js";
+import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import {action, error, success, warn} from "../utils/logger.js"; // Import CommandInteraction type
 
 export default {

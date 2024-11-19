@@ -1,12 +1,12 @@
-import { ApplicationCommandOptionType, AutocompleteInteraction, GuildMember } from "discord.js";
+import {ApplicationCommandOptionType, AutocompleteInteraction, GuildMember} from "discord.js";
 import Slashcommand from "../classes/Slashcommand.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
-import { buildEmbed } from "../utils/configBuilders.js";
-import { Like } from "typeorm";
-import {buildDeploymentEmbed} from "../utils/signupEmbedBuilder.js";
-import { log, action, success, warn, error } from "../utils/logger.js";
+import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
+import {Like} from "typeorm";
+import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
+import {action, success, warn} from "../utils/logger.js";
 
 export default new Slashcommand({
     name: "remove",

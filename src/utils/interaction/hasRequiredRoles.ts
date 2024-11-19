@@ -1,4 +1,4 @@
-import {buildEmbed} from "../configBuilders.js";
+import {buildEmbed} from "../embedBuilders/configBuilders.js";
 import {requiredRolesType} from "../../classes/Slashcommand.js";
 import ReplyableInteraction from "./ReplyableInteraction.js";
 

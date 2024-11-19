@@ -2,6 +2,8 @@ export default {
     token: "na", // Bot token - you can access it from the Discord Developer Portal: https://discord.com/developers/applications
     prefix: "-",
     debugMode: true,
+    resetCommands: false,
+    synchronizeCommands: true,
     resetDatabase: true, // Clears out the database on every restart - only enable for the first time
     synchronizeDatabase: false,
     database: {
@@ -22,6 +24,10 @@ export default {
     backupEmoji: "<:Backup:1289325583905456251>",
     hostRole: "1296482820067295284",
     blacklistedRoles: ["1303095979507056702"],
+    queueMaxes: {
+        hosts: 50,
+        players: 200,
+    },
     editEmoji: "🔧",
     roles: [
         {

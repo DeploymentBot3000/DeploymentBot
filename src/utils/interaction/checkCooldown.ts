@@ -1,5 +1,4 @@
-import {client} from "../../index.js";
-import {buildEmbed} from "../configBuilders.js";
+import {buildEmbed} from "../embedBuilders/configBuilders.js";
 import Cooldown from "../../classes/Cooldown.js";
 import ReplyableInteraction from "./ReplyableInteraction.js";
 
