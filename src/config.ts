@@ -3,8 +3,8 @@ export default {
     prefix: "-",
     debugMode: true,
     resetCommands: false,
-    synchronizeCommands: true,
-    resetDatabase: true, // Clears out the database on every restart - only enable for the first time
+    synchronizeCommands: false,
+    resetDatabase: false, // Clears out the database on every restart - only enable for the first time
     synchronizeDatabase: false,
     database: {
         type: "mysql",
@@ -15,15 +15,15 @@ export default {
         database: "na"
     },
     satus: { text: "/bugreport"},
-    verifiedRoleId: "1300670595918332007",
-    guildId: "1218615560049397770",
-    departureChannel: "1297304177021685821",
-    bugReportChannelId: "1302748846547533834",
-    vcCategory: "1297303880706818109",
-    loggingChannels: ["1297709020534013953", "1302855434415116309"],
-    backupEmoji: "<:Backup:1289325583905456251>",
-    hostRole: "1296482820067295284",
-    blacklistedRoles: ["1303095979507056702"],
+    verifiedRoleId: "1312957075214696458",
+    guildId: "1312898325074153543",
+    departureChannel: "1312957214377512961",
+    bugReportChannelId: "1312957290273570868",
+    vcCategory: "1312898325074153545",
+    loggingChannels: ["1312956393116008509", "1312956473164435476"],
+    backupEmoji: "🔄",
+    hostRole: "1312955795989860542",
+    blacklistedRoles: ["1312956640227496079"],
     queueMaxes: {
         hosts: 50,
         players: 200,
@@ -32,40 +32,40 @@ export default {
     roles: [
         {
             name: "Offense",
-            emoji: "<:Offence:1289325516494737512>"
+            emoji: "⚔️"
         },
         {
             name: "Mechanized infantry",
-            emoji: "<:Mechinf:1289325461238841405>"
+            emoji: "🚜"
         },
         {
             name: "Support",
-            emoji: "<:Support:1289325497049944136>"
+            emoji: "🏹"
         },
         {
             name: "Defence",
-            emoji: "<:Defence:1289325447850623087>"
+            emoji: "🛡️"
         },
         {
             name: "Scout",
-            emoji: "<:Scout:1289325477789696120>"
+            emoji: "🪖"
         }
     ],
     channels: [
         {
             name: "Battalion - For those who just want to serve anywhere, anytime.",
             emoji: "🏴‍☠️",
-            channel: "1297305928449790033"
+            channel: "1313167910671351808"
         },
         {
             name: "EU — Ready to fight across the European front!",
             emoji: "🇪🇺",
-            channel: "1297305445903503422"
+            channel: "1313167678332211220"
         },
         {
             name: "NA — North American chaos incoming!",
             emoji: "🇺🇸",
-            channel: "1297305575348109434"
+            channel: "1313167659759570974"
         }
     ],
     embeds: {
