@@ -43,7 +43,11 @@ export const client = new CustomClient({
     // https://discord.com/developers/applications/1312896264475508839/oauth2
     // Manage Channels
     //   - Creating voice channel for hot drop
-    // https://discord.com/oauth2/authorize?client_id=1312896264475508839&permissions=16&integration_type=0&scope=bot
+    // Move Members
+    //   - To set permissions on new voice channels to allow the host to kick out non squad members.
+    // Create Instant Invite
+    //   - To allow the host to invite others to the voice channel.
+    // https://discord.com/oauth2/authorize?client_id=1312896264475508839&permissions=16777233&integration_type=0&scope=bot
 
     // Intents are the information that is included in the responses from discord, they do not give permissions to do any operations.
     // https://discord.com/developers/docs/events/gateway#list-of-intents
