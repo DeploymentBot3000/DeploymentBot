@@ -1,7 +1,7 @@
 // Package imports
 import config from "./config.js";
 import {error, log} from "./utils/logger.js";
-import {ActivityType, Client, Collection, IntentsBitField, Partials} from "discord.js";
+import {ActivityType, Client, Collection, GatewayIntentBits} from "discord.js";
 
 // Handlers & Database
 import eventHandler from "./handlers/eventHandler.js";
@@ -39,8 +39,15 @@ class CustomClient extends Client {
 
 // Initialize the extended client
 export const client = new CustomClient({
-    intents: [IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.MessageContent, IntentsBitField.Flags.GuildMembers, IntentsBitField.Flags.GuildVoiceStates],
-    partials: [Partials.Message, Partials.GuildMember, Partials.Channel, Partials.Reaction, Partials.User]
+    // Invite link (must be regenerated if permissions are updated)
+    // https://discord.com/developers/applications/1312896264475508839/oauth2
+    // https://discord.com/oauth2/authorize?client_id=1312896264475508839&permissions=0&integration_type=0&scope=bot
+    intents: [
+      // For basic bot interaction, including fetching the user id of the user performing the iteraction.
+      GatewayIntentBits.Guilds,
+      // To read member roles and verify they are allowed to perform bot interactions.
+      GatewayIntentBits.GuildMembers,
+    ],
 });
 
 //Add status when client is ready
