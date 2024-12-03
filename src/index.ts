@@ -39,10 +39,14 @@ class CustomClient extends Client {
 
 // Initialize the extended client
 export const client = new CustomClient({
-    // Invite link (must be regenerated if permissions are updated)
+    // Invite link, this defines the permissions the bot has and what it can do.
     // https://discord.com/developers/applications/1312896264475508839/oauth2
     // Manage Channels
+    //   - Creating voice channel for hot drop
     // https://discord.com/oauth2/authorize?client_id=1312896264475508839&permissions=16&integration_type=0&scope=bot
+
+    // Intents are the information that is included in the responses from discord, they do not give permissions to do any operations.
+    // https://discord.com/developers/docs/events/gateway#list-of-intents
     intents: [
       // For basic bot interaction, including fetching the user id of the user performing the iteraction.
       GatewayIntentBits.Guilds,
