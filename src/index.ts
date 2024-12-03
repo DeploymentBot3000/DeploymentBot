@@ -41,7 +41,8 @@ class CustomClient extends Client {
 export const client = new CustomClient({
     // Invite link (must be regenerated if permissions are updated)
     // https://discord.com/developers/applications/1312896264475508839/oauth2
-    // https://discord.com/oauth2/authorize?client_id=1312896264475508839&permissions=0&integration_type=0&scope=bot
+    // Manage Channels
+    // https://discord.com/oauth2/authorize?client_id=1312896264475508839&permissions=16&integration_type=0&scope=bot
     intents: [
       // For basic bot interaction, including fetching the user id of the user performing the iteraction.
       GatewayIntentBits.Guilds,
