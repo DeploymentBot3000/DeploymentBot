@@ -75,7 +75,6 @@ export default {
 			};
 
 			await registerDir("slashCommands");
-			await registerDir("contextMenus");
 
 			const rest = new REST().setToken(config.token);
 

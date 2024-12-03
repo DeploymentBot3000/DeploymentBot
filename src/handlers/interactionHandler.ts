@@ -10,7 +10,7 @@ export default {
 	 * @author MX1D
 	 */
 	init: async function () {
-		const dirs = ["commands", "slashCommands", "contextMenus", "buttons", "modals", "selectMenus"];
+		const dirs = ["slashCommands", "buttons", "modals", "selectMenus"];
 		for (const dir of dirs) {
 			await register(dir);
 		}
@@ -36,7 +36,7 @@ async function register(dir: string) {
 			const interaction = (await import(fileToImport)).default;
 			if (!interaction) continue;
 			let identifier: string | undefined;
-			if (dir.endsWith("commands") || dir.endsWith("slashCommands") || dir.endsWith("contextMenus")) identifier = interaction.name;
+			if (dir.endsWith("slashCommands")) identifier = interaction.name;
 			else if (dir.endsWith("buttons") || dir.endsWith("modals") || dir.endsWith("selectMenus")) identifier = interaction.id;
 
 			if (!identifier) throw new Error(`No name or id found for ${dir}/${file}. Did I maybe mess up?`);
@@ -50,7 +50,7 @@ async function register(dir: string) {
 						const fileToImport = process.platform === "win32" ? `${convertURLs(dir)}/${file}/${file2}` : `${dir}/${file}/${file2}`;
 						const interaction = (await import(fileToImport)).default;
 						let identifier: string | undefined;
-						if (dir.endsWith("commands") || dir.endsWith("slashCommands") || dir.endsWith("contextMenus")) identifier = interaction.name;
+						if (dir.endsWith("slashCommands")) identifier = interaction.name;
 						else if (dir.endsWith("buttons") || dir.endsWith("modals") || dir.endsWith("selectMenus")) identifier = interaction.id;
 
 						if (!identifier) throw new Error(`No name or id found for ${dir}/${file}/${file2}. Did I maybe mess up?`);
