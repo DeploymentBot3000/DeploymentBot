@@ -26,7 +26,7 @@ export default {
     
     departureChannel: discord_server.channels.departure_channel_id,
     bugReportChannelId: discord_server.channels.bug_report_channel_id,
-    loggingChannels: discord_server.channels.logging_channel_ids,
+    log_channel_id: discord_server.channels.log_channel_id,
 
     channels: discord_server.deployment_channels,
 
