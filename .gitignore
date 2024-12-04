@@ -3,5 +3,5 @@ node_modules
 package-lock.json
 package.json
 dist/
+src/config/secrets.ts
 *.json
-
