@@ -8,7 +8,7 @@ export default {
     channels: {
         departure_channel_id: "1312957214377512961",
         bug_report_channel_id: "1312957290273570868",
-        logging_channel_ids: ["1312956393116008509", "1312956473164435476"],
+        log_channel_id: "1312956393116008509",
     },
     deployment_channels: [
         {

@@ -73,10 +73,8 @@ export async function logQueueAction(options: {
             break;
     }
 
-    for (const id of config.loggingChannels) {
-        const logChannel = await client.channels.fetch(id) as GuildTextBasedChannel;
-        await logChannel.send({ embeds: [embed] }).catch(error => console.error('Failed to send deployment log:', error));
-    }
+    const logChannel = await client.channels.fetch(config.log_channel_id) as GuildTextBasedChannel;
+    await logChannel.send({ embeds: [embed] }).catch(error => console.error('Failed to send deployment log:', error));
 }
 
 export async function logQueueDeployment(options: {
@@ -113,8 +111,6 @@ export async function logQueueDeployment(options: {
         }
     };
 
-    for (const id of config.loggingChannels) {
-        const logChannel = await client.channels.fetch(id) as GuildTextBasedChannel;
-        await logChannel.send({ embeds: [embed] }).catch(error => console.error('Failed to send deployment log:', error));
-    }
+    const logChannel = await client.channels.fetch(config.log_channel_id) as GuildTextBasedChannel;
+    await logChannel.send({ embeds: [embed] }).catch(error => console.error('Failed to send deployment log:', error));
 }
