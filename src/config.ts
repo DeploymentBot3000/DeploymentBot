@@ -114,8 +114,7 @@ export default {
                 noDeployments: "⛔┃No Upcoming Deployments"
             },
             footer: {
-                text: '101st "Hell" Battalion',
-                image: "https://cdn.discordapp.com/attachments/1224638196902531082/1280659026610491485/MOSHED-2024-9-2-22-45-12.gif"
+                text: '505th "Resurgence" Regiment',
             }
         }
     },
