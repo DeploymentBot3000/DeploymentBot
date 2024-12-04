@@ -1,6 +1,7 @@
 import {buildEmbed} from "./embedBuilders/configBuilders.js";
 import {CacheType, ChannelType, GuildMember, ModalSubmitInteraction} from "discord.js";
-import {DateTime} from "luxon";
+import {DateTime, Duration} from "luxon";
+import config from "../config.js";
 
 function _parseAbsoluteDateString(input: string) {
     let parsedDate = null;
@@ -89,11 +90,11 @@ export default async function getStartTime(startTime: string, interaction: Modal
         throw startDate;
     }
 
-    const oneHourFromNow = Date.now() + (60 * 60 * 1000); // 1 hour in milliseconds
+    const minDeploymentLeadTime: Duration = Duration.fromDurationLike({minutes: config.min_deployment_lead_time_minutes});
 
-    if (startDate.getTime() < oneHourFromNow) {
+    if (DateTime.fromJSDate(startDate) < DateTime.now().plus(minDeploymentLeadTime)) {
         const errorEmbed = buildEmbed({ preset: "error" })
-            .setDescription("Start time must be at least 1 hour in the future");
+            .setDescription(`Start time must be at least ${minDeploymentLeadTime.toHuman()} in the future`);
 
 
         await interaction.reply({ embeds: [errorEmbed], ephemeral: true });

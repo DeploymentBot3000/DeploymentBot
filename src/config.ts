@@ -37,6 +37,9 @@ export default {
     // Max players required for a hot drop (including the host)
     max_players: 4,
 
+    // Min required lead time for deployments in minutes.
+    min_deployment_lead_time_minutes: 60,
+
     backupEmoji: "🔄",
     queueMaxes: {
         hosts: 50,
