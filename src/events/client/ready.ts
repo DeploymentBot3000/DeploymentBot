@@ -2,25 +2,24 @@ import config from "../../config.js";
 import colors from "colors";
 import path from "path";
 import {fileURLToPath} from 'url';
-import {action, error, log, success} from "../../utils/logger.js";
+import { action, debug, error, log, success } from "../../utils/logger.js";
 import {client, getDeploymentTime} from "../../index.js";
 import {readdirSync, statSync} from "fs";
 import {REST} from '@discordjs/rest';
-import {Routes} from 'discord-api-types/v10';
-import {BaseGuildVoiceChannel, EmbedBuilder, GuildTextBasedChannel} from 'discord.js';
+import { Routes, Snowflake } from 'discord-api-types/v10';
+import { EmbedBuilder, GuildTextBasedChannel, ChannelType } from 'discord.js';
 import {convertURLs} from "../../utils/windowsUrlConvertor.js";
 import Deployment from "../../tables/Deployment.js";
 import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
-import VoiceChannel from "../../tables/VoiceChannel.js";
 import {startQueuedGame} from "../../utils/startQueuedGame.js";
 import {In, LessThanOrEqual} from 'typeorm';
-import {DateTime} from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import cron from 'node-cron';
 import {buildDeploymentEmbed} from "../../utils/embedBuilders/signupEmbedBuilder.js"
 import LatestInput from "../../tables/LatestInput.js";
-import StrikeCategory from "../../tables/StrikeCatagory.js";
-import Category from "../../classes/Category.js";
+import { findAllVcCategories } from "../../utils/findChannels.js";
+import discord_server_config from "../../config/discord_server.js";
 
 interface Command {
 	name: string;
@@ -28,6 +27,9 @@ interface Command {
 	type?: number;
 	options: any[]; // You can replace "any" with the correct type for options
 }
+
+// Map from vc channel id to the last time it was seen empty.
+const lastSeenEmptyVcTime: Map<Snowflake, DateTime> = new Map();
 
 export default {
 	name: "ready",
@@ -98,12 +100,6 @@ export default {
 					error('Failed to remove commands:', 'Startup');
 					error(err instanceof Error ? err.message : String(err));
 				}
-			}
-
-			const categorys = await StrikeCategory.find();
-			for (const category of categorys) {
-				const added = await new Category().reinit(category.categoryId);
-				log(`Re-registered: ${added}`, 'Startup')
 			}
 
 			const checkDeployments = async () => {
@@ -243,28 +239,35 @@ export default {
 				client.nextGame = new Date(Date.now() + deploymentTime);
 			}
 
-			cron.schedule("* * * * *", async () => {
-				const vcs = await VoiceChannel.find({ where: { expires: LessThanOrEqual(DateTime.now().toMillis()) } });
-				const catIds = await StrikeCategory.find();
+			// Scan every X minutes and delete channels that have also been empty on the previous scan.
+			const clearVcChannelsInterval = Duration.fromDurationLike({ 'minutes': discord_server_config.clear_vc_channels_every_minutes });
+			const deleteChannelAfterVacantFor = clearVcChannelsInterval.minus({ 'seconds': 30 });
+			function clearEmptyVoiceChannels() {
+				debug("Clearing empty voice channels");
+				const guild = client.guilds.cache.get(config.guildId);
+				for (const prefix of [discord_server_config.strike_vc_category_prefix, discord_server_config.hotdrop_vc_category_prefix]) {
+					for (const vcCategory of findAllVcCategories(guild, prefix).values()) {
+						for (const channel of vcCategory.children.cache.values()) {
+							if (channel.type == ChannelType.GuildVoice && channel.members.size == 0) {
+								const lastSeenEmpty = lastSeenEmptyVcTime.get(channel.id) || DateTime.now();
+								lastSeenEmptyVcTime.set(channel.id, lastSeenEmpty);
+								if (lastSeenEmpty.plus(deleteChannelAfterVacantFor) < DateTime.now()) {
+									debug(`Deleting voice channel: ${channel.name} with id: ${channel.id}`);
+									channel.delete().catch((err) => console.log(err));
+									lastSeenEmptyVcTime.delete(channel.id);
+								} else {
+									debug(`Voice channel: ${channel.name} with id: ${channel.id} was last seen empty on ${lastSeenEmpty.toISO()}, not old enough to delete`);
+								}
+							}
 
-				for (const vc of vcs) {
-					const channel = await client.channels.fetch(vc.channel).catch(() => null) as BaseGuildVoiceChannel;
-
-					if (!channel) {
-						await vc.remove();
-						return;
+						}
 					}
-
-					if (channel.members.size > 0) return;
-					await channel.delete().catch(() => null);
-					await vc.remove();
 				}
-
-				for(const catId of catIds) {
-					const category = client.battalionStrikeCategories.get(catId.categoryId)
-					if(await category.isEmpty()) await category.delete();
-				}
-			});
+			};
+			// Clear voice channels once once on startup
+			clearEmptyVoiceChannels();
+			// Clear empty voice channels every 10 minutes.
+			setInterval(clearEmptyVoiceChannels, clearVcChannelsInterval.toMillis());
 
 			cron.schedule("0 * * * *", async () => {
 				const deletedDeployments:Deployment[] = await Deployment.find({ where: { deleted: true }});

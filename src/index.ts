@@ -19,7 +19,6 @@ import Command from "./classes/Command.js";
 import fs from "fs/promises";
 import {startQueuedGame} from "./utils/startQueuedGame.js";
 import gracefulShutdown from "./utils/gracefulShutdown.js";
-import Category from "./classes/Category.js";
 
 // Define a new class that extends Client
 class CustomClient extends Client {
@@ -31,7 +30,6 @@ class CustomClient extends Client {
     contextMenus: Collection<String, ContextMenu> = new Collection();
     buttons: Collection<String, Button> = new Collection();
     queueJoinTimes: Collection<String, Date> = new Collection<String, Date>();
-    battalionStrikeCategories: Collection<String, Category> = new Collection<String, Category>();
     battalionStrikeMode: boolean = false;
     nextGame: Date;
     interval: NodeJS.Timeout;
@@ -41,13 +39,12 @@ class CustomClient extends Client {
 export const client = new CustomClient({
     // Invite link, this defines the permissions the bot has and what it can do.
     // https://discord.com/developers/applications/1312896264475508839/oauth2
-    // Manage Channels
-    //   - Creating voice channel for hot drop
     // Move Members
     //   - To set permissions on new voice channels to allow the host to kick out non squad members.
     // Create Instant Invite
     //   - To allow the host to invite others to the voice channel.
-    // https://discord.com/oauth2/authorize?client_id=1312896264475508839&permissions=16777233&integration_type=0&scope=bot
+    // https://discord.com/oauth2/authorize?client_id=1312896264475508839&permissions=16777217&integration_type=0&scope=bot
+    // The bot then must be given the `Manage Channels` permission on the hot drops and strikes VC categories.
 
     // Intents are the information that is included in the responses from discord, they do not give permissions to do any operations.
     // https://discord.com/developers/docs/events/gateway#list-of-intents
