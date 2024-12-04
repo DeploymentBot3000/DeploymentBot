@@ -2,6 +2,7 @@ import {buildEmbed} from "./embedBuilders/configBuilders.js";
 import {CacheType, ChannelType, GuildMember, ModalSubmitInteraction} from "discord.js";
 import {DateTime, Duration} from "luxon";
 import config from "../config.js";
+import { getMinDeploymentLeadTimeMinutes } from "./settings.js";
 
 function _parseAbsoluteDateString(input: string) {
     let parsedDate = null;
@@ -90,7 +91,7 @@ export default async function getStartTime(startTime: string, interaction: Modal
         throw startDate;
     }
 
-    const minDeploymentLeadTime: Duration = Duration.fromDurationLike({minutes: config.min_deployment_lead_time_minutes});
+    const minDeploymentLeadTime: Duration = Duration.fromDurationLike({minutes: await getMinDeploymentLeadTimeMinutes()});
 
     if (DateTime.fromJSDate(startDate) < DateTime.now().plus(minDeploymentLeadTime)) {
         const errorEmbed = buildEmbed({ preset: "error" })
