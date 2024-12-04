@@ -38,7 +38,7 @@ export default {
     max_players: 4,
 
     // Min required lead time for deployments in minutes.
-    min_deployment_lead_time_minutes: 60,
+    min_deployment_lead_time_minutes: 15,
 
     backupEmoji: "🔄",
     queueMaxes: {
