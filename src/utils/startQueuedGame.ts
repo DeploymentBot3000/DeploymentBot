@@ -36,8 +36,11 @@ export const startQueuedGame = async (deploymentTime: number) => {
     client.nextGame = new Date(now + deploymentIntervalMs);
     const nextDeploymentTime = client.nextGame.getTime();
 
-    if (hosts.length < 1 || players.length < 3) {
-        await updateQueueMessages(true, nextDeploymentTime);
+    const kMinAssignedPlayers: number = config.min_players - 1;
+    const kMaxAssignedPlayers: number = config.max_players - 1;
+
+    if (hosts.length < 1 || players.length < kMinAssignedPlayers) {
+        await updateQueueMessages(/*notEnoughPlayers=*/true, nextDeploymentTime);
         return;
     }
 
@@ -45,17 +48,24 @@ export const startQueuedGame = async (deploymentTime: number) => {
     hosts.forEach((host) => {
         const assignedPlayers = [];
         if(client.battalionStrikeMode) {
-            for (let i = 0; i < 3; i++)
+            for (let i = 0; i < kMaxAssignedPlayers; i++) {
                 if (players.length > 0) {
                     const randomIndex = Math.floor(Math.random() * players.length);
                     assignedPlayers.push(players.splice(randomIndex, 1)[0]);
                 }
-        } else assignedPlayers.push(...players.splice(0, 3));
+            }
+        } else {
+            assignedPlayers.push(...players.splice(0, kMaxAssignedPlayers));
+        }
 
-        if (assignedPlayers.length === 3) groups.push({
-            host: host,
-            players: assignedPlayers
-        });
+        // Include the group if we have a host and enough assigned players.
+        // If we don't, the assigned players will be scheduled on the next round if we have another host.
+        if (1 + assignedPlayers.length >= config.min_players) {
+            groups.push({
+                host: host,
+                players: assignedPlayers
+            });
+        }
     })
 
     let deploymentCreated = false;
@@ -185,4 +195,3 @@ export const startQueuedGame = async (deploymentTime: number) => {
         success(`Successfully created deployment for ${hostDisplayName}`, 'Queue System');
     }
 };
-
