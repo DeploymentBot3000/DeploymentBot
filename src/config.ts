@@ -32,6 +32,11 @@ export default {
 
     vcCategory: discord_server.vc_category,
 
+    // Min players required for a hot drop (including the host)
+    min_players: 4,
+    // Max players required for a hot drop (including the host)
+    max_players: 4,
+
     backupEmoji: "🔄",
     queueMaxes: {
         hosts: 50,
