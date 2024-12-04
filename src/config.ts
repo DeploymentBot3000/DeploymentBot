@@ -1,5 +1,8 @@
+import secrets from "./config/secrets.js"
+import discord_server from "./config/discord_server.js"
+
 export default {
-    token: "na", // Bot token - you can access it from the Discord Developer Portal: https://discord.com/developers/applications
+    token: secrets.discord_app_token,
     prefix: "-",
     debugMode: true,
     resetCommands: false,
@@ -8,22 +11,28 @@ export default {
     synchronizeDatabase: false,
     database: {
         type: "mysql",
-        host: "na",
+        host: secrets.db_host,
         port: 3306,
-        username: "na",
-        password: "na",
-        database: "na"
+        username: secrets.db_username,
+        password: secrets.db_password,
+        database: secrets.db_name,
     },
     satus: { text: "/bugreport"},
-    verifiedRoleId: "1312957075214696458",
-    guildId: "1312898325074153543",
-    departureChannel: "1312957214377512961",
-    bugReportChannelId: "1312957290273570868",
-    vcCategory: "1312898325074153545",
-    loggingChannels: ["1312956393116008509", "1312956473164435476"],
+    guildId: discord_server.guild_id,
+
+    verifiedRoleId: discord_server.roles.verified_role_id,
+    hostRole: discord_server.roles.host_role_id,
+    blacklistedRoles: discord_server.roles.blacklisted_role_ids,
+    
+    departureChannel: discord_server.channels.departure_channel_id,
+    bugReportChannelId: discord_server.channels.bug_report_channel_id,
+    loggingChannels: discord_server.channels.logging_channel_ids,
+
+    channels: discord_server.deployment_channels,
+
+    vcCategory: discord_server.vc_category,
+
     backupEmoji: "🔄",
-    hostRole: "1312955795989860542",
-    blacklistedRoles: ["1312956640227496079"],
     queueMaxes: {
         hosts: 50,
         players: 200,
@@ -49,23 +58,6 @@ export default {
         {
             name: "Scout",
             emoji: "🪖"
-        }
-    ],
-    channels: [
-        {
-            name: "Battalion - For those who just want to serve anywhere, anytime.",
-            emoji: "🏴‍☠️",
-            channel: "1313167910671351808"
-        },
-        {
-            name: "EU — Ready to fight across the European front!",
-            emoji: "🇪🇺",
-            channel: "1313167678332211220"
-        },
-        {
-            name: "NA — North American chaos incoming!",
-            emoji: "🇺🇸",
-            channel: "1313167659759570974"
         }
     ],
     embeds: {
