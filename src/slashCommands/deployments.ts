@@ -97,7 +97,6 @@ const buildDeploymentsEmbed = async (user: string): Promise<EmbedBuilder> => {
     // Add footer
     embed.setFooter({
         text: Config.embeds.deploymentsCommand.footer.text,
-        iconURL: Config.embeds.deploymentsCommand.footer.image
     });
 
     return embed;
