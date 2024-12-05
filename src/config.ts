@@ -16,6 +16,7 @@ export default {
         username: secrets.db_username,
         password: secrets.db_password,
         database: secrets.db_name,
+        extra: { charset: "utf8mb4_unicode_ci" }
     },
     satus: { text: "/bugreport"},
     guildId: discord_server.guild_id,
