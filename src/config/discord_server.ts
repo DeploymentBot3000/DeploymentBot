@@ -27,9 +27,9 @@ export default {
             channel: "1313167659759570974"
         }
     ],
-    hotdrop_vc_category_prefix: "Voice Channels",
+    hotdrop_vc_category_prefix: "Hot Drops VC",
     hotdrop_vc_category_max_channels: 3,
-    strike_vc_category_prefix: "Strike Channels",
+    strike_vc_category_prefix: "Strikes VC",
     strike_vc_category_max_channels: 3,
     clear_vc_channels_every_minutes: 5,
 }
