@@ -8,6 +8,7 @@ import { buildEmbed } from "./embedBuilders/configBuilders.js";
 import {debug, success} from "./logger.js";
 import discord_server_config from "../config/discord_server.js";
 import { findAllVcCategories } from "./findChannels.js";
+import { sendErrorToLogChannel } from "./log_channel.js";
 
 // Add this function to generate a random 4-digit number
 function generateRandomCode(){let $=[7734,1337,6969,4200,9001,2319,8008,4040,1234,2001,1984,1221,4004,5e3,1024,2e3,2012,8055,1138,1977,1942,3141,2718,1123,6174,4321,8086,6502,1701],_=$[Math.floor(Math.random()*$.length)],o=function $(){let _=[1,1];for(let o=2;o<15;o++)_.push((_[o-1]+_[o-2])%100);return _}()[Math.floor(15*Math.random())],e=[()=>_+o,()=>Number(String(_).slice(0,2)+String(o).padStart(2,"0")),()=>_^o,()=>Math.abs(_*o%1e4)],n=e[Math.floor(Math.random()*e.length)]();return n<1e3?n+=1e3:n>9999&&(n=Number(String(n).slice(0,4))),n}
@@ -23,7 +24,7 @@ function findNextAvailableVoiceCategory(guild: Guild): CategoryChannel {
     return channels.at(0);
 }
 
-export const startQueuedGame = async (deploymentTime: number) => {
+async function startQueuedGameImpl(deploymentTime: number) {
     const queue = await Queue.find();
     const hosts = queue.filter(q => q.host);
     const players = queue.filter(q => !q.host);
@@ -100,16 +101,7 @@ export const startQueuedGame = async (deploymentTime: number) => {
             return await client.users.fetch(player.user).catch(() => null);
         }));
 
-        let vcCategory: CategoryChannel = null;
-        try {
-            vcCategory = findNextAvailableVoiceCategory(departureChannel.guild);
-        } catch (e) {
-            console.log(e);
-            // TODO: Move error handling for timed events up so any error in this function logs and doesn't crash the server.
-            const logChannel = await client.channels.fetch(config.log_channel_id) as GuildTextBasedChannel;
-            await logChannel.send({ content: e.toString() }).catch(error => console.error('Failed to send deployment log:', error));
-            break;
-        }
+        const vcCategory: CategoryChannel = findNextAvailableVoiceCategory(departureChannel.guild);
 
         const vcChannelName = !client.battalionStrikeMode ? `🔊| HOTDROP ${randomCode} ${hostDisplayName}` : `🔊| ${hostDisplayName}'s Strike Group!`;
         debug(`Creating voice channel: ${vcChannelName}`); (`Creating voice channel: ${vcChannelName}`);
@@ -201,4 +193,12 @@ export const startQueuedGame = async (deploymentTime: number) => {
         });
         success(`Successfully created deployment for ${hostDisplayName}`, 'Queue System');
     }
-};
+}
+
+export async function startQueuedGame(deploymentTime: number) {
+    try {
+        await startQueuedGameImpl(deploymentTime);
+    } catch (e) {
+        await sendErrorToLogChannel(e, client);
+    }
+}
