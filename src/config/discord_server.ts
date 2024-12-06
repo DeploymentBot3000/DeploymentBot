@@ -12,7 +12,7 @@ export default {
     },
     deployment_channels: [
         {
-            name: "Battalion - For those who just want to serve anywhere, anytime.",
+            name: "World - For those who just want to serve anywhere, anytime.",
             emoji: "🏴‍☠️",
             channel: "1313167910671351808"
         },

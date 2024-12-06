@@ -96,7 +96,7 @@ export default async function buildQueueEmbed(notEnoughPlayers: boolean = false,
     }
 
     const embed = new HackedEmbedBuilder()
-        .setTitle(`🔥┃${ client.battalionStrikeMode ? 'Battalion Strike Queue' : 'Hot Drop Queue' }`)
+        .setTitle(`🔥┃${ client.battalionStrikeMode ? 'Strike Queue' : 'Hot Drop Queue' }`)
         .addFields(
             {
                 name: "",

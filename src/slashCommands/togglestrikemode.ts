@@ -15,8 +15,8 @@ export default new Slashcommand({
         client.battalionStrikeMode = !client.battalionStrikeMode;
         updateQueueMessages(true, client.nextGame.getTime(), false).then(() => null);
         const successEmbed = buildEmbed({ preset: "success" })
-            .setTitle("Battalion Strike Toggle")
-            .setDescription(`Battalion Strike mode ${client.battalionStrikeMode ? "enabled" : "disabled"}!`);
+            .setTitle("Strike Mode Toggle")
+            .setDescription(`Strike mode ${client.battalionStrikeMode ? "enabled" : "disabled"}!`);
         interaction.reply({embeds: [successEmbed], ephemeral: true}).then(r => null);
     }}
 );
