@@ -46,7 +46,7 @@ export default new Button({
                                 .setColor('#00FF00')
                                 .setTitle("You've Joined the Hot Drop")
                                 .setDescription(
-                                    `<:Susdiver:1303685727627903006>┃User: <@${interaction.user.id}>\n` +
+                                    `User: <@${interaction.user.id}>\n` +
                                     `⏰┃Join Time: <t:${Math.floor(joinTime.getTime() / 1000)}:F>\n` +
                                     `🧨┃DB Add: ✅`
                                 )
@@ -61,7 +61,7 @@ export default new Button({
                             .setColor('#00FF00')
                             .setTitle("You've Joined the Hot Drop")
                             .setDescription(
-                                `<:Susdiver:1303685727627903006>┃User: <@${interaction.user.id}>\n` +
+                                `User: <@${interaction.user.id}>\n` +
                                 `⏰┃Join Time: <t:${Math.floor(joinTime.getTime() / 1000)}:F>\n` +
                                 `🧨┃DB Add: ✅`
                             )

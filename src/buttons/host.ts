@@ -46,7 +46,7 @@ export default new Button({
                             .setColor('#FFA500')  // Orange color for host
                             .setTitle("You've Joined the Queue as a Host")
                             .setDescription(
-                                `<:Susdiver:1303685727627903006>┃User: <@${interaction.user.id}>\n` +
+                                `User: <@${interaction.user.id}>\n` +
                                 `⏰┃Join Time: <t:${Math.floor(joinTime.getTime() / 1000)}:F>\n` +
                                 `🧨┃DB Add: ✅`
                             )
@@ -59,7 +59,7 @@ export default new Button({
                         .setColor('#FFA500')  // Orange color for host
                         .setTitle("You've Joined the Queue as a Host")
                         .setDescription(
-                            `<:Susdiver:1303685727627903006>┃User: <@${interaction.user.id}>\n` +
+                            `User: <@${interaction.user.id}>\n` +
                             `⏰┃Join Time: <t:${Math.floor(joinTime.getTime() / 1000)}:F>\n` +
                             `🧨┃DB Add: ✅`
                         )
