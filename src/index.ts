@@ -49,10 +49,8 @@ export const client = new CustomClient({
     // Intents are the information that is included in the responses from discord, they do not give permissions to do any operations.
     // https://discord.com/developers/docs/events/gateway#list-of-intents
     intents: [
-      // For basic bot interaction, including fetching the user id of the user performing the iteraction.
+      // Required to receive responses to vc channel creation and to find vc categories.
       GatewayIntentBits.Guilds,
-      // To read member roles and verify they are allowed to perform bot interactions.
-      GatewayIntentBits.GuildMembers,
     ],
 });
 
