@@ -5,6 +5,7 @@ import {
     EmbedBuilder,
     GuildMember,
     GuildTextBasedChannel,
+    ModalSubmitInteraction,
     StringSelectMenuBuilder,
     StringSelectMenuInteraction
 } from "discord.js";
@@ -17,7 +18,7 @@ import Signups from "../tables/Signups.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
 import {action, debug, error, log, success} from "../utils/logger.js";
-import * as emoji from 'node-emoji'
+import * as emoji from 'node-emoji';
 
 async function storeLatestInput(interaction, { title, difficulty, description }) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
@@ -35,6 +36,16 @@ async function storeLatestInput(interaction, { title, difficulty, description })
             description: description
         });
     }
+}
+
+async function reportFailedInteractionToUser(interaction: ModalSubmitInteraction, e: Error) {
+    const errorEmbed = buildEmbed({ preset: "error" })
+        .setDescription(`The following error occurred while processing your request: ${e.toString()}`);
+    
+    const reply = await interaction.followUp({
+        embeds: [errorEmbed],
+        ephemeral: true
+    });
 }
 
 export default new Modal({
@@ -175,8 +186,9 @@ export default new Modal({
 
             const msg = await ch.send({ content: `<@${interaction.user.id}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
 
+            let deployment: Deployment = null;
             try {
-                const deployment = await Deployment.create({
+                deployment = await Deployment.create({
                     channel: channel.channel,
                     message: msg.id,
                     user: interaction.user.id,
@@ -196,12 +208,17 @@ export default new Modal({
                     userId: interaction.user.id,
                     role: "Offense"
                 });
-                success(`New deployment "${title}" created by ${interaction.user.tag} added to the database!`)
             } catch(e) {
-                error(`New deployment "${title}" created by ${interaction.user.tag} could not be added to the database!`, "NewDeployment")
-                debug(e, "NewDeployment");
-                await msg.delete().then(() => success(`${title} signup embed deleted successfully`, "NewDeployment"))
-                    .catch(() => error(`Failed to delete ${title} signup embed`, "NewDeployment"));
+                debug('Failed to save deployment to database');
+                debug('Deleting deployment sign up message');
+                await msg.delete().catch(e => { error(`Failed to delete ${title} signup embed`); console.log(e); });
+                debug('Deleting success message');
+                await interaction.deleteReply().catch(() => null);
+                if (deployment != null) {
+                    debug('Deleting saved deployment from database');
+                    await Deployment.remove(deployment).catch(e => { error(`Failed to delete ${deployment.title} from db`); console.log(e); });
+                }
+                throw e;
             }
 
             await interaction.editReply({
@@ -209,21 +226,9 @@ export default new Modal({
             });
 
             success(`New deployment "${title}" created by ${interaction.user.tag}`, "NewDeployment");
-        } catch (err) {
-            error(`Failed to handle interaction: ${err}`, "NewDeployment");
-            // Optionally try to send a follow-up if the initial reply failed
-            try {
-                const errorEmbed = buildEmbed({ preset: "error" })
-                    .setDescription("An error occurred while processing your request.");
-                
-                await interaction.followUp({
-                    embeds: [errorEmbed],
-                    ephemeral: true
-                });
-                setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
-            } catch (e) {
-                console.error('Failed to send error message:', e);
-            }
+        } catch (e) {
+            error(`Failed to handle interaction in channel: ${interaction.channel.name} for user: ${interaction.user.tag} (${interaction.user.id})`); console.log(e);
+            await reportFailedInteractionToUser(interaction, e).catch(e => { error(`Failed to respond to user with error for deployment ${title}`); console.log(e); });
         }
     }
 })
