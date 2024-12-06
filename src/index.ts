@@ -17,8 +17,9 @@ import Modal from "./classes/Modal.js";
 import ContextMenu from "./classes/ContextMenu.js";
 import Command from "./classes/Command.js";
 import fs from "fs/promises";
-import {startQueuedGame} from "./utils/startQueuedGame.js";
+import { registerStartQueuedGameInterval } from "./utils/startQueuedGame.js";
 import gracefulShutdown from "./utils/gracefulShutdown.js";
+import { Duration } from "luxon";
 
 // Define a new class that extends Client
 class CustomClient extends Client {
@@ -32,7 +33,6 @@ class CustomClient extends Client {
     queueJoinTimes: Collection<String, Date> = new Collection<String, Date>();
     battalionStrikeMode: boolean = false;
     nextGame: Date;
-    interval: NodeJS.Timeout;
 }
 
 // Initialize the extended client
@@ -59,19 +59,16 @@ client.on('ready', () => {
    client.user?.setActivity(config.satus.text, { type: ActivityType.Watching });
 });
 
-export const getDeploymentTime = async () => {
-    const deploymentTime = await fs.readFile("./deploymentTime.txt", "utf-8");
-    return Number(deploymentTime);
+// Returns the interval between hot drop deployments.
+// In strike mode this servers as the time until the strike begins.
+export async function getDeploymentInterval() {
+    return Duration.fromMillis(Number(await fs.readFile("./deploymentTime.txt", "utf-8")));
 };
 
-export const setDeploymentTime = async (time: string) => {
-    await fs.writeFile("./deploymentTime.txt", time, "utf-8");
+export async function setDeploymentInterval(deploymentInterval: Duration) {
+    await fs.writeFile("./deploymentTime.txt", deploymentInterval.toMillis().toString(), "utf-8");
 
-    clearInterval(client.interval);
-
-    client.interval = setInterval(() => {
-        startQueuedGame(Number(time));
-    }, Number(time));
+    registerStartQueuedGameInterval(deploymentInterval);
 };
 
 if (database.isInitialized) log("Successfully connected to the database");

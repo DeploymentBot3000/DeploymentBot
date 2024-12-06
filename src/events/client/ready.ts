@@ -3,7 +3,7 @@ import colors from "colors";
 import path from "path";
 import {fileURLToPath} from 'url';
 import { action, debug, error, log, success } from "../../utils/logger.js";
-import {client, getDeploymentTime} from "../../index.js";
+import { client, getDeploymentInterval } from "../../index.js";
 import {readdirSync, statSync} from "fs";
 import {REST} from '@discordjs/rest';
 import { Routes, Snowflake } from 'discord-api-types/v10';
@@ -12,7 +12,7 @@ import {convertURLs} from "../../utils/windowsUrlConvertor.js";
 import Deployment from "../../tables/Deployment.js";
 import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
-import {startQueuedGame} from "../../utils/startQueuedGame.js";
+import { registerStartQueuedGameInterval, startQueuedGame } from "../../utils/startQueuedGame.js";
 import {In, LessThanOrEqual} from 'typeorm';
 import { DateTime, Duration } from 'luxon';
 import cron from 'node-cron';
@@ -221,16 +221,12 @@ export default {
 			await checkDeployments();
 			cron.schedule('* * * * *', checkDeployments);
 
-			const deploymentTime = await getDeploymentTime();
-			await startQueuedGame(deploymentTime);
-
-			const interval = setInterval(() => {
-				startQueuedGame(deploymentTime);
-			}, deploymentTime);
-			client.interval = interval;
+			const deploymentInterval = await getDeploymentInterval();
+			await startQueuedGame(deploymentInterval);
+			registerStartQueuedGameInterval(deploymentInterval);
 
 			if (!client.nextGame) {
-				client.nextGame = new Date(Date.now() + deploymentTime);
+				client.nextGame = new Date(Date.now() + deploymentInterval.toMillis());
 			}
 
 			// Scan every X minutes and delete channels that have also been empty on the previous scan.
