@@ -14,7 +14,7 @@ export type QueueEventEmbedOptions = {
 export function buildQueueEventEmbed(options: QueueEventEmbedOptions): EmbedBuilder {
     const embed = new HackedEmbedBuilder()
         .setTitle(`Queue ${options.type.charAt(0).toUpperCase() + options.type.slice(1)}`)
-        .addFields({ value: `<:Susdiver:1303685727627903006>┃User: <@${options.userId}>` })
+        .addFields({ value: `User: <@${options.userId}>` })
         .setTimestamp();
 
     switch (options.type) {
