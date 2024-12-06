@@ -44,6 +44,9 @@ export default {
     // Deployments are editable up to this many minutes before they start.
     deployment_edit_lead_time_minutes: 15,
 
+    // How long after deployment end time should it be deleted.
+    deployment_delete_time_minutes: 60,
+
     // Time before deployment to send departure notice.
     departure_notice_lead_time_minutes: 15,
 

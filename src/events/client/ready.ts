@@ -197,10 +197,11 @@ export default {
 					await deployment.save();
 				}
 
+				const deploymentDeleteLeadTime = Duration.fromDurationLike({'minutes': config.deployment_delete_time_minutes});
 				const deploymentsToDelete = await Deployment.find({
 					where: {
 						deleted: false,
-						endTime: LessThanOrEqual(DateTime.now().toMillis())
+						endTime: LessThanOrEqual((now.minus(deploymentDeleteLeadTime)).toMillis())
 					}
 				});
 
@@ -262,6 +263,7 @@ export default {
 			// Clear empty voice channels every 10 minutes.
 			setInterval(clearEmptyVoiceChannels, clearVcChannelsInterval.toMillis());
 
+			// Remove deployment signup every hour on the hour.
 			cron.schedule("0 * * * *", async () => {
 				const deletedDeployments:Deployment[] = await Deployment.find({ where: { deleted: true }});
 				for(const deployment of deletedDeployments) {
