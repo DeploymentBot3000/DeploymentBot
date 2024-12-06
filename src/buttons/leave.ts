@@ -85,7 +85,7 @@ export default new Button({
                                 .setColor('#FF0000')
                                 .setTitle("You've Disengaged from the Hot Drop")
                                 .setDescription(
-                                    `<:Susdiver:1303685727627903006>┃User: <@${interaction.user.id}>\n` +
+                                    `User: <@${interaction.user.id}>\n` +
                                     `⏰┃Leave Time: <t:${Math.floor(leaveTime.getTime() / 1000)}:F>\n` +
                                     `⏱️┃Time in Queue: ${formatDuration(queueDuration)}\n` +
                                     `🧨┃DB Remove: ✅`
