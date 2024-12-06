@@ -46,11 +46,18 @@ export const client = new CustomClient({
     // https://discord.com/oauth2/authorize?client_id=1312896264475508839&permissions=16777217&integration_type=0&scope=bot
     // The bot then must be given the `Manage Channels` permission on the hot drops and strikes VC categories.
 
-    // Intents are the information that is included in the responses from discord, they do not give permissions to do any operations.
+    // Intents: Intents are event subscriptions that send information from the discord server to the bot.
+    // These are often needed to populate the discord client cache, even if not subscribing to events explicitly.
+    // They do not give permissions to do any operations.
     // https://discord.com/developers/docs/events/gateway#list-of-intents
     intents: [
-      // Required to receive responses to vc channel creation and to find vc categories.
-      GatewayIntentBits.Guilds,
+        // Required to receive responses to vc channel creation and to find vc categories in the channel cache.
+        GatewayIntentBits.Guilds,
+
+        // Privileged Gateway Intents
+        // Privileged Gateway Intents must also be enabled in the discord app bot config:
+        // https://discord.com/developers/applications/1312896264475508839/bot
+        // No Privileged Gateway Intents are required.
     ],
 });
 
