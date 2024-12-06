@@ -32,7 +32,7 @@ export default {
     channels: discord_server.deployment_channels,
 
     // Min players required for a hot drop (including the host)
-    min_players: 4,
+    min_players: 1,
     // Max players required for a hot drop (including the host)
     max_players: 4,
 
