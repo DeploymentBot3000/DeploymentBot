@@ -37,7 +37,15 @@ export default {
     max_players: 4,
 
     // Min required lead time for deployments in minutes.
+    // Deployments must be posted at least this many minutes into the future.
+    // E.g. if it is 12PM and the lead time is 15 minutes, then a new deployment must start after 12:15PM.
     min_deployment_lead_time_minutes: 15,
+
+    // Deployments are editable up to this many minutes before they start.
+    deployment_edit_lead_time_minutes: 15,
+
+    // Time before deployment to send departure notice.
+    departure_notice_lead_time_minutes: 15,
 
     backupEmoji: "🔄",
     queueMaxes: {

@@ -11,6 +11,7 @@ import Deployment from "../tables/Deployment.js";
 import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
 import {action, error, warn} from "../utils/logger.js";
+import { DateTime, Duration } from "luxon";
 
 export default new Button({
     id: "editDeployment",
@@ -46,21 +47,22 @@ export default new Button({
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        const now = Date.now();
-        const oneHourBeforeStart = deployment.startTime - 3600000; // 1 hour in milliseconds
-        
-        if (now >= deployment.startTime) {
+        const now = DateTime.now();
+        const deploymentStartTime = DateTime.fromMillis(Number(deployment.startTime));
+
+        if (now >= deploymentStartTime) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You can't edit a deployment that has already started!");
 
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        if (now >= oneHourBeforeStart) {
-            const timeUntilStart = Math.floor((deployment.startTime - now) / 60000); // Convert to minutes
+        const timeUntilStart = deploymentStartTime.diff(now, 'minutes');
+        const editLeadTime = Duration.fromObject({'minutes': config.deployment_edit_lead_time_minutes});
+        
+        if (timeUntilStart < editLeadTime) {
             const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription(`You can't edit a deployment within 1 hour of its start time!\nThis deployment starts in ${timeUntilStart} minutes.`);
-
+                .setDescription(`You can't edit a deployment within ${editLeadTime.toHuman()} of its start time!\nThis deployment starts in ${timeUntilStart.toHuman()}.`);
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
 

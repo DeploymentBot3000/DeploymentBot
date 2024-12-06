@@ -103,18 +103,19 @@ export default {
 			}
 
 			const checkDeployments = async () => {
+				const now = DateTime.now();
 				const deploymentsNoNotice = await Deployment.find({
 					where: {
 						deleted: false,
 						noticeSent: false,
-						startTime: LessThanOrEqual(DateTime.now().plus({minute: 15}).toMillis())
+						startTime: LessThanOrEqual(now.plus({'minutes': config.departure_notice_lead_time_minutes}).toMillis())
 					}
 				})
 				const unstartedDeployments = await Deployment.find({
 					where: {
 						deleted: false,
 						started: false,
-						startTime: LessThanOrEqual(DateTime.now().toMillis()),
+						startTime: LessThanOrEqual(now.toMillis()),
 					}
 				});
 
