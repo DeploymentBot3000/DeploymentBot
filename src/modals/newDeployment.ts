@@ -173,7 +173,7 @@ export default new Modal({
                 )
             ];
 
-            const msg = await ch.send({ content: `<@&1302268594817597541> <@${interaction.user.id}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
+            const msg = await ch.send({ content: `<@${interaction.user.id}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
 
             try {
                 const deployment = await Deployment.create({

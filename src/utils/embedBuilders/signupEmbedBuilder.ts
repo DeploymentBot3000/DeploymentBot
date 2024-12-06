@@ -24,7 +24,7 @@ export async function buildDeploymentEmbed(
     const googleCalendarLink = getGoogleCalendarLink(deployment.title, deployment.description, deployment.startTime, deployment.endTime);
 
     return new EmbedBuilder()
-        .setTitle(started ? `<:hellpod:1302084726219210752> ${deployment.title} - Started <:hellpod:1302084726219210752>` : deployment.title)
+        .setTitle(started ? `${deployment.title} - Started` : deployment.title)
         .addFields([
             {
                 name: "Deployment Details:",

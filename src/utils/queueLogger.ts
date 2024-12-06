@@ -84,7 +84,7 @@ export async function logQueueDeployment(options: {
 }) {
     const embed = {
         color: 0x00FF00,
-        title: '<:Helldivers:1226464844534779984> Queue Deployment <:Helldivers:1226464844534779984>',
+        title: 'Queue Deployment',
         fields: [
             {
                 name: '👑 Host',
