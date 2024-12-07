@@ -5,8 +5,7 @@ export default {
     token: secrets.discord_app_token,
     prefix: "-",
     debugMode: true,
-    resetCommands: false,
-    synchronizeCommands: false,
+    registerCommands: false,
     resetDatabase: false, // Clears out the database on every restart - only enable for the first time
     synchronizeDatabase: false,
     database: {

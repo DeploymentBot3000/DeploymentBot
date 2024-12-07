@@ -45,7 +45,7 @@ export default {
 
 			const commands: Command[] = [];
 
-			const registerDir = async (dirName: string) => {
+			const importDir = async (dirName: string) => {
 				const COMMAND_DIR = path.resolve(__dirname, `../../${dirName}`);
 				const readDir = async (dir: string) => {
 					const files = readdirSync(dir);
@@ -63,9 +63,9 @@ export default {
 										description: command.description || null,
 										options: command.options || null
 									});
-									log(`Registered command: ${command.name} from ${dir}/${file}`, 'Startup');
+									log(`Imported command: ${command.name} from ${dir}/${file}`, 'Startup');
 								} else {
-									error(`Failed to register command from ${dir}/${file}: No name property found`, 'Startup');
+									error(`Failed to import command from ${dir}/${file}: No name property found`, 'Startup');
 								}
 							} catch (err) {
 								error(`Failed to import command from ${dir}/${file}: ${err}`, 'Startup');
@@ -76,30 +76,14 @@ export default {
 				await readDir(COMMAND_DIR);
 			};
 
-			await registerDir("slashCommands");
+			await importDir("slashCommands");
 
 			const rest = new REST().setToken(config.token);
 
-			try {
-				if(config.resetCommands) {
-					await rest.put(Routes.applicationGuildCommands(client.user!.id, config.guildId), {body: []});
-					log(`Successfully removed all commands`, 'Startup')
-				}
-				if(config.synchronizeCommands) {
-					log(`Preparing to register ${commands.length} commands...`, 'Startup');
-					const added = await rest.put(Routes.applicationGuildCommands(client.user!.id, config.guildId), {body: commands})
-					log(`Successfully registered ${Array.isArray(added) ? (added as any[]).length : 0} commands`, 'Startup');
-					commands.forEach(cmd => log(`Registered: ${cmd.name}`, 'Startup'));
-				}
-			} catch(err) {
-				if(config.resetCommands) {
-					error('Failed to register commands:', 'Startup');
-					error(err instanceof Error ? err.message : String(err));
-				}
-				if(config.synchronizeCommands) {
-					error('Failed to remove commands:', 'Startup');
-					error(err instanceof Error ? err.message : String(err));
-				}
+			if (config.registerCommands) {
+				log(`Registering shash commands: ${commands.map(cmd => cmd.name).join(', ')} for guild: ${config.guildId}`, 'Startup');
+				await rest.put(Routes.applicationGuildCommands(client.user.id, config.guildId), { body: commands });
+				success(`Successfully registered ${commands.length} shash commands for guild: ${config.guildId}`, 'Startup');
 			}
 
 			const checkDeployments = async () => {
@@ -289,8 +273,10 @@ export default {
 
 			success(`Bot startup complete`, "Startup");
 		} catch (e) {
-			error(`Startup failed: ${e}`, "Startup");
-			throw e;
+			error(`Startup failed`, "Startup");
+			error(e);
+			client.destroy().then(r => null);
+			process.exit(1);
 		}
 	},
 } as any;
