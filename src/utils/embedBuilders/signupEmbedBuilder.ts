@@ -55,7 +55,7 @@ export async function buildDeploymentEmbed(
                     await Promise.all(backups.map(async backup => {
                         if (!guild || !(guild instanceof Guild)) return `Unknown Member (${backup.userId})`;
                         const member = await guild.members.fetch(backup.userId).catch(() => null);
-                        return member ? member.displayName : `Unknown Member (${backup.userId})`;
+                        return `${config.backupEmoji} ${member ? member.displayName : backup.userId}`;
                     })).then(lines => lines.join("\n"))
                     : "` - `",
                 inline: true
