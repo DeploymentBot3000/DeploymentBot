@@ -78,7 +78,9 @@ export async function setDeploymentInterval(deploymentInterval: Duration) {
     registerStartQueuedGameInterval(deploymentInterval);
 };
 
-if (database.isInitialized) log("Successfully connected to the database");
+if (database.isInitialized) {
+    log('Successfully connected to the database', 'Startup');
+}
 idkHowToCallThisHandler.init();
 eventHandler.function();
 
