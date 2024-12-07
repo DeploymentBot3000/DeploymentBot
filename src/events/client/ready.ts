@@ -95,7 +95,7 @@ export default {
 						return `${role.emoji} <@${signup.userId}>`;
 					}).filter(s => s).join("\n") || "` - `";
 
-					const backupsFormatted = backups.map(backup => `<@${backup.userId}>`).join("\n");
+					const backupsFormatted = backups.map(backup => `${config.backupEmoji} <@${backup.userId}>`).join("\n");
 
 					const operationRegex = /^(op(p)?eration|operration|opperation|operacion):?\s*/i;
 					const formattedTitle = operationRegex.test(deployment.title)
@@ -136,7 +136,7 @@ export default {
 
 						const backupsFormatted = backups.map(backup => {
 							const member = message.guild.members.cache.get(backup.userId);
-							return member?.nickname || member?.user.username || backup.userId;
+							return `${config.backupEmoji} ${member?.nickname || member?.user.username || backup.userId}`;
 						}).join("\n") || "- None -";
 
 						const logEmbed = new EmbedBuilder()
