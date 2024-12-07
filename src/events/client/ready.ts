@@ -4,11 +4,10 @@ import path from "path";
 import {fileURLToPath} from 'url';
 import { action, debug, error, log, success } from "../../utils/logger.js";
 import { client, getDeploymentInterval } from "../../index.js";
-import {readdirSync, statSync} from "fs";
+import { readdirSync } from "fs";
 import {REST} from '@discordjs/rest';
 import { Routes, Snowflake } from 'discord-api-types/v10';
 import { EmbedBuilder, GuildTextBasedChannel, ChannelType } from 'discord.js';
-import {convertURLs} from "../../utils/windowsUrlConvertor.js";
 import Deployment from "../../tables/Deployment.js";
 import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
@@ -31,6 +30,25 @@ interface Command {
 // Map from vc channel id to the last time it was seen empty.
 const lastSeenEmptyVcTime: Map<Snowflake, DateTime> = new Map();
 
+async function importSlashCommands() {
+	const commandsDirectoryPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../slashCommands');
+	const commands: Command[] = [];
+	for await (const file of readdirSync(commandsDirectoryPath)) {
+		const filePath = path.join(commandsDirectoryPath, file);
+		const command = (await import(path.join(commandsDirectoryPath, file))).default;
+		if (!command.name) {
+			throw new Error(`Failed to import command from file path: ${filePath}; No name property found`);
+		}
+		commands.push({
+			name: command.name,
+			type: command.type,
+			description: command.description || null,
+			options: command.options || null
+		});
+	}
+	return commands;
+}
+
 export default {
 	name: "ready",
 	once: false,
@@ -40,43 +58,8 @@ export default {
 		try {
 			log(`Logged in as ${colors.red(client.user!.tag)}`);
 
-			const __filename:string = fileURLToPath(import.meta.url);
-			const __dirname:string = path.dirname(__filename);
-
-			const commands: Command[] = [];
-
-			const importDir = async (dirName: string) => {
-				const COMMAND_DIR = path.resolve(__dirname, `../../${dirName}`);
-				const readDir = async (dir: string) => {
-					const files = readdirSync(dir);
-					for await (const file of files) {
-						if (statSync(`${dir}/${file}`).isDirectory()) {
-							await readDir(`${dir}/${file}`);
-						} else {
-							try {
-								const fileToImport = process.platform === "win32" ? `${convertURLs(dir)}/${file}` : `${dir}/${file}`;
-								const command = (await import(fileToImport)).default;
-								if (command?.name) {
-									commands.push({
-										name: command.name,
-										type: command.type,
-										description: command.description || null,
-										options: command.options || null
-									});
-									log(`Imported command: ${command.name} from ${dir}/${file}`, 'Startup');
-								} else {
-									error(`Failed to import command from ${dir}/${file}: No name property found`, 'Startup');
-								}
-							} catch (err) {
-								error(`Failed to import command from ${dir}/${file}: ${err}`, 'Startup');
-							}
-						}
-					}
-				};
-				await readDir(COMMAND_DIR);
-			};
-
-			await importDir("slashCommands");
+			const commands = await importSlashCommands();
+			log(`Imported ${commands.length} slash commands: ${commands.map(cmd => cmd.name).join(', ')}`, 'Startup');
 
 			const rest = new REST().setToken(config.token);
 
