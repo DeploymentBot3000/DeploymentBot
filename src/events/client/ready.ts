@@ -53,10 +53,8 @@ export default {
 	name: "ready",
 	once: false,
 	function: async function () {
-		action(`Bot starting up`, "Startup");
-
 		try {
-			log(`Logged in as ${colors.red(client.user!.tag)}`);
+			log(`Logged in as ${colors.red(client.user!.tag)}`, 'Startup');
 
 			const commands = await importSlashCommands();
 			log(`Imported ${commands.length} slash commands: ${commands.map(cmd => cmd.name).join(', ')}`, 'Startup');
