@@ -4,18 +4,36 @@ import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
-import { DateTime } from "luxon";
-import { sendErrorToLogChannel } from "../utils/log_channel.js";
+import { DateTime, Duration } from "luxon";
+import { sendEmbedToLogChannel, sendErrorToLogChannel } from "../utils/log_channel.js";
 import { User } from "discord.js";
 
-function buildDeploymentDeletedConfirmationEmbed(user: User, deploymentTitle: string, deploymentTime: DateTime) {
-    const timeToDeployment = DateTime.fromMillis(Number(deploymentTime)).diff(DateTime.now(), 'minutes').shiftTo('days', 'hours', 'minutes');
-
+function buildDeploymentDeletedConfirmationEmbed(user: User, deploymentTitle: string, timeToDeployment: Duration) {
     return buildEmbed({ preset: "info" })
         .setColor('#FFA500')  // Orange
         .setTitle("Deployment Deleted!")
         .setDescription(`A deployment you were signed up for has been deleted!\nDeployment Name: ${deploymentTitle}\n Scheduled to start in: ${timeToDeployment.toHuman()}`);
 }
+
+function getRoleEmoji(roleName: string) {
+    return config.roles.find(role => role.name === roleName).emoji;
+}
+
+function buildDeploymentDeletedConfirmationEmbedForLog(deployment: Deployment, signups: Signups[], backups: Backups[], timeToDeployment: Duration) {
+    const hostRoleEmoji = getRoleEmoji(signups.filter(player => player.userId == deployment.user).at(0).role);
+    const description = `Title: ${deployment.title}\n`
+        + `Channel: <#${deployment.channel}>\n`
+        + `Start Time: ${DateTime.fromMillis(Number(deployment.startTime)).toISO()}\n`
+        + `Host: ${hostRoleEmoji} <@${deployment.user}>\n`
+        + `Fireteam: ${signups.filter(player => player.userId != deployment.user).map(player => `${getRoleEmoji(player.role)} <@${player.userId}>`).join(', ') || '` - `'}\n`
+        + `Backups: ${backups.map(player => `${config.backupEmoji} <@${player.userId}>`).join(', ') || '` - `'}`;
+
+    return buildEmbed({ preset: "info" })
+        .setColor('#FFA500')  // Orange
+        .setTitle("Deployment Deleted!")
+        .setDescription(description);
+}
+
 
 export default new Button({
     id: "deleteDeployment",
@@ -42,23 +60,29 @@ export default new Button({
 
         const client = interaction.client;
         try {
-            const signups = (await Signups.find({ where: { deploymentId: deployment.id } })).map(s => s.userId);
-            const backups = (await Backups.find({ where: { deploymentId: deployment.id } })).map(b => b.userId);
+            const signups = (await Signups.find({ where: { deploymentId: deployment.id } }));
+            const backups = (await Backups.find({ where: { deploymentId: deployment.id } }));
             const deploymentTime = DateTime.fromMillis(Number(deployment.startTime));
+            const timeToDeployment = deploymentTime.diff(DateTime.now(), 'minutes').shiftTo('days', 'hours', 'minutes');
 
-            await Promise.all(signups.concat(backups).map(async userId => {
+            await Promise.all((signups as (Signups | Backups)[]).concat(backups).map(async player => {
                 // Catch individial message failures so we don't interrupt the other messages from being sent.
                 try {
-                    const user = await client.users.fetch(userId);
-                    const embed = buildDeploymentDeletedConfirmationEmbed(user, deployment.title, deploymentTime);
+                    const user = await client.users.fetch(player.userId);
+                    const embed = buildDeploymentDeletedConfirmationEmbed(user, deployment.title, timeToDeployment);
                     await user.send({ embeds: [embed] });
                 } catch (e) {
                     sendErrorToLogChannel(e, client);
                 }
+
             }));
+
+            const embed = buildDeploymentDeletedConfirmationEmbedForLog(deployment, signups, backups, timeToDeployment);
+            sendEmbedToLogChannel(embed, client);
         } catch (e) {
             sendErrorToLogChannel(e, client);
         }
+
 
         await deployment.remove();
 
