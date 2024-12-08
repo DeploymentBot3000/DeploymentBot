@@ -6,10 +6,11 @@ function formatToGoogleCalendarDate(timestamp: number): string {
     return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 }
 
-export default function getGoogleCalendarLink(title:string, description:string, startDate:number, endDate:number) {
+export default function getGoogleCalendarLink(title: string, description: string, startDate: number, endDate: number) {
     const uriTitle = encodeURIComponent(title);
+    const details = encodeURIComponent(description);
     const uriLocation = encodeURIComponent("505th Deployments Channel");
     const formattedStart = formatToGoogleCalendarDate(startDate);
     const formattedEnd = formatToGoogleCalendarDate(endDate);
-    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${uriTitle}&dates=${formattedStart}/${formattedEnd}&location=${uriLocation}&sf=true&output=xml`;
+    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${uriTitle}&details=${details}&dates=${formattedStart}/${formattedEnd}&location=${uriLocation}&sf=true&output=xml`;
 }

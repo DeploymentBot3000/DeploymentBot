@@ -28,16 +28,12 @@ async function getFields(channel: GuildTextBasedChannel, currentQueue: Queue[]):
         ];
 
     const currentHostsNames = await Promise.all(currentHosts.map(async host => {
-        const member = await channel.guild.members.fetch(host.user).catch((error) => {
-            return null;
-        });
+        const member = await channel.guild.members.fetch(host.user).catch(() => null);
         return member ? member.displayName : 'Unknown User';
     }));
 
     const currentPlayersNames = await Promise.all(currentPlayers.map(async player => {
-        const member = await channel.guild.members.fetch(player.user).catch((error) => {
-            return null;
-        });
+        const member = await channel.guild.members.fetch(player.user).catch(() => null);
         return member ? member.displayName : 'Unknown User';
     }));
 

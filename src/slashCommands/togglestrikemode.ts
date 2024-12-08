@@ -13,10 +13,10 @@ export default new Slashcommand({
     options: [],
     func: ({ interaction }) => {
         client.battalionStrikeMode = !client.battalionStrikeMode;
-        updateQueueMessages(true, client.nextGame.getTime(), false).then(() => null);
+        updateQueueMessages(true, client.nextGame.getTime(), false);
         const successEmbed = buildEmbed({ preset: "success" })
             .setTitle("Strike Mode Toggle")
             .setDescription(`Strike mode ${client.battalionStrikeMode ? "enabled" : "disabled"}!`);
-        interaction.reply({embeds: [successEmbed], ephemeral: true}).then(r => null);
+        interaction.reply({ embeds: [successEmbed], ephemeral: true });
     }}
 );
