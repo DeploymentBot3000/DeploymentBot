@@ -256,7 +256,7 @@ export default {
 		} catch (e) {
 			error(`Startup failed`, "Startup");
 			error(e);
-			client.destroy().then(r => null);
+			client.destroy();
 			process.exit(1);
 		}
 	},
