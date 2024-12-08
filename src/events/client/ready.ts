@@ -2,7 +2,7 @@ import config from "../../config.js";
 import colors from "colors";
 import path from "path";
 import {fileURLToPath} from 'url';
-import { action, debug, error, log, success } from "../../utils/logger.js";
+import { debug, error, log, success } from "../../utils/logger.js";
 import { client, getDeploymentInterval } from "../../index.js";
 import { readdirSync } from "fs";
 import {REST} from '@discordjs/rest';
