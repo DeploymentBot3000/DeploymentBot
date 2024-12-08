@@ -2,7 +2,7 @@ import {EmbedBuilder} from "discord.js";
 
 // "Hacked" the embed builder to bypass name empty string restrictions
 export default class HackedEmbedBuilder extends EmbedBuilder {
-    addFields(...fields) {
+    override addFields(...fields) {
         // Map over fields and remove the validation on the `name` field
         fields = fields.map(field => ({
             name: field.name ?? '', // Allow empty string as a valid `name` field
