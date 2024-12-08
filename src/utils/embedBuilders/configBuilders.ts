@@ -52,19 +52,17 @@ export function buildEmbed({ name, preset, embed, placeholders }: { name?: strin
  * @example
  * buildButton("example");
  */
-export function buildButton(name: string) {
+export function buildButton(name: keyof typeof config.buttons) {
     const button = new ButtonBuilder();
-
-    if (config.buttons[name].label) button.setLabel(config.buttons[name].label)
-    if (config.buttons[name].url) {
-        button.setURL(config.buttons[name].url)
-        button.setStyle(ButtonStyle.Link)
-    } else {
-        button.setStyle(config.buttons[name].style || "Primary")
-        button.setCustomId(name.replace(/\s/g, "_"))
+    const buttonConfig = config.buttons[name];
+    if (buttonConfig.label) {
+        button.setLabel(buttonConfig.label);
     }
+    button.setStyle(buttonConfig.style);
+    button.setCustomId(name.replace(/\s/g, "_"));
 
-    if (config.buttons[name].emoji) button.setEmoji(config.buttons[name].emoji)
-
+    if ('emoji' in buttonConfig) {
+        button.setEmoji(buttonConfig.emoji);
+    }
     return button;
 }
