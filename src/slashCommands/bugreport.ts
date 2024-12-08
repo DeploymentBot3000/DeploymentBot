@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ApplicationCommandType, ModalBuilder, TextInputBuilder, TextInputStyle, Collection } from 'discord.js';
+import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 import Slashcommand from "../classes/Slashcommand.js";
 import Config from "../config.js";
 

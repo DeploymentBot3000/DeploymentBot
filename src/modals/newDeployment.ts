@@ -42,7 +42,7 @@ async function reportFailedInteractionToUser(interaction: ModalSubmitInteraction
     const errorEmbed = buildEmbed({ preset: "error" })
         .setDescription(`The following error occurred while processing your request: ${e.toString()}`);
     
-    const reply = await interaction.followUp({
+    await interaction.followUp({
         embeds: [errorEmbed],
         ephemeral: true
     });
