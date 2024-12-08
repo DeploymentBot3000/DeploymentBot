@@ -51,7 +51,6 @@ async function importSlashCommands() {
 
 export default {
 	name: "ready",
-	once: false,
 	function: async function () {
 		try {
 			log(`Logged in as ${colors.red(client.user!.tag)}`, 'Startup');

@@ -11,7 +11,6 @@ import checkCooldowns from "../../utils/interaction/checkCooldown.js";
 
 export default {
 	name: "interactionCreate",
-	once: false,
 	function: async function (interaction: CommandInteraction) {
 		if (interaction.type !== InteractionType.ApplicationCommand) return;
 		if (!interaction.isChatInputCommand()) return;

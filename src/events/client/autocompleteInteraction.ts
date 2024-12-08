@@ -3,7 +3,6 @@ import { client } from "../../index.js";
 
 export default {
     name: "interactionCreate",
-    once: false,
     function: async function(interaction: AutocompleteInteraction) {
         if (!interaction.isAutocomplete()) return;
 

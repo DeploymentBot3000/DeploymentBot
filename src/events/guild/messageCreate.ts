@@ -8,7 +8,6 @@ import Cooldown from "../../classes/Cooldown.js";
 
 export default {
 	name: "messageCreate",
-	once: false,
 	function: async function (message: Message) {
 		if (!config.prefix || message.author.bot || !message.content.startsWith(config.prefix)) return null;
 

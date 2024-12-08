@@ -11,7 +11,6 @@ import checkCooldowns from "../../utils/interaction/checkCooldown.js";
 
 export default {
     name: "interactionCreate",
-    once: false,
     function: async function (interaction: Interaction) {
         if (!interaction.isAnySelectMenu()) return;
 
