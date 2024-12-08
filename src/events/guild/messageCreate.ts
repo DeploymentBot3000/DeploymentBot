@@ -10,7 +10,7 @@ export default {
 	name: "messageCreate",
 	once: false,
 	function: async function (message: Message) {
-		if (!config.prefix || message.author.bot || !message.content.startsWith(config.prefix)) return;
+		if (!config.prefix || message.author.bot || !message.content.startsWith(config.prefix)) return null;
 
 		const args = message.content.slice(config.prefix.length).split(/ +/);
 		const cmd = args.shift()?.toLowerCase();
@@ -27,7 +27,8 @@ export default {
 				const msg = await message.reply({ embeds: [embed] });
 				await message.delete();
 
-				return setTimeout(() => msg.delete(), 5000);
+				setTimeout(() => msg.delete(), 5000);
+				return;
 			}
 
 			const invalidPerms: PermissionsString[] = [];
@@ -43,7 +44,8 @@ export default {
 				const msg = await message.reply({ embeds: [embed] });
 				await message.delete();
 
-				return setTimeout(() => msg.delete(), 5000);
+				setTimeout(() => msg.delete(), 5000);
+				return;
 			}
 		}
 
@@ -55,7 +57,8 @@ export default {
 				const msg = await message.reply({ embeds: [embed] });
 				await message.delete();
 
-				return setTimeout(() => msg.delete(), 5000);
+				setTimeout(() => msg.delete(), 5000);
+				return;
 			}
 
 			for (const role of command.requiredRoles) {
@@ -64,19 +67,22 @@ export default {
 					const msg = await message.reply({ content: `:x: **The role \`${role.role}\` does not exist!**` });
 					await message.delete();
 
-					return setTimeout(() => msg.delete(), 5000);
+					setTimeout(() => msg.delete(), 5000);
+					return;
 				}
 				if (role.required && !message.member.roles.cache.has(roleObj.id)) {
 					const msg = await message.reply({ content: `:x: **You don't have the required role ${roleObj.name}!**` });
 					await message.delete();
 
-					return setTimeout(() => msg.delete(), 5000);
+					setTimeout(() => msg.delete(), 5000);
+					return;
 				}
 				if (!role.required && message.member.roles.highest.comparePositionTo(roleObj) < 0) {
 					const msg = await message.reply({ content: `:x: **You don't have the required role ${roleObj.name}!**` });
 					await message.delete();
 
-					return setTimeout(() => msg.delete(), 5000);
+					setTimeout(() => msg.delete(), 5000);
+					return;
 				}
 			}
 		}
@@ -89,7 +95,8 @@ export default {
 			const msg = await message.reply({ embeds: [cooldownEmbed] });
 			await message.delete();
 
-			return setTimeout(() => msg.delete(), 5000);
+			setTimeout(() => msg.delete(), 5000);
+			return;
 		}
 
 		try {

@@ -8,7 +8,7 @@ export default async function hasRequiredPermissions(interaction: ReplyableInter
         const embed = buildEmbed({ preset: "error" })
             .setDescription(":x: **This command can only be used in a server!**");
         await interaction.reply({ embeds: [embed], ephemeral: true });
-        return;
+        return false;
     }
 
     const invalidPerms: PermissionsString[] = [];
@@ -21,7 +21,7 @@ export default async function hasRequiredPermissions(interaction: ReplyableInter
             .setTitle("Insufficient Permissions!")
             .setDescription(`You are missing the following permissions:\n${invalidPerms.map(p => `- ${p}`).join("\n")}`);
         await interaction.reply({ embeds: [embed], ephemeral: true });
-        return;
+        return false;
     }
     return true; // Return ture they have perms
 }

@@ -33,7 +33,7 @@ export default new Slashcommand({
                 .setTitle("Invalid time")
                 .setDescription("Please provide a valid time");
 
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
 
         await setDeploymentInterval(deploymentInterval);

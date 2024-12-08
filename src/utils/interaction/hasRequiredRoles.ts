@@ -9,7 +9,7 @@ export default async function hasRequiredRoles(interaction:ReplyableInteraction,
             .setDescription(":x: **This command can only be used in a server!**");
 
         await interaction.reply({embeds: [embed], ephemeral: true});
-        return;
+        return false;
     }
 
     for (const role of requiredRoles) {
@@ -19,21 +19,21 @@ export default async function hasRequiredRoles(interaction:ReplyableInteraction,
                 .setTitle("Invalid Role!")
                 .setDescription(`:x: **The role \`${role.role}\` does not exist!**`);
             await interaction.reply({embeds: [embed], ephemeral: true});
-            return;
+            return false;
         }
         if ( role.required && !interaction.member.roles.cache.has(roleObj.id)) {
             const embed = buildEmbed({preset: "error"})
                 .setTitle("Missing Server Role!")
                 .setDescription(`:x: **You don't have the required role ${roleObj.name}!**`);
             await interaction.reply({embeds: [embed], ephemeral: true});
-            return;
+            return false;
         }
         if (!role.required && interaction.member.roles.highest.comparePositionTo(roleObj) < 0) {
             const embed = buildEmbed({preset: "error"})
                 .setTitle("Missing Server Role!")
                 .setDescription(`:x: **You don't have the required role ${roleObj.name}!**`);
             await interaction.reply({embeds: [embed], ephemeral: true});
-            return;
+            return false;
         }
     }
     return true;

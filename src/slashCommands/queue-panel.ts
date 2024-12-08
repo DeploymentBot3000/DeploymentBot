@@ -19,7 +19,8 @@ export default new Slashcommand({
 
         if (!interaction.memberPermissions.has("ManageRoles")) {
             log(`${interaction.user.tag} attempted to create queue panel without permissions`, "QueuePanel");
-            return interaction.reply({ content: "You don't have permission to use this command.", ephemeral: true });
+            interaction.reply({ content: "You don't have permission to use this command.", ephemeral: true });
+            return;
         }
 
         try {

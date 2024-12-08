@@ -19,7 +19,8 @@ export default new Button({
             if (!member) {
                 const errorEmbed = buildEmbed({ preset: "error" })
                     .setDescription("Failed to fetch your member data. Please try again.");
-                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                return;
             }
 
             const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
@@ -28,14 +29,16 @@ export default new Button({
                 const errorEmbed = buildEmbed({ preset: "error" })
                     .setDescription("Deployment not found");
 
-                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                return;
             }
 
             if (deployment.user === interaction.user.id) {
                 const errorEmbed = buildEmbed({ preset: "error" })
                     .setDescription("You cannot leave your own deployment!");
 
-                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                return;
             }
 
             const existingSignup = await Signups.findOne({ 
@@ -55,7 +58,8 @@ export default new Button({
                 const errorEmbed = buildEmbed({ preset: "error" })
                     .setDescription("You are not signed up for this deployment!");
 
-                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                return;
             }
 
             // Add error handling for database operations
@@ -65,7 +69,8 @@ export default new Button({
             } catch (error) {
                 const errorEmbed = buildEmbed({ preset: "error" })
                     .setDescription("Failed to remove you from the deployment. Please try again.");
-                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                return;
             }
 
             const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
@@ -76,7 +81,8 @@ export default new Button({
             } catch (error) {
                 const errorEmbed = buildEmbed({ preset: "error" })
                     .setDescription("Failed to update the deployment message. Your signup was removed.");
-                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                return;
             }
 
             await interaction.update({});

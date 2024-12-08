@@ -22,14 +22,16 @@ export default new Button({
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are already in the queue");
 
-            return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+            await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+            return;
         }
 
         if (hostsInQueue.length >= config.queueMaxes.hosts && !client.battalionStrikeMode) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("The hosts queue is currently full!");
 
-            return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+            await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+            return;
         }
 
         try {

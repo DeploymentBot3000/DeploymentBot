@@ -11,20 +11,30 @@ export default {
     id: "editDeployment",
     function: async function ({ interaction }) {
         const deployment = await Deployment.findOne({ where: { id: interaction.customId.split("-")[1] } });
-        if(!deployment) return;
+        if (!deployment) {
+            return;
+        }
 
         const getFieldValue = (customId: string): string => {
-            try { return interaction.fields.getTextInputValue(customId)}
-            catch { return "" }
+            try {
+                return interaction.fields.getTextInputValue(customId);
+            }
+            catch {
+                return "";
+            }
         }
 
         const startTimeInput = async () => {
-            if(!getFieldValue("startTime")) return null;
+            if (!getFieldValue("startTime")) {
+                return null;
+            }
             const startTime = interaction.fields.getTextInputValue("startTime");
             let startDate:Date = null;
 
             try { startDate = await getStartTime(startTime, interaction); }
-            catch (e) { return; }
+            catch (e) {
+                return null;
+            }
 
             return startDate.getTime();
         }

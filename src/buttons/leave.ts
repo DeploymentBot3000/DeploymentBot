@@ -18,7 +18,8 @@ export default new Button({
             if (!member) {
                 const errorEmbed = buildEmbed({ preset: "error" })
                     .setDescription("Failed to fetch your guild member data");
-                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                return;
             }
 
             const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
@@ -27,7 +28,8 @@ export default new Button({
                 const errorEmbed = buildEmbed({ preset: "error" })
                     .setDescription("You are not in the queue");
 
-                return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                return;
             }
 
             const queueBefore = await Queue.find();
@@ -40,7 +42,8 @@ export default new Button({
                 console.error(`No join time found for user ${interaction.user.id}`);
                 const errorEmbed = buildEmbed({ preset: "error" })
                     .setDescription("Could not find your queue join time");
-                return await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+                await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+                return;
             }
 
             const queueDuration = Math.floor((leaveTime.getTime() - joinTime.getTime()) / 1000);

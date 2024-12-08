@@ -22,7 +22,8 @@ export default {
             const embed = buildEmbed({ preset: "error" })
                 .setDescription(":x: **An error occurred while running this command!**");
 
-            return await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+            return;
         }
 
         modal.function({ interaction });
