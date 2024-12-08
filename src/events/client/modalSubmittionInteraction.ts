@@ -6,7 +6,6 @@ import {buildEmbed} from "../../utils/embedBuilders/configBuilders.js";
 
 export default {
     name: "interactionCreate",
-    once: false,
     function: async function (interaction: ModalSubmitInteraction) {
         if (!interaction.isModalSubmit()) return;
 

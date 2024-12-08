@@ -4,7 +4,7 @@ import {error, log} from "./utils/logger.js";
 import {ActivityType, Client, Collection, GatewayIntentBits} from "discord.js";
 
 // Handlers & Database
-import eventHandler from "./handlers/eventHandler.js";
+import { registerEventHandlers } from "./handlers/eventHandler.js";
 import idkHowToCallThisHandler from "./handlers/interactionHandler.js";
 import database from "./handlers/databaseHandler.js";
 
@@ -82,7 +82,7 @@ if (database.isInitialized) {
     log('Successfully connected to the database', 'Startup');
 }
 idkHowToCallThisHandler.init();
-eventHandler.function();
+registerEventHandlers(client);
 
 // Catching all the errors
 process.on("uncaughtException", config.debugMode ? console.error : error);

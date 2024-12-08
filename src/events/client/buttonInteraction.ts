@@ -11,7 +11,6 @@ import hasRequiredRoles from "../../utils/interaction/hasRequiredRoles.js";
 
 export default {
 	name: "interactionCreate",
-	once: false,
 	function: async function (interaction: ButtonInteraction) {
 		if (!interaction.isButton()) return;
 
