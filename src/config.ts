@@ -1,5 +1,6 @@
 import secrets from "./config/secrets.js"
 import discord_server from "./config/discord_server.js"
+import { ButtonStyle } from "discord.js"
 
 export default {
     token: secrets.discord_app_token,
@@ -130,28 +131,28 @@ export default {
     buttons: {
         newDeployment: {
             label: "New Deployment",
-            style: "Primary",
+            style: ButtonStyle.Primary,
             emoji: "🔔"
         },
         editDeployment: {
             label: "Edit",
-            style: "Secondary"
+            style: ButtonStyle.Secondary
         },
         deleteDeployment: {
             label: "Delete",
-            style: "Danger"
+            style: ButtonStyle.Danger
         },
         host: {
             label: "Host",
-            style: "Success"
+            style: ButtonStyle.Success
         },
         join: {
             label: "Join",
-            style: "Success"
+            style: ButtonStyle.Success
         },
         leave: {
             label: "Leave",
-            style: "Danger"
+            style: ButtonStyle.Danger
         }
     },
     buttonCooldown: 5

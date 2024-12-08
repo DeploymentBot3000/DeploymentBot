@@ -43,7 +43,7 @@ async function startQueuedGameImpl(deploymentInterval: Duration) {
         return;
     }
 
-    const groups = [];
+    const groups: { host: Queue, players: Queue[] }[] = [];
     hosts.forEach((host) => {
         const assignedPlayers: Queue[] = [];
         if(client.battalionStrikeMode) {
@@ -196,7 +196,7 @@ async function startQueuedGameImpl(deploymentInterval: Duration) {
 export async function startQueuedGame(deploymentInterval: Duration) {
     try {
         await startQueuedGameImpl(deploymentInterval);
-    } catch (e) {
+    } catch (e: any) {
         await sendErrorToLogChannel(e, client);
     }
 }
