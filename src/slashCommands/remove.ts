@@ -86,11 +86,12 @@ export default new Slashcommand({
 
         // Prevent removing self
         if (targetUser.id === interaction.user.id) {
-            return await interaction.reply({ 
+            await interaction.reply({ 
                 embeds: [buildEmbed({ preset: "error" })
                     .setDescription("You cannot remove yourself from the deployment")], 
                 ephemeral: true 
             });
+            return;
         }
 
         // Find and remove user from signups or backups
@@ -108,11 +109,12 @@ export default new Slashcommand({
         });
 
         if (!signup && !backup) {
-            return await interaction.reply({ 
+            await interaction.reply({ 
                 embeds: [buildEmbed({ preset: "error" })
                     .setDescription("User is not signed up for this deployment")], 
                 ephemeral: true 
             });
+            return;
         }
 
         // Remove from database

@@ -47,14 +47,16 @@ export default new Button({
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Deployment not found");
 
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return;
         }
 
         if (deployment.user !== interaction.user.id) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You do not have permission to delete this deployment");
 
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return;
         }
 
         const client = interaction.client;

@@ -89,11 +89,10 @@ export default {
 					const signups = await Signups.find({ where: { deploymentId: deployment.id } });
 					const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
-					const signupsFormatted = signups.map(signup => {
-						if (signup.userId == deployment.user) return;
+					const signupsFormatted = signups.filter(s => s.userId != deployment.user).map(signup => {
 						const role = config.roles.find(role => role.name === signup.role);
 						return `${role.emoji} <@${signup.userId}>`;
-					}).filter(s => s).join("\n") || "` - `";
+					}).join("\n") || "` - `";
 
 					const backupsFormatted = backups.map(backup => `${config.backupEmoji} <@${backup.userId}>`).join("\n");
 
@@ -128,7 +127,7 @@ export default {
 						const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
 						const signupsFormatted = signups.map(signup => {
-							if (signup.userId == deployment.user) return;
+							if (signup.userId == deployment.user) return null;
 							const role = config.roles.find(role => role.name === signup.role);
 							const member = message.guild.members.cache.get(signup.userId);
 							return `${role.emoji} ${member?.nickname || member?.user.username || signup.userId}`;
