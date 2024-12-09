@@ -1,24 +1,24 @@
-import config from "../../config.js";
+import config from "../config.js";
 import colors from "colors";
 import path from "path";
-import {fileURLToPath} from 'url';
-import { debug, error, log, success } from "../../utils/logger.js";
-import { client, getDeploymentInterval } from "../../index.js";
+import { fileURLToPath } from 'url';
+import { debug, error, log, success } from "../utils/logger.js";
+import { client, getDeploymentInterval } from "../index.js";
 import { readdirSync } from "fs";
-import {REST} from '@discordjs/rest';
+import { REST } from '@discordjs/rest';
 import { Routes, Snowflake } from 'discord-api-types/v10';
 import { EmbedBuilder, GuildTextBasedChannel, ChannelType } from 'discord.js';
-import Deployment from "../../tables/Deployment.js";
-import Signups from "../../tables/Signups.js";
-import Backups from "../../tables/Backups.js";
-import { registerStartQueuedGameInterval, startQueuedGame } from "../../utils/startQueuedGame.js";
-import {In, LessThanOrEqual} from 'typeorm';
+import Deployment from "../tables/Deployment.js";
+import Signups from "../tables/Signups.js";
+import Backups from "../tables/Backups.js";
+import { registerStartQueuedGameInterval, startQueuedGame } from "../utils/startQueuedGame.js";
+import { In, LessThanOrEqual } from 'typeorm';
 import { DateTime, Duration } from 'luxon';
 import cron from 'node-cron';
-import {buildDeploymentEmbed} from "../../utils/embedBuilders/signupEmbedBuilder.js"
-import LatestInput from "../../tables/LatestInput.js";
-import { findAllVcCategories } from "../../utils/findChannels.js";
-import discord_server_config from "../../config/discord_server.js";
+import { buildDeploymentEmbed } from "../utils/embedBuilders/signupEmbedBuilder.js"
+import LatestInput from "../tables/LatestInput.js";
+import { findAllVcCategories } from "../utils/findChannels.js";
+import discord_server_config from "../config/discord_server.js";
 
 interface Command {
 	name: string;
@@ -31,7 +31,7 @@ interface Command {
 const lastSeenEmptyVcTime: Map<Snowflake, DateTime> = new Map();
 
 async function importSlashCommands() {
-	const commandsDirectoryPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../slashCommands');
+	const commandsDirectoryPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../slashCommands');
 	const commands: Command[] = [];
 	for await (const file of readdirSync(commandsDirectoryPath)) {
 		const filePath = path.join(commandsDirectoryPath, file);
@@ -72,7 +72,7 @@ export default {
 					where: {
 						deleted: false,
 						noticeSent: false,
-						startTime: LessThanOrEqual(now.plus({'minutes': config.departure_notice_lead_time_minutes}).toMillis())
+						startTime: LessThanOrEqual(now.plus({ 'minutes': config.departure_notice_lead_time_minutes }).toMillis())
 					}
 				})
 				const unstartedDeployments = await Deployment.find({
@@ -101,7 +101,8 @@ export default {
 						: `Operation: ${deployment.title}`;
 
 					await departureChannel.send({
-						content: `-------------------------------------------\n\n# ATTENTION HELLDIVERS \n\n\n**${formattedTitle}**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**. <@${deployment.user}> will open communication channels in the next **5 minutes** and Divers are expected to be present.\n\n**Difficulty:** **${deployment.difficulty}**\n\n**Deployment Lead:**\n<@${deployment.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\n${backupsFormatted.length ? `**Standby divers:**\n${backupsFormatted}\n\n` : ""}You are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------` });
+						content: `-------------------------------------------\n\n# ATTENTION HELLDIVERS \n\n\n**${formattedTitle}**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**. <@${deployment.user}> will open communication channels in the next **5 minutes** and Divers are expected to be present.\n\n**Difficulty:** **${deployment.difficulty}**\n\n**Deployment Lead:**\n<@${deployment.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\n${backupsFormatted.length ? `**Standby divers:**\n${backupsFormatted}\n\n` : ""}You are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------`
+					});
 
 					deployment.noticeSent = true;
 
@@ -120,7 +121,7 @@ export default {
 						await message.edit({ content: "", embeds: [embed], components: [] });
 
 						// Fetch all logging channels and send to each
-						
+
 						const loggingChannel = await client.channels.fetch(config.log_channel_id).catch(() => null) as GuildTextBasedChannel;
 						const signups = await Signups.find({ where: { deploymentId: deployment.id } });
 						const backups = await Backups.find({ where: { deploymentId: deployment.id } });
@@ -160,7 +161,7 @@ export default {
 					await deployment.save();
 				}
 
-				const deploymentDeleteLeadTime = Duration.fromDurationLike({'minutes': config.deployment_delete_time_minutes});
+				const deploymentDeleteLeadTime = Duration.fromDurationLike({ 'minutes': config.deployment_delete_time_minutes });
 				const deploymentsToDelete = await Deployment.find({
 					where: {
 						deleted: false,
@@ -224,8 +225,8 @@ export default {
 
 			// Remove deployment signup every hour on the hour.
 			cron.schedule("0 * * * *", async () => {
-				const deletedDeployments:Deployment[] = await Deployment.find({ where: { deleted: true }});
-				for(const deployment of deletedDeployments) {
+				const deletedDeployments: Deployment[] = await Deployment.find({ where: { deleted: true } });
+				for (const deployment of deletedDeployments) {
 					await Signups.delete({ deploymentId: deployment.id });
 					await Backups.delete({ deploymentId: deployment.id });
 					await Deployment.delete({ id: deployment.id });

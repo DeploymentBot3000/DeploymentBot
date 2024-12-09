@@ -1,5 +1,5 @@
 import { VoiceBasedChannel, VoiceState } from "discord.js";
-import discord_server_config from "../../config/discord_server.js";
+import discord_server_config from "../config/discord_server.js";
 
 function isBotManagedVoiceChannel(channel: VoiceBasedChannel): boolean {
     const catName = channel.parent.name;
