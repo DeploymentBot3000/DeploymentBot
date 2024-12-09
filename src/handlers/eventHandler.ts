@@ -1,7 +1,6 @@
 import { Client } from "discord.js";
 import autocompleteInteraction from "../events/client/autocompleteInteraction.js";
 import buttonInteraction from "../events/client/buttonInteraction.js";
-import contextMenuInteraction from "../events/client/contextMenuInteraction.js";
 import interactionCreate from "../events/client/interactionCreate.js";
 import modalSubmittionInteraction from "../events/client/modalSubmittionInteraction.js";
 import ready from "../events/client/ready.js";
@@ -13,7 +12,6 @@ export function registerEventHandlers(client: Client) {
 	// Client Events
 	client.on(autocompleteInteraction.name, autocompleteInteraction.function.bind(null));
 	client.on(buttonInteraction.name, buttonInteraction.function.bind(null));
-	client.on(contextMenuInteraction.name, contextMenuInteraction.function.bind(null));
 	client.on(interactionCreate.name, interactionCreate.function.bind(null));
 	client.on(modalSubmittionInteraction.name, modalSubmittionInteraction.function.bind(null));
 	client.on(removeExpiredVoiceChannels.name, removeExpiredVoiceChannels.function.bind(null));

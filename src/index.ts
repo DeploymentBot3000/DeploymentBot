@@ -14,7 +14,6 @@ import Slashcommand from "./classes/Slashcommand.js";
 import SelectMenu from "./classes/SelectMenu.js";
 import Button from "./classes/Button.js";
 import Modal from "./classes/Modal.js";
-import ContextMenu from "./classes/ContextMenu.js";
 import Command from "./classes/Command.js";
 import fs from "fs/promises";
 import { registerStartQueuedGameInterval } from "./utils/startQueuedGame.js";
@@ -28,7 +27,6 @@ class CustomClient extends Client {
     slashCommands: Collection<String, Slashcommand> = new Collection();
     selectMenus: Collection<String, SelectMenu> = new Collection();
     modals: Collection<String, Modal> = new Collection();
-    contextMenus: Collection<String, ContextMenu> = new Collection();
     buttons: Collection<String, Button> = new Collection();
     queueJoinTimes: Collection<String, Date> = new Collection<String, Date>();
     battalionStrikeMode: boolean = false;
