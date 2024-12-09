@@ -6,7 +6,6 @@ import modalSubmittionInteraction from "../events/modal_submit_interaction.js";
 import ready from "../events/client_ready_event.js";
 import removeExpiredVoiceChannels from "../events/voice_state_update_event.js";
 import selectMenuInteraction from "../events/select_menu_interaction.js";
-import messageCreate from "../events/message_create_event.js";
 
 export function registerEventHandlers(client: Client) {
 	// Client Events
@@ -16,9 +15,6 @@ export function registerEventHandlers(client: Client) {
 	client.on(modalSubmittionInteraction.name, modalSubmittionInteraction.function.bind(null));
 	client.on(removeExpiredVoiceChannels.name, removeExpiredVoiceChannels.function.bind(null));
 	client.on(selectMenuInteraction.name, selectMenuInteraction.function.bind(null));
-
-	// Guild Events
-	client.on(messageCreate.name, messageCreate.function.bind(null));
 
 	// Client Ready Once Event
 	client.once(ready.name, ready.function);
