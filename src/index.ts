@@ -1,37 +1,19 @@
 // Package imports
 import config from "./config.js";
 import {error, log} from "./utils/logger.js";
-import {ActivityType, Client, Collection, GatewayIntentBits} from "discord.js";
+import { ActivityType, GatewayIntentBits } from "discord.js";
 
 // Handlers & Database
 import { registerEventHandlers } from "./handlers/eventHandler.js";
-import idkHowToCallThisHandler from "./handlers/interactionHandler.js";
 import database from "./handlers/databaseHandler.js";
 
 // Type imports
-import Cooldown from "./classes/Cooldown.js";
-import Slashcommand from "./classes/Slashcommand.js";
-import SelectMenu from "./classes/SelectMenu.js";
-import Button from "./classes/Button.js";
-import Modal from "./classes/Modal.js";
-import Command from "./classes/Command.js";
 import fs from "fs/promises";
 import { registerStartQueuedGameInterval } from "./utils/startQueuedGame.js";
 import gracefulShutdown from "./utils/gracefulShutdown.js";
 import { Duration } from "luxon";
-
-// Define a new class that extends Client
-class CustomClient extends Client {
-    commands: Collection<String, Command> = new Collection();
-    cooldowns: Collection<String, Cooldown> = new Collection();
-    slashCommands: Collection<String, Slashcommand> = new Collection();
-    selectMenus: Collection<String, SelectMenu> = new Collection();
-    modals: Collection<String, Modal> = new Collection();
-    buttons: Collection<String, Button> = new Collection();
-    queueJoinTimes: Collection<String, Date> = new Collection<String, Date>();
-    battalionStrikeMode: boolean = false;
-    nextGame: Date;
-}
+import { CustomClient } from "./custom_client.js";
+import { importAllTheThings } from "./import_all_the_things.js";
 
 // Initialize the extended client
 export const client = new CustomClient({
@@ -79,7 +61,8 @@ export async function setDeploymentInterval(deploymentInterval: Duration) {
 if (database.isInitialized) {
     log('Successfully connected to the database', 'Startup');
 }
-idkHowToCallThisHandler.init();
+
+importAllTheThings(client);
 registerEventHandlers(client);
 
 // Catching all the errors
