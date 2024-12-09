@@ -1,12 +1,12 @@
 import { Client } from "discord.js";
-import autocompleteInteraction from "../events/client/autocompleteInteraction.js";
-import buttonInteraction from "../events/client/buttonInteraction.js";
-import interactionCreate from "../events/client/interactionCreate.js";
-import modalSubmittionInteraction from "../events/client/modalSubmittionInteraction.js";
-import ready from "../events/client/ready.js";
-import removeExpiredVoiceChannels from "../events/client/removeExpiredVoiceChannels.js";
-import selectMenuInteraction from "../events/client/selectMenuInteraction.js";
-import messageCreate from "../events/guild/messageCreate.js";
+import autocompleteInteraction from "../events/auto_complete_Interaction.js";
+import buttonInteraction from "../events/button_interaction.js";
+import interactionCreate from "../events/chat_input_command_interaction.js";
+import modalSubmittionInteraction from "../events/modal_submit_interaction.js";
+import ready from "../events/client_ready_event.js";
+import removeExpiredVoiceChannels from "../events/voice_state_update_event.js";
+import selectMenuInteraction from "../events/select_menu_interaction.js";
+import messageCreate from "../events/message_create_event.js";
 
 export function registerEventHandlers(client: Client) {
 	// Client Events

@@ -1,9 +1,9 @@
 import { AutocompleteInteraction } from "discord.js";
-import { client } from "../../index.js";
+import { client } from "../index.js";
 
 export default {
     name: "interactionCreate",
-    function: async function(interaction: AutocompleteInteraction) {
+    function: async function (interaction: AutocompleteInteraction) {
         if (!interaction.isAutocomplete()) return;
 
         const cmd = interaction.commandName;
