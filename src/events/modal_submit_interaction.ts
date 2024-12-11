@@ -1,15 +1,28 @@
 import colors from "colors";
-import { error, log } from "../utils/logger.js";
-import { client } from "../custom_client.js";
 import { ModalSubmitInteraction } from "discord.js";
+import Modal from "../classes/Modal.js";
+import bugReport from "../modals/bugReport.js";
+import editDeployment from "../modals/editDeployment.js";
+import newDeployment from "../modals/newDeployment.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { error, log } from "../utils/logger.js";
+
+const _kModals: Map<string, Modal> = new Map();
+
+_kModals.set(bugReport.id, bugReport);
+_kModals.set(editDeployment.id, editDeployment);
+_kModals.set(newDeployment.id, newDeployment);
+
+function getModalById(id: string) {
+    return _kModals.get(id);
+}
 
 export default {
     name: "interactionCreate",
     function: async function (interaction: ModalSubmitInteraction) {
         if (!interaction.isModalSubmit()) return;
 
-        const modal = client.modals.get(interaction.customId) || client.modals.get(interaction.customId.split("-")[0]);
+        const modal = getModalById(interaction.customId) || getModalById(interaction.customId.split("-")[0]);
         if (!modal) return;
 
         try {
