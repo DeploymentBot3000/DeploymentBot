@@ -1,6 +1,6 @@
 import colors from "colors";
 import { error, log } from "../utils/logger.js";
-import { CommandInteraction, InteractionType, PermissionsBitField } from "discord.js";
+import { CommandInteraction, GuildMember, InteractionType, PermissionsBitField } from "discord.js";
 import { client } from "../index.js";
 import Cooldown from "../classes/Cooldown.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
@@ -23,15 +23,19 @@ export default {
 		if (!(await hasRequiredPermissions(interaction, command.permissions))) return;
 		if (await checkCooldowns(interaction, client.cooldowns.get(`${interaction.user.id}-${command.name}`))) return;
 
+		const commandStr = `/${interaction.commandName} ${interaction.options.data.map(o => `${o.name}: ${o.value}`).join(', ')}`;
+		const nickname = interaction.member instanceof GuildMember ? interaction.member.nickname : interaction.member.nick;
+		const logStr = `${commandStr}; Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${nickname}(${interaction.user.displayName}/${interaction.user.username}/${interaction.user.id}); ID: ${interaction.id}`;
 		try {
+			log(`Running: ${logStr}`, 'Command');
 			command.function({ interaction, options: interaction.options });
-			log(`[Command Ran] ${interaction.commandName} ${colors.blue("||")} Author: ${interaction.user.username} ${colors.blue("||")} ID: ${interaction.user.id} ${colors.blue("||")} Server: ${interaction.guild?.name || "DM"}`);
+			log(`Done: ${logStr}`, 'Command');
 		} catch (e) {
-			error(`[Command Error] ${interaction.commandName} ${colors.blue("||")} Author: ${interaction.user.username} ${colors.blue("||")} ID: ${interaction.user.id} ${colors.blue("||")} Server: ${interaction.guild?.name || "DM"} ${colors.red("||")} ${e}`);
+			error(`Failed: ${logStr}`, 'Command');
 			error(e);
 
 			const embed = buildEmbed({ preset: "error" })
-				.setDescription(":x: **An error occurred while executing this command!**");
+				.setDescription(`❌ **An error occurred while executing this command!**\n\nCommand: ${commandStr}`);
 
 			await interaction.reply({ embeds: [embed], ephemeral: true });
 		}
