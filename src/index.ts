@@ -62,6 +62,8 @@ if (database.isInitialized) {
     log('Successfully connected to the database', 'Startup');
 }
 
+// TODO: This needs to be await but we can't do that because we are importing index.ts from these files.
+// We need to first remove the circular dependency and then add await here.
 importAllTheThings(client);
 registerEventHandlers(client);
 
