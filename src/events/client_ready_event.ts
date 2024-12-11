@@ -1,11 +1,8 @@
 import config from "../config.js";
 import colors from "colors";
-import path from "path";
-import { fileURLToPath } from 'url';
 import { debug, error, log, success } from "../utils/logger.js";
 import { getDeploymentInterval } from "../utils/deployment_interval.js";
 import { client } from "../custom_client.js";
-import { readdirSync } from "fs";
 import { REST } from '@discordjs/rest';
 import { Routes, Snowflake } from 'discord-api-types/v10';
 import { EmbedBuilder, GuildTextBasedChannel, ChannelType } from 'discord.js';
@@ -22,35 +19,10 @@ import { findAllVcCategories } from "../utils/findChannels.js";
 import discord_server_config from "../config/discord_server.js";
 import { sendEmbedToLogChannel } from "../utils/log_channel.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
-
-interface Command {
-	name: string;
-	description: string;
-	type?: number;
-	options: any[]; // You can replace "any" with the correct type for options
-}
+import { getAllSlashCommands } from "../utils/slash_commands_registery.js";
 
 // Map from vc channel id to the last time it was seen empty.
 const lastSeenEmptyVcTime: Map<Snowflake, DateTime> = new Map();
-
-async function importSlashCommands() {
-	const commandsDirectoryPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../slashCommands');
-	const commands: Command[] = [];
-	for await (const file of readdirSync(commandsDirectoryPath)) {
-		const filePath = path.join(commandsDirectoryPath, file);
-		const command = (await import(path.join(commandsDirectoryPath, file))).default;
-		if (!command.name) {
-			throw new Error(`Failed to import command from file path: ${filePath}; No name property found`);
-		}
-		commands.push({
-			name: command.name,
-			type: command.type,
-			description: command.description || null,
-			options: command.options || null
-		});
-	}
-	return commands;
-}
 
 export default {
 	name: "ready",
@@ -58,12 +30,10 @@ export default {
 		try {
 			log(`Logged in as ${colors.red(client.user!.tag)}`, 'Startup');
 
-			const commands = await importSlashCommands();
-			log(`Imported ${commands.length} slash commands: ${commands.map(cmd => cmd.name).join(', ')}`, 'Startup');
-
 			const rest = new REST().setToken(config.token);
 
 			if (config.registerCommands) {
+				const commands = getAllSlashCommands();
 				log(`Registering shash commands: ${commands.map(cmd => cmd.name).join(', ')} for guild: ${config.guildId}`, 'Startup');
 				await rest.put(Routes.applicationGuildCommands(client.user.id, config.guildId), { body: commands });
 				success(`Successfully registered ${commands.length} shash commands for guild: ${config.guildId}`, 'Startup');
