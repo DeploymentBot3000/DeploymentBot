@@ -1,10 +1,9 @@
 import Button from "../classes/Button.js";
-import { client } from "../custom_client.js";
 import Queue from "../tables/Queue.js";
-import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
-import updateQueueMessages from "../utils/updateQueueMessage.js";
+import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
 import {logQueueAction} from "../utils/queueLogger.js";
+import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
 export default new Button({
     id: "join",
@@ -25,7 +24,7 @@ export default new Button({
             return;
         }
 
-        if (playersInQueue.length >= config.queueMaxes.players && !client.battalionStrikeMode) {
+        if (playersInQueue.length >= config.queueMaxes.players && !HotDropQueue.getHotDropQueue().strikeModeEnabled) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("The queue is currently full!");
 
@@ -99,7 +98,7 @@ export default new Button({
                 });
             }
 
-            await updateQueueMessages(true, client.nextGame.getTime(), false);
+            await HotDropQueue.getHotDropQueue().updateMessage(/*notEnoughPlayers=*/true, /*deploymentCreated=*/false);
         } catch (error) {
             console.error('Error in join button:', error);
             const errorEmbed = buildEmbed({ preset: "error" })
