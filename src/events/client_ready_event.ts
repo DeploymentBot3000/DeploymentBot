@@ -19,6 +19,8 @@ import { buildDeploymentEmbed } from "../utils/embedBuilders/signupEmbedBuilder.
 import LatestInput from "../tables/LatestInput.js";
 import { findAllVcCategories } from "../utils/findChannels.js";
 import discord_server_config from "../config/discord_server.js";
+import { sendEmbedToLogChannel } from "../utils/log_channel.js";
+import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 
 interface Command {
 	name: string;
@@ -250,6 +252,10 @@ export default {
 				console.log(`Cleared ${backupsToDelete.length} invalid backups!`);
 				console.log(`Cleared last input data!`);
 			})
+
+			sendEmbedToLogChannel(buildEmbed({ preset: "success" })
+				.setColor('#FFA500')  // Orange
+				.setTitle("Bot Startup Complete!"), client);
 
 			success(`Bot startup complete`, "Startup");
 		} catch (e) {
