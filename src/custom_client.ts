@@ -1,11 +1,9 @@
 import { Client, Collection, GatewayIntentBits } from "discord.js";
-import SelectMenu from "./classes/SelectMenu.js";
 import Cooldown from "./classes/Cooldown.js";
 
 // Define a new class that extends Client
 export class CustomClient extends Client {
     cooldowns: Collection<String, Cooldown> = new Collection();
-    selectMenus: Collection<String, SelectMenu> = new Collection();
     queueJoinTimes: Collection<String, Date> = new Collection<String, Date>();
     battalionStrikeMode: boolean = false;
     nextGame: Date;

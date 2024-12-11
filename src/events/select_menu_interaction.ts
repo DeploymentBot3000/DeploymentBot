@@ -8,13 +8,23 @@ import checkBlacklist from "../utils/interaction/checkBlacklist.js";
 import hasRequiredRoles from "../utils/interaction/hasRequiredRoles.js";
 import hasRequiredPermissions from "../utils/interaction/hasRequiredPermissions.js";
 import checkCooldowns from "../utils/interaction/checkCooldown.js";
+import SelectMenu from "../classes/SelectMenu.js";
+import signup from "../selectMenus/signup.js";
+
+const _kSelectMenus: Map<string, SelectMenu> = new Map();
+
+_kSelectMenus.set(signup.id, signup);
+
+function getSelectMenuById(id: string) {
+    return _kSelectMenus.get(id);
+}
 
 export default {
     name: "interactionCreate",
     function: async function (interaction: Interaction) {
         if (!interaction.isAnySelectMenu()) return;
 
-        const selectMenu = client.selectMenus.get(interaction.customId) || client.selectMenus.get(interaction.customId.split("-")[0]);
+        const selectMenu = getSelectMenuById(interaction.customId) || getSelectMenuById(interaction.customId.split("-")[0]);
         if (!selectMenu) return;
 
         if (await checkBlacklist(interaction, selectMenu.blacklistedRoles)) return;
