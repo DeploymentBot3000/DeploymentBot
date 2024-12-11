@@ -1,7 +1,6 @@
 import Slashcommand from "../classes/Slashcommand.js";
-import { client } from "../custom_client.js";
 import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
-import updateQueueMessages from "../utils/updateQueueMessage.js";
+import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
 export default new Slashcommand({
     name: "togglestrikemode",
@@ -12,11 +11,10 @@ export default new Slashcommand({
     cooldown: 0,
     options: [],
     func: ({ interaction }) => {
-        client.battalionStrikeMode = !client.battalionStrikeMode;
-        updateQueueMessages(true, client.nextGame.getTime(), false);
+        HotDropQueue.getHotDropQueue().toggleStrikeMode();
         const successEmbed = buildEmbed({ preset: "success" })
             .setTitle("Strike Mode Toggle")
-            .setDescription(`Strike mode ${client.battalionStrikeMode ? "enabled" : "disabled"}!`);
+            .setDescription(`Strike mode ${HotDropQueue.getHotDropQueue().strikeModeEnabled ? "enabled" : "disabled"}!`);
         interaction.reply({ embeds: [successEmbed], ephemeral: true });
     }}
 );

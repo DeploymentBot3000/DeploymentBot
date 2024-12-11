@@ -2,21 +2,18 @@ import { CategoryChannel, ChannelType, Guild, GuildMember, GuildTextBasedChannel
 import { client } from "../custom_client.js";
 import Queue from "../tables/Queue.js";
 import config from "../config.js";
-import updateQueueMessages from "./updateQueueMessage.js";
 import {logQueueDeployment} from "./queueLogger.js";
 import { buildEmbed } from "./embedBuilders/configBuilders.js";
 import {debug, success} from "./logger.js";
 import discord_server_config from "../config/discord_server.js";
 import { findAllVcCategories } from "./findChannels.js";
-import { sendErrorToLogChannel } from "./log_channel.js";
-import { Duration } from "luxon";
 
 // Add this function to generate a random 4-digit number
 function generateRandomCode(){let $=[7734,1337,6969,4200,9001,2319,8008,4040,1234,2001,1984,1221,4004,5e3,1024,2e3,2012,8055,1138,1977,1942,3141,2718,1123,6174,4321,8086,6502,1701],_=$[Math.floor(Math.random()*$.length)],o=function $(){let _=[1,1];for(let o=2;o<15;o++)_.push((_[o-1]+_[o-2])%100);return _}()[Math.floor(15*Math.random())],e=[()=>_+o,()=>Number(String(_).slice(0,2)+String(o).padStart(2,"0")),()=>_^o,()=>Math.abs(_*o%1e4)],n=e[Math.floor(Math.random()*e.length)]();return n<1e3?n+=1e3:n>9999&&(n=Number(String(n).slice(0,4))),n}
 
-function findNextAvailableVoiceCategory(guild: Guild): CategoryChannel {
-    const vcCategoryPrefix = client.battalionStrikeMode ? discord_server_config.strike_vc_category_prefix : discord_server_config.hotdrop_vc_category_prefix;
-    const maxChannels = client.battalionStrikeMode ? discord_server_config.strike_vc_category_max_channels : discord_server_config.hotdrop_vc_category_max_channels;
+function findNextAvailableVoiceCategory(guild: Guild, strikeMode: boolean): CategoryChannel {
+    const vcCategoryPrefix = strikeMode ? discord_server_config.strike_vc_category_prefix : discord_server_config.hotdrop_vc_category_prefix;
+    const maxChannels = strikeMode ? discord_server_config.strike_vc_category_max_channels : discord_server_config.hotdrop_vc_category_max_channels;
     let channels = findAllVcCategories(guild, vcCategoryPrefix)
         .filter(channel => channel.children.cache.size < maxChannels);
     if (!channels.size) {
@@ -25,28 +22,17 @@ function findNextAvailableVoiceCategory(guild: Guild): CategoryChannel {
     return channels.at(0);
 }
 
-async function startQueuedGameImpl(deploymentInterval: Duration) {
+export async function startQueuedGameImpl(strikeMode: boolean) {
     const queue = await Queue.find();
     const hosts = queue.filter(q => q.host);
     const players = queue.filter(q => !q.host);
-    const now = Date.now();
 
-    // Calculate the next deployment time
-    client.nextGame = new Date(now + deploymentInterval.toMillis());
-    const nextDeploymentTime = client.nextGame.getTime();
-
-    const kMinAssignedPlayers: number = config.min_players - 1;
     const kMaxAssignedPlayers: number = config.max_players - 1;
-
-    if (hosts.length < 1 || players.length < kMinAssignedPlayers) {
-        await updateQueueMessages(/*notEnoughPlayers=*/true, nextDeploymentTime);
-        return;
-    }
 
     const groups: { host: Queue, players: Queue[] }[] = [];
     hosts.forEach((host) => {
         const assignedPlayers: Queue[] = [];
-        if(client.battalionStrikeMode) {
+        if (strikeMode) {
             for (let i = 0; i < kMaxAssignedPlayers; i++) {
                 if (players.length > 0) {
                     const randomIndex = Math.floor(Math.random() * players.length);
@@ -67,7 +53,9 @@ async function startQueuedGameImpl(deploymentInterval: Duration) {
         }
     })
 
-    let deploymentCreated = false;
+    if (!groups.length) {
+        return false;
+    }
 
     for (const group of groups) {
         const debugObj = {
@@ -96,12 +84,12 @@ async function startQueuedGameImpl(deploymentInterval: Duration) {
         const randomCode = `${generateRandomCode()}-${generateRandomCode()}`;
 
         await Promise.all(selectedPlayers.map(async player => {
-            return await client.users.fetch(player.user).catch(() => null);
+            await client.users.fetch(player.user).catch(() => null);
         }));
 
-        const vcCategory: CategoryChannel = findNextAvailableVoiceCategory(departureChannel.guild);
+        const vcCategory: CategoryChannel = findNextAvailableVoiceCategory(departureChannel.guild, strikeMode);
 
-        const vcChannelName = !client.battalionStrikeMode ? `🔊| HOTDROP ${randomCode} ${hostDisplayName}` : `🔊| ${hostDisplayName}'s Strike Group!`;
+        const vcChannelName = !strikeMode ? `🔊| HOTDROP ${randomCode} ${hostDisplayName}` : `🔊| ${hostDisplayName}'s Strike Group!`;
         debug(`Creating voice channel: ${vcChannelName}`); (`Creating voice channel: ${vcChannelName}`);
         const vc = await departureChannel.guild.channels.create({
             name: vcChannelName,
@@ -163,7 +151,7 @@ async function startQueuedGameImpl(deploymentInterval: Duration) {
 
         const defaultContent = `-------------------------------------------\n\n# ATTENTION HELLDIVERS\n\n\n**HOTDROP:** **${randomCode} (${hostDisplayName})**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**.\n**Communication Channel:** <#${vc.id}>.\n\n**Deployment Lead:**\n<@${host.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\nYou are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------`;
         const strikeContent = `-------------------------------------------\n\n# ATTENTION HELLDIVERS\n\n\n**You have been assigned to ${hostDisplayName}'s Strike Group**\nTheir Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**.\n**Communication Channel:** <#${vc.id}>.\n\n**Strike Leader:**\n<@${host.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\nYou are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------`;
-        await departureChannel.send({ content: client.battalionStrikeMode ? strikeContent : defaultContent }).catch(() => null);
+        await departureChannel.send({ content: strikeMode ? strikeContent : defaultContent }).catch(() => null);
 
         // remove the players from the queue
         for (const player of selectedPlayers) {
@@ -172,13 +160,6 @@ async function startQueuedGameImpl(deploymentInterval: Duration) {
 
         // remove the host from the queue
         await Queue.delete({ user: host.user });
-
-        // Mark that a deployment was created
-        deploymentCreated = true;
-
-        // edit the queue message
-        await updateQueueMessages(false, nextDeploymentTime, deploymentCreated);
-        success(`Queue messages updated for next deployment at ${new Date(nextDeploymentTime).toLocaleTimeString()}`, 'Queue System');
 
         // Fetch all player members to get their nicknames
         const playerMembers = await Promise.all(selectedPlayers.map(p => departureChannel.guild.members.fetch(p.user).catch(() => null)));
@@ -191,24 +172,5 @@ async function startQueuedGameImpl(deploymentInterval: Duration) {
         });
         success(`Successfully created deployment for ${hostDisplayName}`, 'Queue System');
     }
-}
-
-export async function startQueuedGame(deploymentInterval: Duration) {
-    try {
-        await startQueuedGameImpl(deploymentInterval);
-    } catch (e: any) {
-        await sendErrorToLogChannel(e, client);
-    }
-}
-
-let startQueuedGameInterval: NodeJS.Timer = null;
-
-export function registerStartQueuedGameInterval(deploymentInterval: Duration) {
-    if (startQueuedGameInterval != null) {
-        clearInterval(startQueuedGameInterval);
-    }
-
-    startQueuedGameInterval = setInterval(() => {
-        startQueuedGame(deploymentInterval);
-    }, deploymentInterval.toMillis()).unref();
+    return true;
 }

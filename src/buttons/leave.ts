@@ -1,10 +1,9 @@
 import Button from "../classes/Button.js";
-import { client } from "../custom_client.js";
 import Queue from "../tables/Queue.js";
-import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
-import updateQueueMessages from "../utils/updateQueueMessage.js";
+import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import {logQueueAction} from "../utils/queueLogger.js";
 import config from "../config.js";
+import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
 export default new Button({
     id: "leave",
@@ -100,7 +99,7 @@ export default new Button({
                 console.error("Failed to edit receipt message:", error);
             }
 
-            await updateQueueMessages(true, client.nextGame.getTime(), false);
+            await HotDropQueue.getHotDropQueue().updateMessage(/*notEnoughPlayers=*/true, /*deploymentCreated=*/false);
 
         } catch (error) {
             console.error('Error in leave button:', error);

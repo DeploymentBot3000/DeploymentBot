@@ -1,10 +1,9 @@
 import Button from "../classes/Button.js";
-import { client } from "../custom_client.js";
 import Queue from "../tables/Queue.js";
 import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
-import updateQueueMessages from "../utils/updateQueueMessage.js";
 import {logQueueAction} from "../utils/queueLogger.js";
+import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
 export default new Button({
     id: "host",
@@ -26,7 +25,7 @@ export default new Button({
             return;
         }
 
-        if (hostsInQueue.length >= config.queueMaxes.hosts && !client.battalionStrikeMode) {
+        if (hostsInQueue.length >= config.queueMaxes.hosts && !HotDropQueue.getHotDropQueue().strikeModeEnabled) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("The hosts queue is currently full!");
 
@@ -88,7 +87,7 @@ export default new Button({
                 userId: interaction.user.id
             });
 
-            await updateQueueMessages(true, client.nextGame.getTime(), false);
+            await HotDropQueue.getHotDropQueue().updateMessage(/*notEnoughPlayers=*/true, /*deploymentCreated=*/false);
         } catch (error) {
             console.error('Error in host button:', error);
             const errorEmbed = buildEmbed({ preset: "error" })

@@ -1,7 +1,7 @@
 import {GuildTextBasedChannel} from "discord.js";
 import Queue from "../../tables/Queue.js";
-import { client } from "../../custom_client.js";
 import HackedEmbedBuilder from "../../classes/HackedEmbedBuilder.js";
+import { HotDropQueue } from "../hot_drop_queue.js";
 
 interface Field {
     name: string,
@@ -13,7 +13,7 @@ async function getFields(channel: GuildTextBasedChannel, currentQueue: Queue[]):
     const currentHosts = currentQueue.filter(q => q.host);
     const currentPlayers = currentQueue.filter(q => !q.host);
 
-    if (client.battalionStrikeMode)
+    if (HotDropQueue.getHotDropQueue().strikeModeEnabled)
         return [
             {
                 name: '**Hosts:**',
@@ -92,7 +92,7 @@ export default async function buildQueueEmbed(notEnoughPlayers: boolean = false,
     }
 
     const embed = new HackedEmbedBuilder()
-        .setTitle(`🔥┃${ client.battalionStrikeMode ? 'Strike Queue' : 'Hot Drop Queue' }`)
+        .setTitle(`🔥┃${HotDropQueue.getHotDropQueue().strikeModeEnabled ? 'Strike Queue' : 'Hot Drop Queue'}`)
         .addFields(
             {
                 name: "",

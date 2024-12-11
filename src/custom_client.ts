@@ -4,8 +4,6 @@ import Cooldown from "./classes/Cooldown.js";
 // Define a new class that extends Client
 export class CustomClient extends Client {
     cooldowns: Collection<String, Cooldown> = new Collection();
-    battalionStrikeMode: boolean = false;
-    nextGame: Date;
 }
 
 // Initialize the extended client

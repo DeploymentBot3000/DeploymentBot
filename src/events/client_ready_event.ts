@@ -1,7 +1,6 @@
 import config from "../config.js";
 import colors from "colors";
 import { debug, error, log, success } from "../utils/logger.js";
-import { getDeploymentInterval } from "../utils/deployment_interval.js";
 import { client } from "../custom_client.js";
 import { REST } from '@discordjs/rest';
 import { Routes, Snowflake } from 'discord-api-types/v10';
@@ -9,7 +8,6 @@ import { EmbedBuilder, GuildTextBasedChannel, ChannelType } from 'discord.js';
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
-import { registerStartQueuedGameInterval, startQueuedGame } from "../utils/startQueuedGame.js";
 import { In, LessThanOrEqual } from 'typeorm';
 import { DateTime, Duration } from 'luxon';
 import cron from 'node-cron';
@@ -20,6 +18,7 @@ import discord_server_config from "../config/discord_server.js";
 import { sendEmbedToLogChannel } from "../utils/log_channel.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { getAllSlashCommands } from "../utils/slash_commands_registery.js";
+import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
 // Map from vc channel id to the last time it was seen empty.
 const lastSeenEmptyVcTime: Map<Snowflake, DateTime> = new Map();
@@ -158,13 +157,7 @@ export default {
 			await checkDeployments();
 			cron.schedule('* * * * *', checkDeployments);
 
-			const deploymentInterval = await getDeploymentInterval();
-			await startQueuedGame(deploymentInterval);
-			registerStartQueuedGameInterval(deploymentInterval);
-
-			if (!client.nextGame) {
-				client.nextGame = new Date(Date.now() + deploymentInterval.toMillis());
-			}
+			await HotDropQueue.initHotDropQueue(client);
 
 			// Scan every X minutes and delete channels that have also been empty on the previous scan.
 			const clearVcChannelsInterval = Duration.fromDurationLike({ 'minutes': discord_server_config.clear_vc_channels_every_minutes });

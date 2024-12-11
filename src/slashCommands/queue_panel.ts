@@ -1,10 +1,10 @@
 import Slashcommand from "../classes/Slashcommand.js";
 import {buildButton, buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
-import { client } from "../custom_client.js";
 import buildQueueEmbed from "../utils/embedBuilders/buildQueueEmbed.js";
 import {ActionRowBuilder, ButtonBuilder,} from "discord.js";
 import {action, error, log, success} from "../utils/logger.js";
+import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
 export default new Slashcommand({
     name: "queue-panel",
@@ -24,7 +24,7 @@ export default new Slashcommand({
         }
 
         try {
-            const embed = await buildQueueEmbed(true, client.nextGame.getTime(), false, interaction.channel);
+            const embed = await buildQueueEmbed(true, HotDropQueue.getHotDropQueue().nextGame.toMillis(), false, interaction.channel);
 
             const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
                 buildButton("host"),

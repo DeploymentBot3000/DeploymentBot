@@ -1,11 +1,9 @@
 import {ApplicationCommandOptionType} from "discord.js";
 import Slashcommand from "../classes/Slashcommand.js";
 import ms from "ms";
-import { setDeploymentInterval } from "../utils/deployment_interval.js";
-import { client } from "../custom_client.js";
-import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
-import updateQueueMessages from "../utils/updateQueueMessage.js";
+import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { Duration } from "luxon";
+import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
 function parseDeploymentTimeString(input: string) {
     const milis = ms(input);
@@ -50,16 +48,12 @@ export default new Slashcommand({
             return;
         }
 
-        await setDeploymentInterval(deploymentInterval);
+        await HotDropQueue.getHotDropQueue().setDeploymentTime(deploymentInterval);
 
         const successEmbed = buildEmbed({ preset: "success" })
             .setTitle("Deployment time set")
             .setDescription(`The deployment time has been set to ${deploymentInterval.toHuman()}`);
 
         await interaction.reply({ embeds: [successEmbed], ephemeral: true });
-
-        client.nextGame = new Date(Date.now() + deploymentInterval.toMillis());
-
-        await updateQueueMessages(true, client.nextGame.getTime(), false);
     }
 })
