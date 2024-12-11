@@ -1,4 +1,3 @@
-import colors from "colors";
 import { error, log } from "../utils/logger.js";
 import { CommandInteraction, GuildMember, InteractionType, PermissionsBitField } from "discord.js";
 import { client } from "../index.js";
