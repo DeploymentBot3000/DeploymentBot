@@ -1,5 +1,5 @@
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
-import {client} from "../index.js";
+import { client } from "../custom_client.js";
 import {GuildTextBasedChannel} from "discord.js";
 import buildQueueEmbed from "./embedBuilders/buildQueueEmbed.js";
 import {log} from "./logger.js";

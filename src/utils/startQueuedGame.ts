@@ -1,5 +1,5 @@
 import { CategoryChannel, ChannelType, Guild, GuildMember, GuildTextBasedChannel } from "discord.js";
-import { client } from "../index.js";
+import { client } from "../custom_client.js";
 import Queue from "../tables/Queue.js";
 import config from "../config.js";
 import updateQueueMessages from "./updateQueueMessage.js";

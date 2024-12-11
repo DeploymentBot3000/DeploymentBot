@@ -4,7 +4,7 @@ import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
 import {success} from "../utils/logger.js";
 import Deployment from "../tables/Deployment.js";
-import {client} from "../index.js"; // Import CommandInteraction type
+import { client } from "../custom_client.js"; // Import CommandInteraction type
 import * as emoji from 'node-emoji'
 
 export default {

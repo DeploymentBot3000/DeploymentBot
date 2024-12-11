@@ -1,6 +1,6 @@
 import { error, log } from "../utils/logger.js";
 import { CommandInteraction, GuildMember, InteractionType, PermissionsBitField } from "discord.js";
-import { client } from "../index.js";
+import { client } from "../custom_client.js";
 import Cooldown from "../classes/Cooldown.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import checkBlacklist from "../utils/interaction/checkBlacklist.js";

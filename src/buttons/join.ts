@@ -1,5 +1,5 @@
 import Button from "../classes/Button.js";
-import {client} from "../index.js";
+import { client } from "../custom_client.js";
 import Queue from "../tables/Queue.js";
 import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";

@@ -1,6 +1,6 @@
 import colors from "colors";
 import { error, log } from "../utils/logger.js";
-import { client } from "../index.js";
+import { client } from "../custom_client.js";
 import { ModalSubmitInteraction } from "discord.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 

@@ -1,5 +1,5 @@
 import { AutocompleteInteraction } from "discord.js";
-import { client } from "../index.js";
+import { client } from "../custom_client.js";
 
 export default {
     name: "interactionCreate",
