@@ -36,7 +36,6 @@ export default new Button({
 
         try {
             const joinTime = new Date();
-            client.queueJoinTimes.set(interaction.user.id, joinTime);
 
             // Send or update receipt message
             let receiptMessage;
