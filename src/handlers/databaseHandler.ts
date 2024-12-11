@@ -1,31 +1,21 @@
 import { DataSource, DataSourceOptions } from "typeorm";
-import { readdirSync } from "fs";
-import { fileURLToPath } from 'url';
-import { convertURLs } from "../utils/windowsUrlConvertor.js";
 import config from "../config.js";
-import path from "path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import Backups from "../tables/Backups.js";
+import Deployment from "../tables/Deployment.js";
+import LatestInput from "../tables/LatestInput.js";
+import Queue from "../tables/Queue.js";
+import QueueStatusMsg from "../tables/QueueStatusMsg.js";
+import Signups from "../tables/Signups.js";
 
-const entities = [];
 
-const dirs = path.resolve(__dirname, "../tables/");
-const tableFiles = readdirSync(dirs).filter(file => file.endsWith(".js") || file.endsWith(".ts"));
-for (const file of tableFiles) {
-    const windowsDirs = convertURLs(dirs);
-    const fileToImport = process.platform === "win32" ? `${windowsDirs}/${file}` : `${dirs}/${file}`;
-    const entity = await import(fileToImport);
-    entities.push(entity.default);
-}
-
-const AppDataSource = new DataSource({
+const dataSource = new DataSource({
     ...config.database as DataSourceOptions,
-    entities: Object.values(entities),
+    entities: Object.values([Backups, Deployment, LatestInput, Queue, QueueStatusMsg, Signups]),
     synchronize: config.synchronizeDatabase,
     dropSchema: config.resetDatabase
 });
 
-await AppDataSource.initialize().catch(console.error);
+await dataSource.initialize();
 
-export default AppDataSource;
+export default dataSource;
