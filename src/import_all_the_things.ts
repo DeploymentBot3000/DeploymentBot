@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from 'url';
-import { convertURLs } from "./utils/windowsUrlConvertor.js";
 import { CustomClient } from "./custom_client.js";
 import { log } from "./utils/logger.js";
 
@@ -37,8 +36,8 @@ async function register(client: CustomClient, dir: string) {
 		if (!(file.endsWith(".js") || file.endsWith(".ts"))) {
 			throw new Error(`Found invalid file: ${file} in directory: ${dir}`);
 		}
-		const fileToImport = process.platform === "win32" ? `${convertURLs(dir)}/${file}` : `${dir}/${file}`;
-		const interaction = (await import(fileToImport)).default;
+		const filePath = path.join(dir, file);
+		const interaction = (await import(filePath)).default;
 		if (!interaction) continue;
 		let identifier: string | undefined;
 		if (dir.endsWith("slashCommands")) identifier = interaction.name;
