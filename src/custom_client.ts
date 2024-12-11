@@ -1,7 +1,6 @@
 import { Client, Collection, GatewayIntentBits } from "discord.js";
 import SelectMenu from "./classes/SelectMenu.js";
 import Modal from "./classes/Modal.js";
-import Button from "./classes/Button.js";
 import Cooldown from "./classes/Cooldown.js";
 
 // Define a new class that extends Client
@@ -9,7 +8,6 @@ export class CustomClient extends Client {
     cooldowns: Collection<String, Cooldown> = new Collection();
     selectMenus: Collection<String, SelectMenu> = new Collection();
     modals: Collection<String, Modal> = new Collection();
-    buttons: Collection<String, Button> = new Collection();
     queueJoinTimes: Collection<String, Date> = new Collection<String, Date>();
     battalionStrikeMode: boolean = false;
     nextGame: Date;
