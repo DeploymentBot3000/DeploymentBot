@@ -10,7 +10,6 @@ import database from "./handlers/databaseHandler.js";
 // Type imports
 import gracefulShutdown from "./utils/gracefulShutdown.js";
 import { client } from "./custom_client.js";
-import { importAllTheThings } from "./import_all_the_things.js";
 
 //Add status when client is ready
 client.on('ready', () => {
@@ -21,7 +20,6 @@ if (database.isInitialized) {
     log('Successfully connected to the database', 'Startup');
 }
 
-await importAllTheThings(client);
 registerEventHandlers(client);
 
 // Catching all the errors
