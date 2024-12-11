@@ -1,7 +1,7 @@
 import Slashcommand from "../classes/Slashcommand.js";
 import {buildButton, buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
-import {client} from "../index.js";
+import { client } from "../custom_client.js";
 import buildQueueEmbed from "../utils/embedBuilders/buildQueueEmbed.js";
 import {ActionRowBuilder, ButtonBuilder,} from "discord.js";
 import {action, error, log, success} from "../utils/logger.js";

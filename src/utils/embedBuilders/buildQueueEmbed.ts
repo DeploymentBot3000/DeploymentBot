@@ -1,6 +1,6 @@
 import {GuildTextBasedChannel} from "discord.js";
 import Queue from "../../tables/Queue.js";
-import {client} from "../../index.js";
+import { client } from "../../custom_client.js";
 import HackedEmbedBuilder from "../../classes/HackedEmbedBuilder.js";
 
 interface Field {

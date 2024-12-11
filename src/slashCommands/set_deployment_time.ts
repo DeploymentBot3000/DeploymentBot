@@ -1,7 +1,8 @@
 import {ApplicationCommandOptionType} from "discord.js";
 import Slashcommand from "../classes/Slashcommand.js";
 import ms from "ms";
-import { client, setDeploymentInterval } from "../index.js";
+import { setDeploymentInterval } from "../utils/deployment_interval.js";
+import { client } from "../custom_client.js";
 import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
 import { Duration } from "luxon";

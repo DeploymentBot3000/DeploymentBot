@@ -1,4 +1,4 @@
-import { client } from "../index.js";
+import { client } from "../custom_client.js";
 import { buildQueueDeploymentEmbed, buildQueueEventEmbed, QueueDeploymentEmbedOptions, QueueEventEmbedOptions } from "../embeds/queueEvent.js";
 import { sendEmbedToLogChannel } from "./log_channel.js";
 import { error } from "./logger.js";
