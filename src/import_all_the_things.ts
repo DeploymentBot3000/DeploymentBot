@@ -8,7 +8,7 @@ import { log } from "./utils/logger.js";
  * @description Registers all the commands, context menus, buttons, modals and select menus
  */
 export async function importAllTheThings(client: CustomClient) {
-	const dirs = ["modals", "selectMenus"];
+	const dirs = ["selectMenus"];
 	for (const dir of dirs) {
 		await register(client, dir);
 	}
