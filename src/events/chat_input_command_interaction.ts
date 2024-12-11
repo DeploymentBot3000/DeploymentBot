@@ -7,6 +7,7 @@ import checkBlacklist from "../utils/interaction/checkBlacklist.js";
 import hasRequiredRoles from "../utils/interaction/hasRequiredRoles.js";
 import hasRequiredPermissions from "../utils/interaction/hasRequiredPermissions.js";
 import checkCooldowns from "../utils/interaction/checkCooldown.js";
+import { getSlashCommand } from "../utils/slash_commands_registery.js";
 
 export default {
 	name: "interactionCreate",
@@ -14,7 +15,7 @@ export default {
 		if (interaction.type !== InteractionType.ApplicationCommand) return;
 		if (!interaction.isChatInputCommand()) return;
 
-		const command = client.slashCommands.get(interaction.commandName);
+		const command = getSlashCommand(interaction.commandName);
 		if (!command) return;
 
 		if (await checkBlacklist(interaction, command.blacklistedRoles)) return;

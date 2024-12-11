@@ -8,7 +8,7 @@ import { log } from "./utils/logger.js";
  * @description Registers all the commands, context menus, buttons, modals and select menus
  */
 export async function importAllTheThings(client: CustomClient) {
-	const dirs = ["slashCommands", "buttons", "modals", "selectMenus"];
+	const dirs = ["buttons", "modals", "selectMenus"];
 	for (const dir of dirs) {
 		await register(client, dir);
 	}
@@ -39,9 +39,7 @@ async function register(client: CustomClient, dir: string) {
 		const filePath = path.join(dir, file);
 		const interaction = (await import(filePath)).default;
 		if (!interaction) continue;
-		let identifier: string | undefined;
-		if (dir.endsWith("slashCommands")) identifier = interaction.name;
-		else if (dir.endsWith("buttons") || dir.endsWith("modals") || dir.endsWith("selectMenus")) identifier = interaction.id;
+		const identifier = interaction.id;
 
 		if (!identifier) throw new Error(`No name or id found for ${dir}/${file}. Did I maybe mess up?`);
 		client[dirName].set(identifier, interaction);
