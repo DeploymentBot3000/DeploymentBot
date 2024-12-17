@@ -11,9 +11,9 @@ import hasRequiredRoles from "../utils/interaction/hasRequiredRoles.js";
 
 import deleteDeployment from "../buttons/deleteDeployment.js";
 import editDeployment from "../buttons/editDeployment.js";
-import host from "../buttons/host.js";
-import join from "../buttons/join.js";
-import leave from "../buttons/leave.js";
+import host from "../buttons/queue_host.js";
+import join from "../buttons/queue_join.js";
+import leave from "../buttons/queue_leave.js";
 import leaveDeployment from "../buttons/leaveDeployment.js";
 import newDeployment from "../buttons/newDeployment.js";
 import Button from "../classes/Button.js";

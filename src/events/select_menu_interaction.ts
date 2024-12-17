@@ -9,7 +9,7 @@ import hasRequiredRoles from "../utils/interaction/hasRequiredRoles.js";
 import hasRequiredPermissions from "../utils/interaction/hasRequiredPermissions.js";
 import checkCooldowns from "../utils/interaction/checkCooldown.js";
 import SelectMenu from "../classes/SelectMenu.js";
-import signup from "../selectMenus/signup.js";
+import signup from "../selectMenus/deployment_role_select.js";
 
 const _kSelectMenus: Map<string, SelectMenu> = new Map();
 
