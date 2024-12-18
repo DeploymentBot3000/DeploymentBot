@@ -1,7 +1,6 @@
 export default {
     guild_id: "1312898325074153543",
     roles: {
-        verified_role_id: "1312957075214696458",
         host_role_id: "1312955795989860542",
         blacklisted_role_ids: ["1312956640227496079"],
     },
