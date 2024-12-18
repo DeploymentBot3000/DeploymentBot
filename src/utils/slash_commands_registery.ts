@@ -1,5 +1,4 @@
 import Slashcommand from "../classes/Slashcommand.js";
-import bugreport from "../slashCommands/bugreport.js";
 import clear_queue from "../slashCommands/clear_queue.js";
 import panel from "../slashCommands/panel.js";
 import queue_panel from "../slashCommands/queue_panel.js";
@@ -9,7 +8,6 @@ import togglestrikemode from "../slashCommands/togglestrikemode.js";
 
 const _kCommands: Map<string, Slashcommand> = new Map();
 
-_kCommands.set(bugreport.name, bugreport);
 _kCommands.set(clear_queue.name, clear_queue);
 _kCommands.set(panel.name, panel);
 _kCommands.set(queue_panel.name, queue_panel);

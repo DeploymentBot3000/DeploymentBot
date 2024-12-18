@@ -21,7 +21,6 @@ export default {
     satus: { text: "/bugreport"},
     guildId: discord_server.guild_id,
 
-    verifiedRoleId: discord_server.roles.verified_role_id,
     hostRole: discord_server.roles.host_role_id,
     blacklistedRoles: discord_server.roles.blacklisted_role_ids,
     
@@ -118,15 +117,6 @@ export default {
             description: "You’ve survived this long, so what’s one more chaotic deployment? If you feel bold enough to lead another team into almost-certain disaster, click the button below to open the 'Create Deployment' modal. Remember, there's no backing out and make sure you come back in one piece!",
             color: "#00ffff"
         },
-        deploymentsCommand: {
-            title: {
-                default: "⚠️・Upcoming Deployments・⚠️",
-                noDeployments: "⛔┃No Upcoming Deployments"
-            },
-            footer: {
-                text: '505th "Resurgence" Regiment',
-            }
-        }
     },
     buttons: {
         newDeployment: {
