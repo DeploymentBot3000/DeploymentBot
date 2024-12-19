@@ -1,25 +1,14 @@
-// Package imports
 import config from "./config.js";
-import { log } from "./utils/logger.js";
-
-// Database
-import database from "./handlers/databaseHandler.js";
-
-// Type imports
 import { client } from "./custom_client.js";
-
-// Client ready event
-import ready from "./events/client_ready_event.js";
-
-// Discord Events
-import removeExpiredVoiceChannels from "./events/voice_state_update_event.js";
-
-// Discord Interactions
 import autocompleteInteraction from "./events/auto_complete_Interaction.js";
 import buttonInteraction from "./events/button_interaction.js";
 import interactionCreate from "./events/chat_input_command_interaction.js";
+import ready from "./events/client_ready_event.js";
 import modalSubmittionInteraction from "./events/modal_submit_interaction.js";
 import selectMenuInteraction from "./events/select_menu_interaction.js";
+import removeExpiredVoiceChannels from "./events/voice_state_update_event.js";
+import database from "./handlers/databaseHandler.js";
+import { log } from "./utils/logger.js";
 
 if (database.isInitialized) {
     log('Successfully connected to the database', 'Startup');
