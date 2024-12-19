@@ -10,11 +10,11 @@ export default new Slashcommand({
     blacklistedRoles: [],
     cooldown: 0,
     options: [],
-    callback: ({ interaction }) => {
+    callback: async ({ interaction }) => {
         HotDropQueue.getHotDropQueue().toggleStrikeMode();
         const successEmbed = buildEmbed({ preset: "success" })
             .setTitle("Strike Mode Toggle")
             .setDescription(`Strike mode ${HotDropQueue.getHotDropQueue().strikeModeEnabled ? "enabled" : "disabled"}!`);
-        interaction.reply({ embeds: [successEmbed], ephemeral: true });
+        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
     }}
 );
