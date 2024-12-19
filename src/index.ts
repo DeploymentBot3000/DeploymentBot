@@ -1,13 +1,12 @@
 // Package imports
 import config from "./config.js";
-import {error, log} from "./utils/logger.js";
+import { log } from "./utils/logger.js";
 import { ActivityType } from "discord.js";
 
 // Database
 import database from "./handlers/databaseHandler.js";
 
 // Type imports
-import gracefulShutdown from "./utils/gracefulShutdown.js";
 import { client } from "./custom_client.js";
 
 // Client ready event
@@ -43,13 +42,4 @@ client.on(selectMenuInteraction.name, selectMenuInteraction.function.bind(null))
 // Client Ready Event
 client.once(ready.name, ready.function);
 
-// Catching all the errors
-process.on("uncaughtException", config.debugMode ? console.error : error);
-process.on("unhandledRejection", config.debugMode ? console.error : error);
-process.on("SIGINT", () => gracefulShutdown("SIGINT"));
-process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-
-client.login(config.token).catch(error => {
-    console.error('Critical error during startup:', error);
-    process.exit(1);
-});
+client.login(config.token);
