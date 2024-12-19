@@ -28,7 +28,7 @@ export default {
 		const logStr = `${commandStr}; Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${nickname}(${interaction.user.displayName}/${interaction.user.username}/${interaction.user.id}); ID: ${interaction.id}`;
 		try {
 			log(`Running: ${logStr}`, 'Command');
-			command.callback({ interaction, options: interaction.options });
+			await command.callback({ interaction, options: interaction.options });
 			log(`Done: ${logStr}`, 'Command');
 		} catch (e) {
 			error(`Failed: ${logStr}`, 'Command');

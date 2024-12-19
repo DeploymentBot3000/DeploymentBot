@@ -34,7 +34,7 @@ export default class Slashcommand {
     public callback: (params: {
         interaction: ChatInputCommandInteraction;
         options: OmittedCommandInteractionOptionResolver
-    }) => void;
+    }) => Promise<void>;
     public autocomplete?: (params: {
         interaction: AutocompleteInteraction;
     }) => void;
@@ -42,7 +42,7 @@ export default class Slashcommand {
         name: string, description: string, permissions: PermissionsString[], requiredRoles: requiredRolesType, cooldown: number, options: ApplicationCommandOption[], blacklistedRoles: string[], callback: (params: {
         interaction: ChatInputCommandInteraction;
         options: OmittedCommandInteractionOptionResolver;
-    }) => void, autocomplete?: (params: {
+        }) => Promise<void>, autocomplete?: (params: {
         interaction: AutocompleteInteraction;
     }) => void
     }) {
