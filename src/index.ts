@@ -14,6 +14,8 @@ import LatestInput from "./tables/LatestInput.js";
 import Queue from "./tables/Queue.js";
 import QueueStatusMsg from "./tables/QueueStatusMsg.js";
 import Signups from "./tables/Signups.js";
+import { Interaction, VoiceState } from "discord.js";
+import { sendErrorToLogChannel } from "./utils/log_channel.js";
 
 await new DataSource({
     ...config.database as DataSourceOptions,
@@ -23,14 +25,27 @@ await new DataSource({
 }).initialize();
 
 // Client Events
-client.on(autocompleteInteraction.name, autocompleteInteraction.function.bind(null));
-client.on(buttonInteraction.name, buttonInteraction.function.bind(null));
-client.on(interactionCreate.name, interactionCreate.function.bind(null));
-client.on(modalSubmittionInteraction.name, modalSubmittionInteraction.function.bind(null));
-client.on(removeExpiredVoiceChannels.name, removeExpiredVoiceChannels.function.bind(null));
-client.on(selectMenuInteraction.name, selectMenuInteraction.function.bind(null));
+client.on(removeExpiredVoiceChannels.name, async (oldState: VoiceState, newState: VoiceState) => {
+    try {
+        await removeExpiredVoiceChannels.function(oldState, newState);
+    } catch (e: any) {
+        await sendErrorToLogChannel(e, client);
+    }
+});
 
-// Client Ready Event
-client.once(ready.name, ready.function);
+// Client Interactions
+async function handleEventWithErrorLog(callback: (interaction: Interaction) => Promise<void>, interaction: Interaction) {
+    try {
+        await callback(interaction);
+    } catch (e: any) {
+        await sendErrorToLogChannel(e, client);
+    }
+}
+client.on(autocompleteInteraction.name, handleEventWithErrorLog.bind(null, autocompleteInteraction.function));
+client.on(buttonInteraction.name, handleEventWithErrorLog.bind(null, buttonInteraction.function));
+client.on(interactionCreate.name, handleEventWithErrorLog.bind(null, interactionCreate.function));
+client.on(modalSubmittionInteraction.name, handleEventWithErrorLog.bind(null, modalSubmittionInteraction.function));
+client.on(selectMenuInteraction.name, handleEventWithErrorLog.bind(null, selectMenuInteraction.function));
 
-client.login(config.token); 
+// Log in bot
+client.once(ready.name, ready.function).login(config.token);

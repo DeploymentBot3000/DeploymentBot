@@ -1,5 +1,5 @@
 import { error, log } from "../utils/logger.js";
-import { CommandInteraction, GuildMember, InteractionType, PermissionsBitField } from "discord.js";
+import { Interaction, GuildMember, InteractionType, PermissionsBitField } from "discord.js";
 import { client } from "../custom_client.js";
 import Cooldown from "../classes/Cooldown.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
@@ -11,7 +11,7 @@ import { getSlashCommand } from "../utils/slash_commands_registery.js";
 
 export default {
 	name: "interactionCreate",
-	function: async function (interaction: CommandInteraction) {
+	function: async function (interaction: Interaction) {
 		if (interaction.type !== InteractionType.ApplicationCommand) return;
 		if (!interaction.isChatInputCommand()) return;
 

@@ -1,9 +1,9 @@
-import { AutocompleteInteraction } from "discord.js";
+import { Interaction } from "discord.js";
 import { getSlashCommand } from "../utils/slash_commands_registery.js";
 
 export default {
     name: "interactionCreate",
-    function: async function (interaction: AutocompleteInteraction) {
+    function: async function (interaction: Interaction) {
         if (!interaction.isAutocomplete()) return;
 
         const command = getSlashCommand(interaction.commandName);

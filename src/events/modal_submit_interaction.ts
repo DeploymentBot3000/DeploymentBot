@@ -1,5 +1,5 @@
 import colors from "colors";
-import { ModalSubmitInteraction } from "discord.js";
+import { Interaction } from "discord.js";
 import Modal from "../classes/Modal.js";
 import bugReport from "../modals/bugReport.js";
 import editDeployment from "../modals/editDeployment.js";
@@ -19,7 +19,7 @@ function getModalById(id: string) {
 
 export default {
     name: "interactionCreate",
-    function: async function (interaction: ModalSubmitInteraction) {
+    function: async function (interaction: Interaction) {
         if (!interaction.isModalSubmit()) return;
 
         const modal = getModalById(interaction.customId) || getModalById(interaction.customId.split("-")[0]);
