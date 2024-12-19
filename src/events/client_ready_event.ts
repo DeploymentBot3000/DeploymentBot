@@ -4,7 +4,7 @@ import { debug, error, log, success } from "../utils/logger.js";
 import { client } from "../custom_client.js";
 import { REST } from '@discordjs/rest';
 import { Routes, Snowflake } from 'discord-api-types/v10';
-import { EmbedBuilder, GuildTextBasedChannel, ChannelType } from 'discord.js';
+import { ActivityType, EmbedBuilder, GuildTextBasedChannel, ChannelType } from 'discord.js';
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
@@ -28,6 +28,8 @@ export default {
 	function: async function () {
 		try {
 			log(`Logged in as ${colors.red(client.user!.tag)}`, 'Startup');
+
+			client.user.setActivity(config.satus.text, { type: ActivityType.Watching });
 
 			const rest = new REST().setToken(config.token);
 

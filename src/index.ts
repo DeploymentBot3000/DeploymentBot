@@ -1,7 +1,6 @@
 // Package imports
 import config from "./config.js";
 import { log } from "./utils/logger.js";
-import { ActivityType } from "discord.js";
 
 // Database
 import database from "./handlers/databaseHandler.js";
@@ -21,11 +20,6 @@ import buttonInteraction from "./events/button_interaction.js";
 import interactionCreate from "./events/chat_input_command_interaction.js";
 import modalSubmittionInteraction from "./events/modal_submit_interaction.js";
 import selectMenuInteraction from "./events/select_menu_interaction.js";
-
-//Add status when client is ready
-client.on('ready', () => {
-   client.user?.setActivity(config.satus.text, { type: ActivityType.Watching });
-});
 
 if (database.isInitialized) {
     log('Successfully connected to the database', 'Startup');
