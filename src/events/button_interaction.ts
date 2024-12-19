@@ -1,7 +1,7 @@
 import colors from "colors";
 import { error, log } from "../utils/logger.js";
 import { client } from "../custom_client.js";
-import { ButtonInteraction } from "discord.js";
+import { Interaction } from "discord.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import Cooldown from "../classes/Cooldown.js";
 import checkBlacklist from "../utils/interaction/checkBlacklist.js";
@@ -34,7 +34,7 @@ function getButtonById(id: string): Button | undefined {
 
 export default {
 	name: "interactionCreate",
-	function: async function (interaction: ButtonInteraction) {
+	function: async function (interaction: Interaction) {
 		if (!interaction.isButton()) return;
 
 		const button = getButtonById(interaction.customId) || getButtonById(interaction.customId.split("-")[0]);
