@@ -12,7 +12,7 @@ async function readDeploymentInterval() {
 };
 
 async function writeDeploymentInterval(deploymentInterval: Duration) {
-    await fs.writeFile("../deploymentTime.txt", deploymentInterval.toMillis().toString(), "utf-8");
+    await fs.writeFile("./deploymentTime.txt", deploymentInterval.toMillis().toString(), "utf-8");
 };
 
 async function _updateHotDropEmbed(client: Client, notEnoughPlayers: boolean, nextDeploymentTime: DateTime, deploymentCreated: boolean) {
