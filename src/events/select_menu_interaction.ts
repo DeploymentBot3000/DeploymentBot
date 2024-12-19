@@ -21,7 +21,7 @@ function getSelectMenuById(id: string) {
 
 export default {
     name: "interactionCreate",
-    function: async function (interaction: Interaction) {
+    callback: async function (interaction: Interaction) {
         if (!interaction.isAnySelectMenu()) return;
 
         const selectMenu = getSelectMenuById(interaction.customId) || getSelectMenuById(interaction.customId.split("-")[0]);
@@ -34,7 +34,7 @@ export default {
 
         try {
             log(`[Select Menu Clicked] ${interaction.customId} ${colors.blue("||")} Author: ${interaction.user.username} ${colors.blue("||")} ID: ${interaction.user.id} ${colors.blue("||")} Server: ${interaction.guild?.name || "DM"}`);
-            selectMenu.function({ interaction });
+            selectMenu.callback({ interaction });
         } catch (e) {
             error(`[Select Menu Error] ${interaction.customId} ${colors.blue("||")} Author: ${interaction.user.username} ${colors.blue("||")} ID: ${interaction.user.id} ${colors.blue("||")} Server: ${interaction.guild?.name || "DM"} ${colors.red("||")} ${e}`);
             error(e);

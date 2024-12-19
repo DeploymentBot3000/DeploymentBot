@@ -50,7 +50,7 @@ async function reportFailedInteractionToUser(interaction: ModalSubmitInteraction
 
 export default new Modal({
     id: "newDeployment",
-    func: async function({ interaction }) {
+    callback: async function ({ interaction }) {
         action(`User ${interaction.user.tag} creating new deployment`, "NewDeployment");
         
         let title = interaction.fields.getTextInputValue("title");

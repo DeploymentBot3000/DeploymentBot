@@ -12,7 +12,7 @@ export default new Button({
     permissions: [],
     requiredRoles: [],
     blacklistedRoles: [...config.blacklistedRoles],
-    func: async function({ interaction }) {
+    callback: async function ({ interaction }) {
         try {
             // Fetch the member to ensure they still exist in the guild
             const member = await interaction.guild.members.fetch(interaction.user.id).catch(() => null);

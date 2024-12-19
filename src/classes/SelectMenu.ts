@@ -24,10 +24,11 @@ export default class SelectMenu {
      */
     public requiredRoles?: requiredRolesType;
     public blacklistedRoles?: string[];
-    public function: (params: {
+    public callback: (params: {
         interaction: AnySelectMenuInteraction;
     }) => void;
-    public constructor({ id, cooldown, permissions, requiredRoles, blacklistedRoles, func }: { id: string, cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], func: (params: {
+    public constructor({ id, cooldown, permissions, requiredRoles, blacklistedRoles, callback }: {
+        id: string, cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], callback: (params: {
         interaction: AnySelectMenuInteraction;
     }) => void }) {
         this.id = id;
@@ -35,6 +36,6 @@ export default class SelectMenu {
         this.permissions = permissions;
         this.requiredRoles = requiredRoles;
         this.blacklistedRoles = blacklistedRoles;
-        this.function = func;
+        this.callback = callback;
     }
 }

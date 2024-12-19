@@ -3,7 +3,7 @@ import { getSlashCommand } from "../utils/slash_commands_registery.js";
 
 export default {
     name: "interactionCreate",
-    function: async function (interaction: Interaction) {
+    callback: async function (interaction: Interaction) {
         if (!interaction.isAutocomplete()) return;
 
         const command = getSlashCommand(interaction.commandName);

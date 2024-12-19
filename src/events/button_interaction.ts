@@ -34,7 +34,7 @@ function getButtonById(id: string): Button | undefined {
 
 export default {
 	name: "interactionCreate",
-	function: async function (interaction: Interaction) {
+	callback: async function (interaction: Interaction) {
 		if (!interaction.isButton()) return;
 
 		const button = getButtonById(interaction.customId) || getButtonById(interaction.customId.split("-")[0]);
@@ -47,7 +47,7 @@ export default {
 
 		try {
 			log(`${colors.cyan('[Button Clicked]')} ${colors.yellow(interaction.customId)} ${colors.blue('||')} ${colors.green('Author:')} ${colors.magenta(interaction.user.username)}`);
-			button.function({ interaction });
+			button.callback({ interaction });
 		} catch (e) {
 			error(`${colors.red('[Button Error]')} ${colors.yellow(interaction.customId)} ${colors.blue('||')} ${colors.green('Author:')} ${colors.magenta(interaction.user.username)} ${colors.red('||')} ${e}`);
 			error(e);

@@ -9,7 +9,7 @@ import { requiredRolesType } from "./Slashcommand.js";
  * @param {number} cooldown The cooldown of the button
  * @param {PermissionsString[]} permissions The permissions required to run the button
  * @param {requiredRolesType} requiredRoles The roles required to run the button
- * @param {function} func The function to run when the button is used
+ * @param {function} callback The function to run when the button is used
  */
 export default class ContextMenu { 
     public name: string; 
@@ -26,10 +26,11 @@ export default class ContextMenu {
      */
     public requiredRoles?: requiredRolesType;
     public blacklistedRoles?: string[];
-    public function: (params: {
+    public callback: (params: {
         interaction: ContextMenuCommandInteraction;
     }) => void;
-    public constructor({ name, type, cooldown, permissions, requiredRoles, blacklistedRoles, func }: { name: string, type: ApplicationCommandType, cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], func: (params: {
+    public constructor({ name, type, cooldown, permissions, requiredRoles, blacklistedRoles, callback }: {
+        name: string, type: ApplicationCommandType, cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], callback: (params: {
         interaction: ContextMenuCommandInteraction;
     }) => void }) {
         this.name = name;
@@ -38,6 +39,6 @@ export default class ContextMenu {
         this.permissions = permissions;
         this.requiredRoles = requiredRoles;
         this.blacklistedRoles = blacklistedRoles;
-        this.function = func;
+        this.callback = callback;
     }
 }

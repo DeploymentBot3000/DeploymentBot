@@ -12,7 +12,7 @@ export default new Slashcommand({
     blacklistedRoles: [],
     cooldown: 0,
     options: [],
-    func: async function({ interaction }) {
+    callback: async function ({ interaction }) {
         action(`${interaction.user.tag} clearing queue`, "QueueClear");
         
         await Queue.clear();

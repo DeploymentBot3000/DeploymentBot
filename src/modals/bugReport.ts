@@ -5,7 +5,7 @@ import {action, error, success, warn} from "../utils/logger.js"; // Import Comma
 
 export default {
     id: "bugReport",
-    function: async function ({ interaction }) {
+    callback: async function ({ interaction }) {
         try {
             action(`${interaction.user.tag} initiated bug report`, "BugReport");
 

@@ -31,14 +31,15 @@ export default class Slashcommand {
     public blacklistedRoles?: string[];
     public cooldown?: number;
     public options: ApplicationCommandOption[];
-    public function: (params: {
+    public callback: (params: {
         interaction: ChatInputCommandInteraction;
         options: OmittedCommandInteractionOptionResolver
     }) => void;
     public autocomplete?: (params: {
         interaction: AutocompleteInteraction;
     }) => void;
-    public constructor({ name, description, permissions, requiredRoles, blacklistedRoles, cooldown, options, func, autocomplete }: { name: string, description: string, permissions: PermissionsString[], requiredRoles: requiredRolesType, cooldown: number, options: ApplicationCommandOption[], blacklistedRoles: string[], func: (params: {
+    public constructor({ name, description, permissions, requiredRoles, blacklistedRoles, cooldown, options, callback, autocomplete }: {
+        name: string, description: string, permissions: PermissionsString[], requiredRoles: requiredRolesType, cooldown: number, options: ApplicationCommandOption[], blacklistedRoles: string[], callback: (params: {
         interaction: ChatInputCommandInteraction;
         options: OmittedCommandInteractionOptionResolver;
     }) => void, autocomplete?: (params: {
@@ -52,7 +53,7 @@ export default class Slashcommand {
         this.blacklistedRoles = blacklistedRoles;
         this.cooldown = cooldown;
         this.options = options;
-        this.function = func;
+        this.callback = callback;
         this.autocomplete = autocomplete;
     }
 }

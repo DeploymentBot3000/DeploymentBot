@@ -9,7 +9,7 @@ import * as emoji from 'node-emoji'
 
 export default {
     id: "editDeployment",
-    function: async function ({ interaction }) {
+    callback: async function ({ interaction }) {
         const deployment = await Deployment.findOne({ where: { id: interaction.customId.split("-")[1] } });
         if (!deployment) {
             return;

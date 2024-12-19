@@ -11,7 +11,7 @@ import { getSlashCommand } from "../utils/slash_commands_registery.js";
 
 export default {
 	name: "interactionCreate",
-	function: async function (interaction: Interaction) {
+	callback: async function (interaction: Interaction) {
 		if (interaction.type !== InteractionType.ApplicationCommand) return;
 		if (!interaction.isChatInputCommand()) return;
 
@@ -28,7 +28,7 @@ export default {
 		const logStr = `${commandStr}; Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${nickname}(${interaction.user.displayName}/${interaction.user.username}/${interaction.user.id}); ID: ${interaction.id}`;
 		try {
 			log(`Running: ${logStr}`, 'Command');
-			command.function({ interaction, options: interaction.options });
+			command.callback({ interaction, options: interaction.options });
 			log(`Done: ${logStr}`, 'Command');
 		} catch (e) {
 			error(`Failed: ${logStr}`, 'Command');

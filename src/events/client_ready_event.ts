@@ -25,7 +25,7 @@ const lastSeenEmptyVcTime: Map<Snowflake, DateTime> = new Map();
 
 export default {
 	name: "ready",
-	function: async function () {
+	callback: async function () {
 		try {
 			log(`Logged in as ${colors.red(client.user!.tag)}`, 'Startup');
 

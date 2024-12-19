@@ -27,7 +27,7 @@ await new DataSource({
 // Client Events
 client.on(removeExpiredVoiceChannels.name, async (oldState: VoiceState, newState: VoiceState) => {
     try {
-        await removeExpiredVoiceChannels.function(oldState, newState);
+        await removeExpiredVoiceChannels.callback(oldState, newState);
     } catch (e: any) {
         await sendErrorToLogChannel(e, client);
     }
@@ -41,11 +41,12 @@ async function handleEventWithErrorLog(callback: (interaction: Interaction) => P
         await sendErrorToLogChannel(e, client);
     }
 }
-client.on(autocompleteInteraction.name, handleEventWithErrorLog.bind(null, autocompleteInteraction.function));
-client.on(buttonInteraction.name, handleEventWithErrorLog.bind(null, buttonInteraction.function));
-client.on(chatInputCommandInteraction.name, handleEventWithErrorLog.bind(null, chatInputCommandInteraction.function));
-client.on(modalSubmittionInteraction.name, handleEventWithErrorLog.bind(null, modalSubmittionInteraction.function));
-client.on(selectMenuInteraction.name, handleEventWithErrorLog.bind(null, selectMenuInteraction.function));
+
+client.on(autocompleteInteraction.name, handleEventWithErrorLog.bind(null, autocompleteInteraction.callback));
+client.on(buttonInteraction.name, handleEventWithErrorLog.bind(null, buttonInteraction.callback));
+client.on(chatInputCommandInteraction.name, handleEventWithErrorLog.bind(null, chatInputCommandInteraction.callback));
+client.on(modalSubmittionInteraction.name, handleEventWithErrorLog.bind(null, modalSubmittionInteraction.callback));
+client.on(selectMenuInteraction.name, handleEventWithErrorLog.bind(null, selectMenuInteraction.callback));
 
 // Log in bot
-client.once(ready.name, ready.function).login(config.token);
+client.once(ready.name, ready.callback).login(config.token);

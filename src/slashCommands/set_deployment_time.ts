@@ -36,7 +36,7 @@ export default new Slashcommand({
             required: true
         }
     ],
-    func: async function({ interaction }) {
+    callback: async function ({ interaction }) {
         const deploymentInterval = parseDeploymentTimeString(interaction.options.getString("time"));
 
         if (deploymentInterval instanceof Error) {

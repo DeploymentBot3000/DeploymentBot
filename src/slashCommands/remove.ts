@@ -54,7 +54,7 @@ export default new Slashcommand({
             }))
         );
     },
-    func: async function({ interaction }) {
+    callback: async function ({ interaction }) {
         const member = interaction.member as GuildMember;
         const targetUser = interaction.options.getUser("user");
         const deploymentTitle = interaction.options.getString("deployment");

@@ -11,7 +11,7 @@ export default new Button({
     permissions: [],
     requiredRoles: [{ role: config.hostRole, required: true }],
     blacklistedRoles: [...config.blacklistedRoles],
-    func: async function({ interaction }) {
+    callback: async function ({ interaction }) {
         await interaction.deferUpdate();
 
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });

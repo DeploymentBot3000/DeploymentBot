@@ -24,10 +24,11 @@ export default class Button {
      */
     public requiredRoles?: requiredRolesType;
     public blacklistedRoles?: string[];
-    public function: (params: {
+    public callback: (params: {
         interaction: ButtonInteraction;
     }) => void;
-    public constructor({ id, cooldown, permissions, requiredRoles, blacklistedRoles, func }: { id: string, cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], func: (params: {
+    public constructor({ id, cooldown, permissions, requiredRoles, blacklistedRoles, callback }: {
+        id: string, cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], callback: (params: {
         interaction: ButtonInteraction;
     }) => void }) {
         this.id = id;
@@ -35,6 +36,6 @@ export default class Button {
         this.permissions = permissions;
         this.requiredRoles = requiredRoles;
         this.blacklistedRoles = blacklistedRoles;
-        this.function = func;
+        this.callback = callback;
     }
 }

@@ -10,7 +10,7 @@ export default new Slashcommand({
     blacklistedRoles: [],
     cooldown: 0,
     options: [],
-    func: ({ interaction }) => {
+    callback: ({ interaction }) => {
         HotDropQueue.getHotDropQueue().toggleStrikeMode();
         const successEmbed = buildEmbed({ preset: "success" })
             .setTitle("Strike Mode Toggle")
