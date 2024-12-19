@@ -19,7 +19,7 @@ function getModalById(id: string) {
 
 export default {
     name: "interactionCreate",
-    function: async function (interaction: Interaction) {
+    callback: async function (interaction: Interaction) {
         if (!interaction.isModalSubmit()) return;
 
         const modal = getModalById(interaction.customId) || getModalById(interaction.customId.split("-")[0]);
@@ -38,6 +38,6 @@ export default {
             return;
         }
 
-        modal.function({ interaction });
+        modal.callback({ interaction });
     },
 } as any;

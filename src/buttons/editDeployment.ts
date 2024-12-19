@@ -19,7 +19,7 @@ export default new Button({
     permissions: [],
     requiredRoles: [],
     blacklistedRoles: [...config.blacklistedRoles],
-    func: async function({ interaction }) {
+    callback: async function ({ interaction }) {
         action(`User ${interaction.user.tag} attempting to edit deployment`, "EditDeployment");
         
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });

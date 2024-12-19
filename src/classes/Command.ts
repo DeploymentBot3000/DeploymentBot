@@ -28,11 +28,12 @@ export default class Command {
      */
     public requiredRoles?: requiredRolesType;
     public blacklistedRoles?: string[];
-    public function: (params: {
+    public callback: (params: {
         message: Message;
         args: string[];
     }) => void;
-    public constructor({ name, description, aliases, cooldown, permissions, requiredRoles, blacklistedRoles, func }: { name: string, description: string, aliases: string[], cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], func: (params: {
+    public constructor({ name, description, aliases, cooldown, permissions, requiredRoles, blacklistedRoles, callback }: {
+        name: string, description: string, aliases: string[], cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], callback: (params: {
         message: Message;
         args: string[];
     }) => void }) {
@@ -43,6 +44,6 @@ export default class Command {
         this.permissions = permissions;
         this.requiredRoles = requiredRoles;
         this.blacklistedRoles = blacklistedRoles;
-        this.function = func;
+        this.callback = callback;
     }
 }

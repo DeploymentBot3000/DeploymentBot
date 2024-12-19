@@ -9,7 +9,7 @@ export default new Button({
     permissions: [],
     requiredRoles: [{ role: config.hostRole, required: true }],
     blacklistedRoles: [...config.blacklistedRoles],
-    func: async function({ interaction }) {
+    callback: async function ({ interaction }) {
         const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
 
         const modal = new ModalBuilder().setTitle("New Deployment").setCustomId("newDeployment").addComponents(

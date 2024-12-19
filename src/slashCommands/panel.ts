@@ -10,7 +10,7 @@ export default new Slashcommand({
     requiredRoles: [],
     blacklistedRoles: [],
     options: [],
-    func: async function({ interaction }) {
+    callback: async function ({ interaction }) {
         const embed = buildEmbed({ name: "panel" });
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
             buildButton("newDeployment")

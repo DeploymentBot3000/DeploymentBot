@@ -4,17 +4,18 @@ import { ModalSubmitInteraction } from "discord.js";
  * @class Modal
  * @description A class that represents a modal
  * @param {string} id The id of the modal
- * @param {function} func The function to run when the modal is submitted
+ * @param {function} callback The function to run when the modal is submitted
  */
 export default class Modal {
     public id: string;
-    public function: (params: {
+    public callback: (params: {
         interaction: ModalSubmitInteraction;
     }) => void;
-    public constructor({ id, func }: { id: string, func: (params: {
+    public constructor({ id, callback }: {
+        id: string, callback: (params: {
         interaction: ModalSubmitInteraction;
     }) => void }) {
         this.id = id;
-        this.function = func;
+        this.callback = callback;
     }
 }

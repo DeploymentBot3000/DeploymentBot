@@ -11,7 +11,7 @@ export default new Button({
     permissions: [],
     requiredRoles: [],
     blacklistedRoles: [...config.blacklistedRoles],
-    func: async function ({ interaction }) {
+    callback: async function ({ interaction }) {
         try {
             const member = await interaction.guild?.members.fetch(interaction.user.id).catch(() => null);
             if (!member) {

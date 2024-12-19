@@ -14,7 +14,7 @@ export default new Slashcommand({
     requiredRoles: [],
     blacklistedRoles: [],
     options: [],
-    func: async function({ interaction }) {
+    callback: async function ({ interaction }) {
         action(`${interaction.user.tag} creating queue panel`, "QueuePanel");
 
         if (!interaction.memberPermissions.has("ManageRoles")) {

@@ -40,7 +40,7 @@ export default new Button({
     permissions: [],
     requiredRoles: [],
     blacklistedRoles: [...config.blacklistedRoles],
-    func: async function ({ interaction }) {
+    callback: async function ({ interaction }) {
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
 
         if (!deployment) {
