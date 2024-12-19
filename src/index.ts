@@ -3,7 +3,7 @@ import config from "./config.js";
 import { client } from "./custom_client.js";
 import autocompleteInteraction from "./events/auto_complete_Interaction.js";
 import buttonInteraction from "./events/button_interaction.js";
-import interactionCreate from "./events/chat_input_command_interaction.js";
+import chatInputCommandInteraction from "./events/chat_input_command_interaction.js";
 import ready from "./events/client_ready_event.js";
 import modalSubmittionInteraction from "./events/modal_submit_interaction.js";
 import selectMenuInteraction from "./events/select_menu_interaction.js";
@@ -43,7 +43,7 @@ async function handleEventWithErrorLog(callback: (interaction: Interaction) => P
 }
 client.on(autocompleteInteraction.name, handleEventWithErrorLog.bind(null, autocompleteInteraction.function));
 client.on(buttonInteraction.name, handleEventWithErrorLog.bind(null, buttonInteraction.function));
-client.on(interactionCreate.name, handleEventWithErrorLog.bind(null, interactionCreate.function));
+client.on(chatInputCommandInteraction.name, handleEventWithErrorLog.bind(null, chatInputCommandInteraction.function));
 client.on(modalSubmittionInteraction.name, handleEventWithErrorLog.bind(null, modalSubmittionInteraction.function));
 client.on(selectMenuInteraction.name, handleEventWithErrorLog.bind(null, selectMenuInteraction.function));
 
