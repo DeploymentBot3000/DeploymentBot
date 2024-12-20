@@ -4,7 +4,7 @@ import { debug, error, log, success } from "../utils/logger.js";
 import { client } from "../custom_client.js";
 import { REST } from '@discordjs/rest';
 import { Routes, Snowflake } from 'discord-api-types/v10';
-import { ActivityType, EmbedBuilder, GuildTextBasedChannel, ChannelType } from 'discord.js';
+import { EmbedBuilder, GuildTextBasedChannel, ChannelType } from 'discord.js';
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
@@ -19,6 +19,7 @@ import { sendEmbedToLogChannel } from "../utils/log_channel.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { getAllSlashCommands } from "../utils/slash_commands_registery.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
+import { setWakingUpActivity, startActivityInterval } from "../utils/bot_activity.js";
 
 // Map from vc channel id to the last time it was seen empty.
 const lastSeenEmptyVcTime: Map<Snowflake, DateTime> = new Map();
@@ -29,7 +30,7 @@ export default {
 		try {
 			log(`Logged in as ${colors.red(client.user!.tag)}`, 'Startup');
 
-			client.user.setActivity(config.satus.text, { type: ActivityType.Watching });
+			setWakingUpActivity(client);
 
 			const rest = new REST().setToken(config.token);
 
@@ -222,6 +223,8 @@ export default {
 			sendEmbedToLogChannel(buildEmbed({ preset: "success" })
 				.setColor('#FFA500')  // Orange
 				.setTitle("Bot Startup Complete!"), client);
+
+			startActivityInterval(client);
 
 			success(`Bot startup complete`, "Startup");
 		} catch (e) {
