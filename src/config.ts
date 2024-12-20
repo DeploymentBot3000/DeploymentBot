@@ -18,7 +18,6 @@ export default {
         database: secrets.db_name,
         extra: { charset: "utf8mb4_unicode_ci" }
     },
-    satus: { text: "/bugreport"},
     guildId: discord_server.guild_id,
 
     hostRole: discord_server.roles.host_role_id,
