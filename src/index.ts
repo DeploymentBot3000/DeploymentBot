@@ -48,5 +48,12 @@ client.on(chatInputCommandInteraction.name, handleEventWithErrorLog.bind(null, c
 client.on(modalSubmittionInteraction.name, handleEventWithErrorLog.bind(null, modalSubmittionInteraction.callback));
 client.on(selectMenuInteraction.name, handleEventWithErrorLog.bind(null, selectMenuInteraction.callback));
 
+process.on('uncaughtException', async (e: Error) => {
+    await sendErrorToLogChannel(e, client);
+    await sendErrorToLogChannel(new Error('🚨🚨🚨 Uncaught Exception, exiting process! 🚨🚨🚨'), client);
+    await client.destroy();
+    process.exit(1);
+});
+
 // Log in bot
 client.once(ready.name, ready.callback).login(config.token);
