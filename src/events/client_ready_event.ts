@@ -1,7 +1,6 @@
 import config from "../config.js";
 import colors from "colors";
 import { debug, error, log, success } from "../utils/logger.js";
-import { client } from "../custom_client.js";
 import { REST } from '@discordjs/rest';
 import { Routes, Snowflake } from 'discord-api-types/v10';
 import { EmbedBuilder, GuildTextBasedChannel, ChannelType } from 'discord.js';
@@ -20,12 +19,12 @@ import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { getAllSlashCommands } from "../utils/slash_commands_registery.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { setWakingUpActivity, startActivityInterval } from "../utils/bot_activity.js";
+import { client } from "../custom_client.js";
 
 // Map from vc channel id to the last time it was seen empty.
 const lastSeenEmptyVcTime: Map<Snowflake, DateTime> = new Map();
 
 export default {
-	name: "ready",
 	callback: async function () {
 		try {
 			log(`Logged in as ${colors.red(client.user!.tag)}`, 'Startup');

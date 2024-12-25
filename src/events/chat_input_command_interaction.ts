@@ -1,5 +1,5 @@
 import { error, log } from "../utils/logger.js";
-import { Interaction, GuildMember, InteractionType, PermissionsBitField } from "discord.js";
+import { GuildMember, PermissionsBitField, ChatInputCommandInteraction } from "discord.js";
 import { client } from "../custom_client.js";
 import Cooldown from "../classes/Cooldown.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
@@ -10,13 +10,8 @@ import checkCooldowns from "../utils/interaction/checkCooldown.js";
 import { getSlashCommand } from "../utils/slash_commands_registery.js";
 
 export default {
-	name: "interactionCreate",
-	callback: async function (interaction: Interaction) {
-		if (interaction.type !== InteractionType.ApplicationCommand) return;
-		if (!interaction.isChatInputCommand()) return;
-
+	callback: async function (interaction: ChatInputCommandInteraction) {
 		const command = getSlashCommand(interaction.commandName);
-		if (!command) return;
 
 		if (await checkBlacklist(interaction, command.blacklistedRoles)) return;
 		if (!(await hasRequiredRoles(interaction, command.requiredRoles))) return;
@@ -46,4 +41,4 @@ export default {
 			}
 		}
 	},
-};
+}

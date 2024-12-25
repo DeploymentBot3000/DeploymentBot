@@ -1,7 +1,7 @@
 import colors from "colors";
 import { error, log } from "../utils/logger.js";
 import { client } from "../custom_client.js";
-import { Interaction } from "discord.js";
+import { ButtonInteraction } from "discord.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import Cooldown from "../classes/Cooldown.js";
 import checkBlacklist from "../utils/interaction/checkBlacklist.js";
@@ -33,12 +33,11 @@ function getButtonById(id: string): Button | undefined {
 }
 
 export default {
-	name: "interactionCreate",
-	callback: async function (interaction: Interaction) {
-		if (!interaction.isButton()) return;
-
+	callback: async function (interaction: ButtonInteraction) {
 		const button = getButtonById(interaction.customId) || getButtonById(interaction.customId.split("-")[0]);
-		if (!button) return;
+		if (!button) {
+			throw new Error(`Button: ${interaction.customId} not found!`);
+		}
 
 		if (await checkBlacklist(interaction, button.blacklistedRoles)) return;
 		if (!(await hasRequiredRoles(interaction, button.requiredRoles))) return;
@@ -62,4 +61,4 @@ export default {
 			client.cooldowns.set(`${interaction.user.id}-${button.id}`, new Cooldown(`${interaction.user.id}-${button.id}`, button.cooldown));
 		}
 	},
-};
+}

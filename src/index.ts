@@ -14,7 +14,7 @@ import LatestInput from "./tables/LatestInput.js";
 import Queue from "./tables/Queue.js";
 import QueueStatusMsg from "./tables/QueueStatusMsg.js";
 import Signups from "./tables/Signups.js";
-import { Interaction, VoiceState } from "discord.js";
+import { Events, Interaction, VoiceState } from "discord.js";
 import { sendErrorToLogChannel } from "./utils/log_channel.js";
 import Settings from "./tables/Settings.js";
 
@@ -25,29 +25,34 @@ await new DataSource({
     dropSchema: config.resetDatabase
 }).initialize();
 
-// Client Events
-client.on(removeExpiredVoiceChannels.name, async (oldState: VoiceState, newState: VoiceState) => {
+client.on(Events.InteractionCreate, async (interaction: Interaction) => {
+    try {
+        if (interaction.isAutocomplete()) {
+            await autocompleteInteraction.callback(interaction);
+        } else if (interaction.isChatInputCommand()) {
+            await chatInputCommandInteraction.callback(interaction);
+        } else if (interaction.isButton()) {
+            await buttonInteraction.callback(interaction);
+        } else if (interaction.isModalSubmit()) {
+            await modalSubmittionInteraction.callback(interaction);
+        } else if (interaction.isAnySelectMenu()) {
+            await selectMenuInteraction.callback(interaction);
+        } else {
+            await sendErrorToLogChannel(new Error(`Unknown interaction: ${interaction.id}`), client);
+            console.log(interaction);
+        }
+    } catch (e: any) {
+        await sendErrorToLogChannel(e, client);
+    }
+});
+
+client.on(Events.VoiceStateUpdate, async (oldState: VoiceState, newState: VoiceState) => {
     try {
         await removeExpiredVoiceChannels.callback(oldState, newState);
     } catch (e: any) {
         await sendErrorToLogChannel(e, client);
     }
 });
-
-// Client Interactions
-async function handleEventWithErrorLog(callback: (interaction: Interaction) => Promise<void>, interaction: Interaction) {
-    try {
-        await callback(interaction);
-    } catch (e: any) {
-        await sendErrorToLogChannel(e, client);
-    }
-}
-
-client.on(autocompleteInteraction.name, handleEventWithErrorLog.bind(null, autocompleteInteraction.callback));
-client.on(buttonInteraction.name, handleEventWithErrorLog.bind(null, buttonInteraction.callback));
-client.on(chatInputCommandInteraction.name, handleEventWithErrorLog.bind(null, chatInputCommandInteraction.callback));
-client.on(modalSubmittionInteraction.name, handleEventWithErrorLog.bind(null, modalSubmittionInteraction.callback));
-client.on(selectMenuInteraction.name, handleEventWithErrorLog.bind(null, selectMenuInteraction.callback));
 
 process.on('uncaughtException', async (e: Error) => {
     await sendErrorToLogChannel(e, client);
@@ -57,4 +62,4 @@ process.on('uncaughtException', async (e: Error) => {
 });
 
 // Log in bot
-client.once(ready.name, ready.callback).login(config.token);
+client.once(Events.ClientReady, ready.callback).login(config.token);

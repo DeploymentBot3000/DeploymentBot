@@ -16,7 +16,11 @@ _kCommands.set(set_deployment_time.name, set_deployment_time);
 _kCommands.set(togglestrikemode.name, togglestrikemode);
 
 export function getSlashCommand(name: string): Command {
-    return _kCommands.get(name);
+    const command = _kCommands.get(name);
+    if (!command) {
+        throw new Error(`Command: ${name} not found!`);
+    }
+    return command;
 }
 
 export function getAllSlashCommands() {

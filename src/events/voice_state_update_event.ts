@@ -9,7 +9,6 @@ function isBotManagedVoiceChannel(channel: VoiceBasedChannel): boolean {
 
 // Dynamically delete pickdrop VCs as soon as everyone leaves
 export default {
-    name: "voiceStateUpdate",
     callback: async (oldState: VoiceState, newState: VoiceState) => {
         const channel = oldState.channel || newState.channel;
         if (channel && isBotManagedVoiceChannel(channel) && channel.members.size == 0) {
