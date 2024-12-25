@@ -1,8 +1,6 @@
 import Button from "../classes/Button.js";
-import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
-import {logQueueAction} from "../utils/queueLogger.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
 export default new Button({
@@ -13,97 +11,16 @@ export default new Button({
     blacklistedRoles: [...config.blacklistedRoles],
     callback: async function ({ interaction }) {
         await interaction.deferUpdate();
-        const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
-        const playersInQueue = await Queue.find({ where: { isHost: false } });
 
-        if (alreadyQueued && !alreadyQueued.isHost) {
-            const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("You are already in the queue");
-
+        const error = await HotDropQueue.getHotDropQueue().join(interaction.user.id);
+        if (error instanceof Error) {
+            const errorEmbed = buildEmbed({ preset: "error" }).setDescription(error.toString());
             await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
             return;
         }
 
-        if (playersInQueue.length >= config.queueMaxes.players && !HotDropQueue.getHotDropQueue().strikeModeEnabled) {
-            const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("The queue is currently full!");
-
-            await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
-            return;
-        }
-
-        try {
-            const joinTime = new Date();
-
-            // Send or update receipt message
-            let receiptMessage;
-            try {
-                if (alreadyQueued && alreadyQueued.receiptMessageId) {
-                    const existingMessage = await interaction.user.dmChannel?.messages.fetch(alreadyQueued.receiptMessageId);
-                    if (existingMessage) {
-                        receiptMessage = await existingMessage.edit({
-                            embeds: [buildEmbed({ preset: "success" })
-                                .setColor('#00FF00')
-                                .setTitle("You've Joined the Hot Drop")
-                                .setDescription(
-                                    `User: <@${interaction.user.id}>\n` +
-                                    `⏰┃Join Time: <t:${Math.floor(joinTime.getTime() / 1000)}:F>\n` +
-                                    `🧨┃DB Add: ✅`
-                                )
-                            ]
-                        });
-                    }
-                }
-                
-                if (!receiptMessage) {
-                    receiptMessage = await interaction.user.send({
-                        embeds: [buildEmbed({ preset: "success" })
-                            .setColor('#00FF00')
-                            .setTitle("You've Joined the Hot Drop")
-                            .setDescription(
-                                `User: <@${interaction.user.id}>\n` +
-                                `⏰┃Join Time: <t:${Math.floor(joinTime.getTime() / 1000)}:F>\n` +
-                                `🧨┃DB Add: ✅`
-                            )
-                        ]
-                    });
-                }
-            } catch (error) {
-                console.error('Error sending receipt message:', error);
-                // Continue without receipt message
-                receiptMessage = { id: null };
-            }
-
-            await logQueueAction({
-                type: 'join',
-                userId: interaction.user.id
-            });
-
-            if (alreadyQueued && alreadyQueued.isHost) {
-                await Queue.createQueryBuilder()
-                    .update()
-                    .set({ 
-                        isHost: false,
-                        receiptMessageId: receiptMessage.id,
-                        joinTime: joinTime
-                    })
-                    .where("id = :id", { id: alreadyQueued.id })
-                    .execute();
-            } else {
-                await Queue.insert({ 
-                    user: interaction.user.id, 
-                    isHost: false,
-                    receiptMessageId: receiptMessage.id,
-                    joinTime: joinTime
-                });
-            }
-
-            await HotDropQueue.getHotDropQueue().updateMessage(/*notEnoughPlayers=*/true, /*deploymentCreated=*/false);
-        } catch (error) {
-            console.error('Error in join button:', error);
-            const errorEmbed = buildEmbed({ preset: "error" })
-                .setDescription("An unexpected error occurred");
-            await interaction.followUp({ embeds: [errorEmbed], ephemeral: true }).catch(() => {});
-        }
-    }   
+        await interaction.user.send({
+            content: 'You joined the Hot Drop Queue'
+        });
+    }
 })
