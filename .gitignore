@@ -4,5 +4,4 @@ package-lock.json
 package.json
 dist/
 src/config/secrets.ts
-deploymentTime.txt
 *.json

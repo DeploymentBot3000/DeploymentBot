@@ -1,4 +1,3 @@
-import fs from "fs/promises";
 import { DateTime, Duration } from "luxon";
 import { startQueuedGameImpl } from "./startQueuedGame.js";
 import { sendErrorToLogChannel } from "./log_channel.js";
@@ -6,14 +5,8 @@ import { Client, GuildTextBasedChannel } from "discord.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import buildQueueEmbed from "./embedBuilders/buildQueueEmbed.js";
 import { log } from "./logger.js";
-
-async function readDeploymentInterval() {
-    return Duration.fromMillis(Number(await fs.readFile("./deploymentTime.txt", "utf-8")));
-};
-
-async function writeDeploymentInterval(deploymentInterval: Duration) {
-    await fs.writeFile("./deploymentTime.txt", deploymentInterval.toMillis().toString(), "utf-8");
-};
+import { getDeploymentTimeSetting, setDeploymentTimeSetting } from "./settings.js";
+import config from "../config.js";
 
 async function _updateHotDropEmbed(client: Client, notEnoughPlayers: boolean, nextDeploymentTime: DateTime, deploymentCreated: boolean) {
     log("Updating Hot Drop Embed", 'Queue System');
@@ -42,7 +35,7 @@ export class HotDropQueue {
             throw new Error('Hot Drop Queue already initialized');
         }
         HotDropQueue._kHotDropQueue = new HotDropQueue(client);
-        await HotDropQueue._kHotDropQueue._setNextDeployment(await readDeploymentInterval());
+        await HotDropQueue._kHotDropQueue._setNextDeployment(await getDeploymentTimeSetting(config.guildId));
     }
     private static _kHotDropQueue: HotDropQueue = null;
 
@@ -60,7 +53,7 @@ export class HotDropQueue {
     // Set the next hot drop or strike to start duration into the future.
     // For hot drops, this becomes the new duration between hot drops.
     public async setDeploymentTime(deploymentInterval: Duration) {
-        await writeDeploymentInterval(deploymentInterval);
+        await setDeploymentTimeSetting(config.guildId, deploymentInterval);
         await this._setNextDeployment(deploymentInterval);
     }
 
