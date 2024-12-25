@@ -16,10 +16,11 @@ import QueueStatusMsg from "./tables/QueueStatusMsg.js";
 import Signups from "./tables/Signups.js";
 import { Interaction, VoiceState } from "discord.js";
 import { sendErrorToLogChannel } from "./utils/log_channel.js";
+import Settings from "./tables/Settings.js";
 
 await new DataSource({
     ...config.database as DataSourceOptions,
-    entities: Object.values([Backups, Deployment, LatestInput, Queue, QueueStatusMsg, Signups]),
+    entities: Object.values([Backups, Deployment, LatestInput, Queue, QueueStatusMsg, Signups, Settings]),
     synchronize: config.synchronizeDatabase,
     dropSchema: config.resetDatabase
 }).initialize();
