@@ -1,7 +1,7 @@
 import colors from "colors";
 import { error, log } from "../utils/logger.js";
 import { client } from "../custom_client.js";
-import { Interaction, PermissionsBitField } from "discord.js";
+import { AnySelectMenuInteraction, PermissionsBitField } from "discord.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import Cooldown from "../classes/Cooldown.js";
 import checkBlacklist from "../utils/interaction/checkBlacklist.js";
@@ -20,10 +20,7 @@ function getSelectMenuById(id: string) {
 }
 
 export default {
-    name: "interactionCreate",
-    callback: async function (interaction: Interaction) {
-        if (!interaction.isAnySelectMenu()) return;
-
+    callback: async function (interaction: AnySelectMenuInteraction) {
         const selectMenu = getSelectMenuById(interaction.customId) || getSelectMenuById(interaction.customId.split("-")[0]);
         if (!selectMenu) return;
 
@@ -51,4 +48,4 @@ export default {
             }
         }
     },
-};
+}
