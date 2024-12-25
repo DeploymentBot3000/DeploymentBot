@@ -1,5 +1,5 @@
 import { ApplicationCommandType, ContextMenuCommandInteraction, PermissionsString } from "discord.js";
-import { requiredRolesType } from "./Slashcommand.js";
+import { requiredRolesType } from "./Command.js";
 
 /**
  * @class ContextMenu

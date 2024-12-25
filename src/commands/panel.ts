@@ -1,8 +1,8 @@
 import {ActionRowBuilder, ButtonBuilder} from "discord.js";
-import Slashcommand from "../classes/Slashcommand.js";
+import Command from "../classes/Command.js";
 import {buildButton, buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 
-export default new Slashcommand({
+export default new Command({
     name: "panel",
     description: "Send the deployment panel",
     cooldown: 0,

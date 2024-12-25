@@ -1,5 +1,5 @@
 import {ApplicationCommandOptionType} from "discord.js";
-import Slashcommand from "../classes/Slashcommand.js";
+import Command from "../classes/Command.js";
 import ms from "ms";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { Duration } from "luxon";
@@ -21,7 +21,7 @@ function parseDeploymentTimeString(input: string) {
     return duration;
 }
 
-export default new Slashcommand({
+export default new Command({
     name: "set-deployment-time",
     description: "Set the deployment time",
     permissions: ["Administrator"],

@@ -1,5 +1,5 @@
 import {buildEmbed} from "../embedBuilders/configBuilders.js";
-import {requiredRolesType} from "../../classes/Slashcommand.js";
+import { requiredRolesType } from "../../classes/Command.js";
 import ReplyableInteraction from "./ReplyableInteraction.js";
 
 export default async function hasRequiredRoles(interaction:ReplyableInteraction, requiredRoles: requiredRolesType):Promise<boolean> {

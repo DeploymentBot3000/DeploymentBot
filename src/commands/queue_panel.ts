@@ -1,4 +1,4 @@
-import Slashcommand from "../classes/Slashcommand.js";
+import Command from "../classes/Command.js";
 import {buildButton, buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import buildQueueEmbed from "../utils/embedBuilders/buildQueueEmbed.js";
@@ -6,7 +6,7 @@ import {ActionRowBuilder, ButtonBuilder,} from "discord.js";
 import {action, error, log, success} from "../utils/logger.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
-export default new Slashcommand({
+export default new Command({
     name: "queue-panel",
     description: "Send the queue panel",
     cooldown: 0,

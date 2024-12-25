@@ -1,22 +1,23 @@
-import { Message, PermissionsString } from "discord.js";
-import { requiredRolesType } from "./Slashcommand.js";
+import { ApplicationCommandOption, AutocompleteInteraction, CacheType, ChatInputCommandInteraction, CommandInteractionOptionResolver, PermissionsString } from "discord.js";
+
+type OmittedCommandInteractionOptionResolver = Omit<CommandInteractionOptionResolver<CacheType>, "getMessage" | "getFocused">;
+export type requiredRolesType = { role: string, required: Boolean }[];
 
 /**
- * @class Command
- * @description A class that represents a command
+ * @class Slashcommand
+ * @description A class that represents a slash command
  * @param {string} name The name of the command
  * @param {string} description The description of the command
- * @param {string[]} aliases The aliases of the command
- * @param {number} cooldown The cooldown of the command
  * @param {PermissionsString[]} permissions The permissions required to run the command
  * @param {requiredRolesType} requiredRoles The roles required to run the command
+ * @param {number} cooldown The cooldown of the command
+ * @param {ApplicationCommandOption[]} options The options of the command
  * @param {function} func The function to run when the command is used
+ * @param {function} autocomplete The function to run when the command is autocompleted
  */
 export default class Command {
     public name: string;
     public description: string;
-    public aliases?: string[];
-    public cooldown?: number;
     public permissions?: PermissionsString[];
     /**
      * The role required to run this command
@@ -28,22 +29,31 @@ export default class Command {
      */
     public requiredRoles?: requiredRolesType;
     public blacklistedRoles?: string[];
+    public cooldown?: number;
+    public options: ApplicationCommandOption[];
     public callback: (params: {
-        message: Message;
-        args: string[];
+        interaction: ChatInputCommandInteraction;
+        options: OmittedCommandInteractionOptionResolver
+    }) => Promise<void>;
+    public autocomplete?: (params: {
+        interaction: AutocompleteInteraction;
     }) => void;
-    public constructor({ name, description, aliases, cooldown, permissions, requiredRoles, blacklistedRoles, callback }: {
-        name: string, description: string, aliases: string[], cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], callback: (params: {
-        message: Message;
-        args: string[];
-    }) => void }) {
+    public constructor({ name, description, permissions, requiredRoles, blacklistedRoles, cooldown, options, callback, autocomplete }: {
+        name: string, description: string, permissions: PermissionsString[], requiredRoles: requiredRolesType, cooldown: number, options: ApplicationCommandOption[], blacklistedRoles: string[], callback: (params: {
+            interaction: ChatInputCommandInteraction;
+            options: OmittedCommandInteractionOptionResolver;
+        }) => Promise<void>, autocomplete?: (params: {
+            interaction: AutocompleteInteraction;
+        }) => void
+    }) {
         this.name = name;
         this.description = description;
-        this.aliases = aliases;
-        this.cooldown = cooldown;
         this.permissions = permissions;
         this.requiredRoles = requiredRoles;
         this.blacklistedRoles = blacklistedRoles;
+        this.cooldown = cooldown;
+        this.options = options;
         this.callback = callback;
+        this.autocomplete = autocomplete;
     }
 }

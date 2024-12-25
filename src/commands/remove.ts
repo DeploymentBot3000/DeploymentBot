@@ -1,5 +1,5 @@
 import {ApplicationCommandOptionType, AutocompleteInteraction, GuildMember} from "discord.js";
-import Slashcommand from "../classes/Slashcommand.js";
+import Command from "../classes/Command.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
@@ -8,7 +8,7 @@ import {Like} from "typeorm";
 import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
 import {action, success, warn} from "../utils/logger.js";
 
-export default new Slashcommand({
+export default new Command({
     name: "remove",
     description: "Remove a user from a deployment",
     permissions: ["SendMessages"],
