@@ -51,12 +51,14 @@ process.on('uncaughtException', async (e: Error) => {
     process.exit(1);
 });
 
-process.on('SIGINT', async () => {
-    await sendErrorToLogChannel(new Error('Manually interrupted, shutting down.'), client);
-    await client.destroy();
-    log('Destroyed discord client!');
-    process.exit(1);
-});
+for (const signal of ['SIGINT', 'SIGTERM']) {
+    process.on(signal, async (signal: string) => {
+        await sendErrorToLogChannel(new Error(`Received signal: ${signal}, shutting down.`), client);
+        await client.destroy();
+        log('Destroyed discord client!');
+        process.exit(1);
+    });
+}
 
 // Log in bot
 log('Logging in discord client', 'Startup');
