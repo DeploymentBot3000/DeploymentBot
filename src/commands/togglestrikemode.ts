@@ -1,8 +1,8 @@
-import Slashcommand from "../classes/Slashcommand.js";
+import Command from "../classes/Command.js";
 import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
-export default new Slashcommand({
+export default new Command({
     name: "togglestrikemode",
     description: "Toggle battalion strike mode - Randomizes the hotdrop queue",
     permissions: ["Administrator"],

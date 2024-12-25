@@ -1,10 +1,10 @@
-import Slashcommand from "../classes/Slashcommand.js";
+import Command from "../classes/Command.js";
 import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { action, success } from "../utils/logger.js";
 
-export default new Slashcommand({
+export default new Command({
     name: "clear-queue",
     description: "Clear the queue",
     permissions: ["Administrator"],
