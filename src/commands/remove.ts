@@ -14,7 +14,6 @@ export default new Command({
     permissions: ["SendMessages"],
     requiredRoles: [{ role: "Verified", required: true }],
     blacklistedRoles: [],
-    cooldown: 0,
     options: [
         {
             name: "user",

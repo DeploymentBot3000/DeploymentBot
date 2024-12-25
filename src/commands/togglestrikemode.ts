@@ -8,7 +8,6 @@ export default new Command({
     permissions: ["Administrator"],
     requiredRoles: [],
     blacklistedRoles: [],
-    cooldown: 0,
     options: [],
     callback: async ({ interaction }) => {
         HotDropQueue.getHotDropQueue().toggleStrikeMode();

@@ -9,7 +9,6 @@ import { HotDropQueue } from "../utils/hot_drop_queue.js";
 export default new Command({
     name: "queue-panel",
     description: "Send the queue panel",
-    cooldown: 0,
     permissions: ["ManageRoles"],
     requiredRoles: [],
     blacklistedRoles: [],

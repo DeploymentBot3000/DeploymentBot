@@ -27,7 +27,6 @@ export default new Command({
     permissions: ["Administrator"],
     requiredRoles: [],
     blacklistedRoles: [],
-    cooldown: 0,
     options: [
         {
             name: "time",

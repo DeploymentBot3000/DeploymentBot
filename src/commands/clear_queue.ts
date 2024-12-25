@@ -10,7 +10,6 @@ export default new Command({
     permissions: ["Administrator"],
     requiredRoles: [],
     blacklistedRoles: [],
-    cooldown: 0,
     options: [],
     callback: async function ({ interaction }) {
         action(`${interaction.user.tag} clearing queue`, "QueueClear");
