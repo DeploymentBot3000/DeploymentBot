@@ -1,4 +1,3 @@
-import { DataSource, DataSourceOptions } from "typeorm";
 import config from "./config.js";
 import { client } from "./custom_client.js";
 import autocompleteInteraction from "./events/auto_complete_Interaction.js";
@@ -8,23 +7,9 @@ import ready from "./events/client_ready_event.js";
 import modalSubmittionInteraction from "./events/modal_submit_interaction.js";
 import selectMenuInteraction from "./events/select_menu_interaction.js";
 import removeExpiredVoiceChannels from "./events/voice_state_update_event.js";
-import Backups from "./tables/Backups.js";
-import Deployment from "./tables/Deployment.js";
-import LatestInput from "./tables/LatestInput.js";
-import Queue from "./tables/Queue.js";
-import QueueStatusMsg from "./tables/QueueStatusMsg.js";
-import Signups from "./tables/Signups.js";
 import { Events, Interaction, VoiceState } from "discord.js";
 import { sendErrorToLogChannel } from "./utils/log_channel.js";
-import Settings from "./tables/Settings.js";
 import { log } from "./utils/logger.js";
-
-await new DataSource({
-    ...config.database as DataSourceOptions,
-    entities: Object.values([Backups, Deployment, LatestInput, Queue, QueueStatusMsg, Signups, Settings]),
-    synchronize: config.synchronizeDatabase,
-    dropSchema: config.resetDatabase
-}).initialize();
 
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     try {

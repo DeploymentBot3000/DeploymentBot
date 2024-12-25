@@ -26,11 +26,12 @@ export default class Button {
     public blacklistedRoles?: string[];
     public callback: (params: {
         interaction: ButtonInteraction;
-    }) => void;
+    }) => Promise<void>;
     public constructor({ id, cooldown, permissions, requiredRoles, blacklistedRoles, callback }: {
         id: string, cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], callback: (params: {
         interaction: ButtonInteraction;
-    }) => void }) {
+        }) => Promise<void>
+    }) {
         this.id = id;
         this.cooldown = cooldown;
         this.permissions = permissions;

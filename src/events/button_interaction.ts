@@ -46,7 +46,7 @@ export default {
 
 		try {
 			log(`${colors.cyan('[Button Clicked]')} ${colors.yellow(interaction.customId)} ${colors.blue('||')} ${colors.green('Author:')} ${colors.magenta(interaction.user.username)}`);
-			button.callback({ interaction });
+			await button.callback({ interaction });
 		} catch (e) {
 			error(`${colors.red('[Button Error]')} ${colors.yellow(interaction.customId)} ${colors.blue('||')} ${colors.green('Author:')} ${colors.magenta(interaction.user.username)} ${colors.red('||')} ${e}`);
 			error(e);
