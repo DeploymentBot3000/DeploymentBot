@@ -7,6 +7,7 @@ import buildQueueEmbed from "./embedBuilders/buildQueueEmbed.js";
 import { log } from "./logger.js";
 import { getDeploymentTimeSetting, setDeploymentTimeSetting } from "./settings.js";
 import config from "../config.js";
+import Queue from "../tables/Queue.js";
 
 async function _updateHotDropEmbed(client: Client, notEnoughPlayers: boolean, nextDeploymentTime: DateTime, deploymentCreated: boolean) {
     log("Updating Hot Drop Embed", 'Queue System');
@@ -90,6 +91,11 @@ export class HotDropQueue {
         }
         this._strikeModeEnabled = false;
         await this._setNextDeployment(this._deploymentInterval);
+    }
+
+    public async clear() {
+        await Queue.clear();
+        await this.updateMessage(/*notEnoughPlayers=*/true, /*deploymentCreated=*/false);
     }
 
     public get strikeModeEnabled() {
