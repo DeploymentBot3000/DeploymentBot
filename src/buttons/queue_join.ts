@@ -14,9 +14,9 @@ export default new Button({
     callback: async function ({ interaction }) {
         await interaction.deferUpdate();
         const alreadyQueued = await Queue.findOne({ where: { user: interaction.user.id } });
-        const playersInQueue = await Queue.find({ where: { host: false } });
+        const playersInQueue = await Queue.find({ where: { isHost: false } });
 
-        if (alreadyQueued && !alreadyQueued.host) {
+        if (alreadyQueued && !alreadyQueued.isHost) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("You are already in the queue");
 
@@ -79,11 +79,11 @@ export default new Button({
                 userId: interaction.user.id
             });
 
-            if(alreadyQueued && alreadyQueued.host) {
+            if (alreadyQueued && alreadyQueued.isHost) {
                 await Queue.createQueryBuilder()
                     .update()
                     .set({ 
-                        host: false,
+                        isHost: false,
                         receiptMessageId: receiptMessage.id,
                         joinTime: joinTime
                     })
@@ -92,7 +92,7 @@ export default new Button({
             } else {
                 await Queue.insert({ 
                     user: interaction.user.id, 
-                    host: false,
+                    isHost: false,
                     receiptMessageId: receiptMessage.id,
                     joinTime: joinTime
                 });

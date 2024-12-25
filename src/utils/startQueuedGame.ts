@@ -24,8 +24,8 @@ function findNextAvailableVoiceCategory(guild: Guild, strikeMode: boolean): Cate
 
 export async function startQueuedGameImpl(strikeMode: boolean) {
     const queue = await Queue.find();
-    const hosts = queue.filter(q => q.host);
-    const players = queue.filter(q => !q.host);
+    const hosts = queue.filter(q => q.isHost);
+    const players = queue.filter(q => !q.isHost);
 
     const kMaxAssignedPlayers: number = config.max_players - 1;
 
