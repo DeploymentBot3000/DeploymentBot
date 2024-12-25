@@ -10,7 +10,6 @@ export type requiredRolesType = { role: string, required: Boolean }[];
  * @param {string} description The description of the command
  * @param {PermissionsString[]} permissions The permissions required to run the command
  * @param {requiredRolesType} requiredRoles The roles required to run the command
- * @param {number} cooldown The cooldown of the command
  * @param {ApplicationCommandOption[]} options The options of the command
  * @param {function} func The function to run when the command is used
  * @param {function} autocomplete The function to run when the command is autocompleted
@@ -29,7 +28,6 @@ export default class Command {
      */
     public requiredRoles?: requiredRolesType;
     public blacklistedRoles?: string[];
-    public cooldown?: number;
     public options: ApplicationCommandOption[];
     public callback: (params: {
         interaction: ChatInputCommandInteraction;
@@ -38,8 +36,8 @@ export default class Command {
     public autocomplete?: (params: {
         interaction: AutocompleteInteraction;
     }) => void;
-    public constructor({ name, description, permissions, requiredRoles, blacklistedRoles, cooldown, options, callback, autocomplete }: {
-        name: string, description: string, permissions: PermissionsString[], requiredRoles: requiredRolesType, cooldown: number, options: ApplicationCommandOption[], blacklistedRoles: string[], callback: (params: {
+    public constructor({ name, description, permissions, requiredRoles, blacklistedRoles, options, callback, autocomplete }: {
+        name: string, description: string, permissions: PermissionsString[], requiredRoles: requiredRolesType, options: ApplicationCommandOption[], blacklistedRoles: string[], callback: (params: {
             interaction: ChatInputCommandInteraction;
             options: OmittedCommandInteractionOptionResolver;
         }) => Promise<void>, autocomplete?: (params: {
@@ -51,7 +49,6 @@ export default class Command {
         this.permissions = permissions;
         this.requiredRoles = requiredRoles;
         this.blacklistedRoles = blacklistedRoles;
-        this.cooldown = cooldown;
         this.options = options;
         this.callback = callback;
         this.autocomplete = autocomplete;

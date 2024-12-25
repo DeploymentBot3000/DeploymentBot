@@ -5,7 +5,6 @@ import {buildButton, buildEmbed} from "../utils/embedBuilders/configBuilders.js"
 export default new Command({
     name: "panel",
     description: "Send the deployment panel",
-    cooldown: 0,
     permissions: ["Administrator"],
     requiredRoles: [],
     blacklistedRoles: [],
