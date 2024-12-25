@@ -11,9 +11,6 @@ export default class Queue extends BaseEntity {
     @Column({ type: "boolean" })
     isHost: boolean;
 
-    @Column({ nullable: true })
-    receiptMessageId: string;
-
-    @Column({ type: "timestamp", nullable: true })
+    @Column({ type: "timestamp" })
     joinTime: Date;
-}   
+}

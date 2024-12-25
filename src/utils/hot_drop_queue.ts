@@ -8,6 +8,7 @@ import { log } from "./logger.js";
 import { getDeploymentTimeSetting, setDeploymentTimeSetting } from "./settings.js";
 import config from "../config.js";
 import Queue from "../tables/Queue.js";
+import { logQueueAction } from "./queueLogger.js";
 
 async function _updateHotDropEmbed(client: Client, notEnoughPlayers: boolean, nextDeploymentTime: DateTime, deploymentCreated: boolean) {
     log("Updating Hot Drop Embed", 'Queue System');
@@ -68,7 +69,7 @@ export class HotDropQueue {
         }, this._deploymentInterval.toMillis()).unref();
 
         try {
-            await this.updateMessage(/*notEnoughPlayers=*/!this._deploymentCreated, /*deploymentCreated=*/this._deploymentCreated);
+            await this.updateMessage();
         } catch (e: any) {
             await sendErrorToLogChannel(e, this._client);
         }
@@ -76,11 +77,11 @@ export class HotDropQueue {
 
     public async toggleStrikeMode() {
         this._strikeModeEnabled = !this._strikeModeEnabled;
-        this.updateMessage(/*notEnoughPlayers=*/true, /*deploymentCreated=*/false);
+        await this.updateMessage();
     }
 
-    public async updateMessage(notEnoughPlayers: boolean, deploymentCreated: boolean) {
-        return _updateHotDropEmbed(this._client, notEnoughPlayers, this._nextGame, deploymentCreated);
+    private async updateMessage() {
+        return _updateHotDropEmbed(this._client, !this._deploymentCreated, this._nextGame, this._deploymentCreated);
     }
 
     private async _startNewGames() {
@@ -95,7 +96,105 @@ export class HotDropQueue {
 
     public async clear() {
         await Queue.clear();
-        await this.updateMessage(/*notEnoughPlayers=*/true, /*deploymentCreated=*/false);
+        await this.updateMessage();
+    }
+
+    public async joinAsHost(userId: string): Promise<Error> {
+        const alreadyQueued = await Queue.findOne({ where: { user: userId } });
+        const currentHostCount = await Queue.find({ where: { isHost: true } });
+
+        if (alreadyQueued?.isHost) {
+            return new Error('You are already in the queue');
+        } else if (currentHostCount.length >= config.queueMaxes.hosts && !this._strikeModeEnabled) {
+            return new Error('The hosts queue is currently full!');
+        }
+
+        const joinTime = new Date();
+
+        if (alreadyQueued && !alreadyQueued.isHost) {
+            await Queue.update(alreadyQueued.id, {
+                isHost: true,
+                joinTime: joinTime
+            });
+        } else {
+            await Queue.insert({
+                user: userId,
+                isHost: true,
+                joinTime: joinTime
+            });
+        }
+
+        await logQueueAction({
+            type: 'host',
+            userId: userId
+        });
+
+        await this.updateMessage();
+        return null;
+    }
+
+    public async join(userId: string): Promise<Error> {
+        const alreadyQueued = await Queue.findOne({ where: { user: userId } });
+        const playersInQueue = await Queue.find({ where: { isHost: false } });
+
+        if (alreadyQueued && !alreadyQueued.isHost) {
+            return new Error('You are already in the queue');
+        } else if (playersInQueue.length >= config.queueMaxes.players && !this._strikeModeEnabled) {
+            return new Error('The queue is currently full!');
+        }
+
+        const joinTime = new Date();
+
+        await logQueueAction({
+            type: 'join',
+            userId: userId
+        });
+
+        if (alreadyQueued?.isHost) {
+            await Queue.update(alreadyQueued.id, {
+                isHost: false,
+                joinTime: joinTime
+            });
+        } else {
+            await Queue.insert({
+                user: userId,
+                isHost: false,
+                joinTime: joinTime
+            });
+        }
+
+        await this.updateMessage();
+        return null;
+    }
+
+    public async leave(userId: string): Promise<Error> {
+        const alreadyQueued = await Queue.findOne({ where: { user: userId } });
+
+        if (!alreadyQueued) {
+            return new Error('You are not in the queue');
+        }
+
+        const queueBefore = await Queue.find();
+        const beforeCount = queueBefore.length;
+
+        const leaveTime = new Date();
+
+        await Queue.delete({ user: userId });
+
+        const queueAfter = await Queue.find();
+        const afterCount = queueAfter.length;
+
+        await logQueueAction({
+            type: 'leave',
+            userId: userId,
+            joinTime: alreadyQueued.joinTime,
+            leaveTime: leaveTime,
+            queueBefore: beforeCount,
+            queueAfter: afterCount,
+        });
+
+        await this.updateMessage();
+        return null;
     }
 
     public get strikeModeEnabled() {
