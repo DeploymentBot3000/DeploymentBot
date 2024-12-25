@@ -1,5 +1,4 @@
 import Command from "../classes/Command.js";
-import Queue from "../tables/Queue.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { action, success } from "../utils/logger.js";
@@ -14,7 +13,7 @@ export default new Command({
     callback: async function ({ interaction }) {
         action(`${interaction.user.tag} clearing queue`, "QueueClear");
         
-        await Queue.clear();
+        await HotDropQueue.getHotDropQueue().clear();
         success(`Queue cleared by ${interaction.user.tag}`, "QueueClear");
 
         const embed = buildEmbed({ preset: "success" })
@@ -23,6 +22,5 @@ export default new Command({
 
         await interaction.reply({ embeds: [embed], ephemeral: true });
 
-        await HotDropQueue.getHotDropQueue().updateMessage(/*notEnoughPlayers=*/true, /*deploymentCreated=*/false);
     }
 })
