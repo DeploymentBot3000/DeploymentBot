@@ -10,15 +10,16 @@ export default new Button({
     requiredRoles: [],
     blacklistedRoles: [...config.blacklistedRoles],
     callback: async function ({ interaction }) {
+        await interaction.deferUpdate();
+
         const member = await interaction.guild?.members.fetch(interaction.user.id).catch(() => null);
         if (!member) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setDescription("Failed to fetch your guild member data");
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
             return;
         }
 
-        await interaction.deferUpdate();
 
         const error = await HotDropQueue.getHotDropQueue().leave(interaction.user.id);
         if (error instanceof Error) {
