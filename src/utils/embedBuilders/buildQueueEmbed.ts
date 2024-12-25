@@ -10,8 +10,8 @@ interface Field {
 }
 
 async function getFields(channel: GuildTextBasedChannel, currentQueue: Queue[]):Promise<Field[]> {
-    const currentHosts = currentQueue.filter(q => q.host);
-    const currentPlayers = currentQueue.filter(q => !q.host);
+    const currentHosts = currentQueue.filter(q => q.isHost);
+    const currentPlayers = currentQueue.filter(q => !q.isHost);
 
     if (HotDropQueue.getHotDropQueue().strikeModeEnabled)
         return [

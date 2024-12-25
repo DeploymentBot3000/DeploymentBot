@@ -9,7 +9,7 @@ export default class Queue extends BaseEntity {
     user: string;
 
     @Column({ type: "boolean" })
-    host: boolean;
+    isHost: boolean;
 
     @Column({ nullable: true })
     receiptMessageId: string;
