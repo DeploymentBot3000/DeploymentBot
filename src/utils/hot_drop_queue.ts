@@ -9,6 +9,8 @@ import { getDeploymentTimeSetting, setDeploymentTimeSetting } from "./settings.j
 import config from "../config.js";
 import Queue from "../tables/Queue.js";
 import { logQueueAction } from "./queueLogger.js";
+import { dataSource } from "../data_source.js";
+import { EntityManager } from "typeorm";
 
 async function _updateHotDropEmbed(client: Client, notEnoughPlayers: boolean, nextDeploymentTime: DateTime, deploymentCreated: boolean) {
     log("Updating Hot Drop Embed", 'Queue System');
@@ -100,99 +102,116 @@ export class HotDropQueue {
     }
 
     public async joinAsHost(userId: string): Promise<Error> {
-        const alreadyQueued = await Queue.findOne({ where: { user: userId } });
-        const currentHostCount = await Queue.find({ where: { isHost: true } });
+        const error = await dataSource.transaction(async (entityManager: EntityManager): Promise<Error> => {
+            const alreadyQueued = await entityManager.findOne(Queue, { where: { user: userId } });
+            const currentHostCount = await entityManager.find(Queue, { where: { isHost: true } });
 
-        if (alreadyQueued?.isHost) {
-            return new Error('You are already in the queue');
-        } else if (currentHostCount.length >= config.queueMaxes.hosts && !this._strikeModeEnabled) {
-            return new Error('The hosts queue is currently full!');
-        }
+            if (alreadyQueued?.isHost) {
+                return new Error('You are already in the queue');
+            } else if (currentHostCount.length >= config.queueMaxes.hosts && !this._strikeModeEnabled) {
+                return new Error('The hosts queue is currently full!');
+            }
 
-        const joinTime = new Date();
+            const joinTime = new Date();
 
-        if (alreadyQueued && !alreadyQueued.isHost) {
-            await Queue.update(alreadyQueued.id, {
-                isHost: true,
-                joinTime: joinTime
-            });
-        } else {
-            await Queue.insert({
-                user: userId,
-                isHost: true,
-                joinTime: joinTime
-            });
+            if (alreadyQueued && !alreadyQueued.isHost) {
+                await entityManager.update(Queue, alreadyQueued.id, {
+                    isHost: true,
+                    joinTime: joinTime
+                });
+            } else {
+                await entityManager.insert(Queue, {
+                    user: userId,
+                    isHost: true,
+                    joinTime: joinTime
+                });
+            }
+            return null;
+        });
+        if (error instanceof Error) {
+            return error;
         }
 
         await logQueueAction({
             type: 'host',
             userId: userId
         });
-
         await this.updateMessage();
         return null;
     }
 
     public async join(userId: string): Promise<Error> {
-        const alreadyQueued = await Queue.findOne({ where: { user: userId } });
-        const playersInQueue = await Queue.find({ where: { isHost: false } });
+        const error = await dataSource.transaction(async (entityManager: EntityManager): Promise<Error> => {
+            const alreadyQueued = await entityManager.findOne(Queue, { where: { user: userId } });
+            const playersInQueue = await entityManager.find(Queue, { where: { isHost: false } });
 
-        if (alreadyQueued && !alreadyQueued.isHost) {
-            return new Error('You are already in the queue');
-        } else if (playersInQueue.length >= config.queueMaxes.players && !this._strikeModeEnabled) {
-            return new Error('The queue is currently full!');
+            if (alreadyQueued && !alreadyQueued.isHost) {
+                return new Error('You are already in the queue');
+            } else if (playersInQueue.length >= config.queueMaxes.players && !this._strikeModeEnabled) {
+                return new Error('The queue is currently full!');
+            }
+
+            const joinTime = new Date();
+
+            if (alreadyQueued?.isHost) {
+                await entityManager.update(Queue, alreadyQueued.id, {
+                    isHost: false,
+                    joinTime: joinTime
+                });
+            } else {
+                await entityManager.insert(Queue, {
+                    user: userId,
+                    isHost: false,
+                    joinTime: joinTime
+                });
+            }
+            return null;
+        });
+        if (error instanceof Error) {
+            return error;
         }
-
-        const joinTime = new Date();
 
         await logQueueAction({
             type: 'join',
             userId: userId
         });
-
-        if (alreadyQueued?.isHost) {
-            await Queue.update(alreadyQueued.id, {
-                isHost: false,
-                joinTime: joinTime
-            });
-        } else {
-            await Queue.insert({
-                user: userId,
-                isHost: false,
-                joinTime: joinTime
-            });
-        }
-
         await this.updateMessage();
         return null;
     }
 
     public async leave(userId: string): Promise<Error> {
-        const alreadyQueued = await Queue.findOne({ where: { user: userId } });
+        type TransactionResult = { joinTime: Date, leaveTime: Date, beforeCount: number, afterCount: number };
+        const transactionResult = await dataSource.transaction(async (entityManager: EntityManager): Promise<TransactionResult | Error> => {
+            const alreadyQueued = await entityManager.findOne(Queue, { where: { user: userId } });
 
-        if (!alreadyQueued) {
-            return new Error('You are not in the queue');
+            if (!alreadyQueued) {
+                return new Error('You are not in the queue');
+            }
+
+            const queueBefore = await entityManager.find(Queue);
+            await entityManager.delete(Queue, { user: userId });
+            const queueAfter = await entityManager.find(Queue);
+
+            return {
+                joinTime: alreadyQueued.joinTime,
+                leaveTime: new Date(),
+                beforeCount: queueBefore.length,
+                afterCount: queueAfter.length
+
+            };
+        });
+        if (transactionResult instanceof Error) {
+            return transactionResult;
         }
-
-        const queueBefore = await Queue.find();
-        const beforeCount = queueBefore.length;
-
-        const leaveTime = new Date();
-
-        await Queue.delete({ user: userId });
-
-        const queueAfter = await Queue.find();
-        const afterCount = queueAfter.length;
 
         await logQueueAction({
             type: 'leave',
             userId: userId,
-            joinTime: alreadyQueued.joinTime,
-            leaveTime: leaveTime,
-            queueBefore: beforeCount,
-            queueAfter: afterCount,
+            joinTime: transactionResult.joinTime,
+            leaveTime: transactionResult.leaveTime,
+            queueBefore: transactionResult.beforeCount,
+            queueAfter: transactionResult.afterCount,
         });
-
         await this.updateMessage();
         return null;
     }

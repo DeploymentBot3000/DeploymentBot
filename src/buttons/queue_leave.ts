@@ -20,7 +20,7 @@ export default new Button({
 
         await interaction.deferUpdate();
 
-        const error = HotDropQueue.getHotDropQueue().leave(interaction.user.id);
+        const error = await HotDropQueue.getHotDropQueue().leave(interaction.user.id);
         if (error instanceof Error) {
             const errorEmbed = buildEmbed({ preset: "error" }).setDescription(error.toString());
             await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
