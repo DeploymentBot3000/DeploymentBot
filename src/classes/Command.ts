@@ -1,4 +1,4 @@
-import { ApplicationCommandOption, AutocompleteInteraction, CacheType, ChatInputCommandInteraction, CommandInteractionOptionResolver, PermissionsString } from "discord.js";
+import { ApplicationCommandOption, AutocompleteInteraction, CacheType, ChatInputCommandInteraction, CommandInteractionOptionResolver, Interaction, PermissionsString, RESTPostAPIChatInputApplicationCommandsJSONBody } from "discord.js";
 
 type OmittedCommandInteractionOptionResolver = Omit<CommandInteractionOptionResolver<CacheType>, "getMessage" | "getFocused">;
 export type requiredRolesType = { role: string, required: Boolean }[];
@@ -53,4 +53,11 @@ export default class Command {
         this.callback = callback;
         this.autocomplete = autocomplete;
     }
+}
+
+export interface CommandV2 {
+    readonly name: string;
+    getData(): RESTPostAPIChatInputApplicationCommandsJSONBody;
+    callback(interaction: Interaction): Promise<void>;
+    autocomplete?(interaction: AutocompleteInteraction): Promise<void>;
 }

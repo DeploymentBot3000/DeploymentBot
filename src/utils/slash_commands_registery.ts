@@ -1,21 +1,16 @@
-import Command from "../classes/Command.js";
-import clear_queue from "../commands/clear_queue.js";
-import panel from "../commands/panel.js";
-import queue_panel from "../commands/queue_panel.js";
-import remove from "../commands/remove.js";
-import set_deployment_time from "../commands/set_deployment_time.js";
-import togglestrikemode from "../commands/togglestrikemode.js";
+import { CommandV2 } from "../classes/Command.js";
+import { SetDeploymentTimeCommand } from "../commands/set_deployment_time.js";
 
-const _kCommands: Map<string, Command> = new Map();
+const _kCommands: Map<string, CommandV2> = new Map();
 
-_kCommands.set(clear_queue.name, clear_queue);
-_kCommands.set(panel.name, panel);
-_kCommands.set(queue_panel.name, queue_panel);
-_kCommands.set(remove.name, remove);
-_kCommands.set(set_deployment_time.name, set_deployment_time);
-_kCommands.set(togglestrikemode.name, togglestrikemode);
+// _kCommands.set(clear_queue.name, clear_queue);
+// _kCommands.set(panel.name, panel);
+// _kCommands.set(queue_panel.name, queue_panel);
+// _kCommands.set(remove.name, remove);
+// _kCommands.set(togglestrikemode.name, togglestrikemode);
+_kCommands.set(SetDeploymentTimeCommand.name, SetDeploymentTimeCommand);
 
-export function getSlashCommand(name: string): Command {
+export function getSlashCommand(name: string) {
     const command = _kCommands.get(name);
     if (!command) {
         throw new Error(`Command: ${name} not found!`);
@@ -23,6 +18,6 @@ export function getSlashCommand(name: string): Command {
     return command;
 }
 
-export function getAllSlashCommands() {
+export function getAllSlashCommands(): Array<CommandV2> {
     return Array.from(_kCommands.values());
 }

@@ -1,9 +1,9 @@
-import {ApplicationCommandOptionType} from "discord.js";
-import Command from "../classes/Command.js";
-import ms from "ms";
+import { ChatInputCommandInteraction, PermissionFlagsBits, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandBuilder, SlashCommandStringOption } from "discord.js";
 import { Duration } from "luxon";
-import { HotDropQueue } from "../utils/hot_drop_queue.js";
+import ms from "ms";
+import { CommandV2 } from "../classes/Command.js";
 import { buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
+import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
 function parseDeploymentTimeString(input: string) {
     const milis = ms(input);
@@ -21,21 +21,20 @@ function parseDeploymentTimeString(input: string) {
     return duration;
 }
 
-export default new Command({
-    name: "set-deployment-time",
-    description: "Set the deployment time",
-    permissions: ["Administrator"],
-    requiredRoles: [],
-    blacklistedRoles: [],
-    options: [
-        {
-            name: "time",
-            description: "The time of the deployment",
-            type: ApplicationCommandOptionType.String,
-            required: true
-        }
-    ],
-    callback: async function ({ interaction }) {
+const data = new SlashCommandBuilder()
+    .setName('set-deployment-time')
+    .setDescription('Replies with Pong!')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+    .addStringOption(new SlashCommandStringOption()
+        .setName('time')
+        .setDescription('The time of the deployment')
+        .setRequired(true)
+    )
+    .toJSON();
+
+class SetDeploymentTimeCommandImpl implements CommandV2 {
+    readonly name = data.name;
+    async callback(interaction: ChatInputCommandInteraction) {
         const deploymentInterval = parseDeploymentTimeString(interaction.options.getString("time"));
 
         if (deploymentInterval instanceof Error) {
@@ -55,4 +54,9 @@ export default new Command({
 
         await interaction.reply({ embeds: [successEmbed], ephemeral: true });
     }
-})
+    getData(): RESTPostAPIChatInputApplicationCommandsJSONBody {
+        return data;
+    }
+}
+
+export const SetDeploymentTimeCommand = new SetDeploymentTimeCommandImpl();
