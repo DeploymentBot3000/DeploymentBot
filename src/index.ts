@@ -17,6 +17,7 @@ import Signups from "./tables/Signups.js";
 import { Events, Interaction, VoiceState } from "discord.js";
 import { sendErrorToLogChannel } from "./utils/log_channel.js";
 import Settings from "./tables/Settings.js";
+import { log } from "./utils/logger.js";
 
 await new DataSource({
     ...config.database as DataSourceOptions,
@@ -55,11 +56,23 @@ client.on(Events.VoiceStateUpdate, async (oldState: VoiceState, newState: VoiceS
 });
 
 process.on('uncaughtException', async (e: Error) => {
-    await sendErrorToLogChannel(e, client);
-    await sendErrorToLogChannel(new Error('🚨🚨🚨 Uncaught Exception, exiting process! 🚨🚨🚨'), client);
+    try {
+        await sendErrorToLogChannel(e, client);
+        await sendErrorToLogChannel(new Error('🚨🚨🚨 Uncaught Exception, exiting process! 🚨🚨🚨'), client);
+        await client.destroy();
+    } catch (e) {
+        console.log(e);
+    }
+    process.exit(1);
+});
+
+process.on('SIGINT', async () => {
+    await sendErrorToLogChannel(new Error('Manually interrupted, shutting down.'), client);
     await client.destroy();
+    log('Destroyed discord client!');
     process.exit(1);
 });
 
 // Log in bot
+log('Logging in discord client', 'Startup');
 client.once(Events.ClientReady, ready.callback).login(config.token);
