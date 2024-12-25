@@ -1,10 +1,10 @@
 import Slashcommand from "../classes/Slashcommand.js";
-import clear_queue from "../slashCommands/clear_queue.js";
-import panel from "../slashCommands/panel.js";
-import queue_panel from "../slashCommands/queue_panel.js";
-import remove from "../slashCommands/remove.js";
-import set_deployment_time from "../slashCommands/set_deployment_time.js";
-import togglestrikemode from "../slashCommands/togglestrikemode.js";
+import clear_queue from "../commands/clear_queue.js";
+import panel from "../commands/panel.js";
+import queue_panel from "../commands/queue_panel.js";
+import remove from "../commands/remove.js";
+import set_deployment_time from "../commands/set_deployment_time.js";
+import togglestrikemode from "../commands/togglestrikemode.js";
 
 const _kCommands: Map<string, Slashcommand> = new Map();
 
