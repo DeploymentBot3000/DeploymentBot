@@ -29,7 +29,8 @@ export default new Button({
             const errorEmbed = buildErrorEmbed()
                 .setDescription("Deployment not found");
 
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return;
         }
 
         if (deployment.user !== interaction.user.id) {
@@ -37,14 +38,16 @@ export default new Button({
             const errorEmbed = buildErrorEmbed()
                 .setDescription("You do not have permission to edit this deployment");
 
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return;
         }
 
         if(deployment.noticeSent) {
             const errorEmbed = buildErrorEmbed()
                 .setDescription("You can't edit a deployment after the notice has been sent!");
 
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return;
         }
 
         const now = DateTime.now();
@@ -54,7 +57,8 @@ export default new Button({
             const errorEmbed = buildErrorEmbed()
                 .setDescription("You can't edit a deployment that has already started!");
 
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return;
         }
 
         const timeUntilStart = deploymentStartTime.diff(now, 'minutes');
@@ -63,7 +67,8 @@ export default new Button({
         if (timeUntilStart < editLeadTime) {
             const errorEmbed = buildErrorEmbed()
                 .setDescription(`You can't edit a deployment within ${editLeadTime.toHuman()} of its start time!\nThis deployment starts in ${timeUntilStart.toHuman()}.`);
-            return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return;
         }
 
         const selectmenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -86,7 +91,8 @@ export default new Button({
             const errorEmbed = buildErrorEmbed()
                 .setDescription("Selection timed out");
 
-            return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
+            await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => { });
+            return;
         }
 
         // Delete the select menu message
@@ -98,7 +104,8 @@ export default new Button({
             const errorEmbed = buildErrorEmbed()
                 .setDescription("Invalid selection");
 
-            return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
+            await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => { });
+            return;
         }
 
         for (const choice of selectmenuInteraction.values) {
