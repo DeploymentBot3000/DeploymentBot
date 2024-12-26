@@ -15,10 +15,10 @@ import LatestInput from "../tables/LatestInput.js";
 import { findAllVcCategories } from "../utils/findChannels.js";
 import discord_server_config from "../config/discord_server.js";
 import { sendEmbedToLogChannel, sendErrorToLogChannel } from "../utils/log_channel.js";
-import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { getAllSlashCommands } from "../utils/slash_commands_registery.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { setWakingUpActivity, startActivityInterval } from "../utils/bot_activity.js";
+import { buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 
 export async function discordClientReadyCallback(client: Client) {
 	try {
@@ -51,7 +51,7 @@ export async function discordClientReadyCallback(client: Client) {
 		// At midnight every day.
 		cron.schedule("0 0 * * *", deleteOldDeploymentsFromDatabase.bind(null));
 
-		await sendEmbedToLogChannel(buildEmbed({ preset: "success" })
+		await sendEmbedToLogChannel(buildSuccessEmbed()
 			.setColor(Colors.Green)
 			.setTitle("Bot Startup Complete!"), client);
 		startActivityInterval(client);

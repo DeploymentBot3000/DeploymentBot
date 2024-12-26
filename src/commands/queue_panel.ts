@@ -1,5 +1,5 @@
 import Command from "../classes/Command.js";
-import {buildButton, buildEmbed} from "../utils/embedBuilders/configBuilders.js";
+import { buildButton, buildErrorEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import buildQueueEmbed from "../utils/embedBuilders/buildQueueEmbed.js";
 import {ActionRowBuilder, ButtonBuilder,} from "discord.js";
@@ -43,12 +43,12 @@ export default new Command({
 
             success(`Queue panel created by ${interaction.user.tag}`, "QueuePanel");
 
-            const successEmbed = buildEmbed({ preset: "success" })
+            const successEmbed = buildSuccessEmbed()
                 .setDescription("Queue panel sent");
             await interaction.reply({ embeds: [successEmbed], ephemeral: true });
         } catch (e) {
             error(`Failed to create queue panel: ${e}`, "QueuePanel");
-            const successEmbed = buildEmbed({ preset: "error" })
+            const successEmbed = buildErrorEmbed()
                 .setDescription(`Failed to create queue panel: ${e}`);
             await interaction.reply({ embeds: [successEmbed], ephemeral: true });
             throw e;

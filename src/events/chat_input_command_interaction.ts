@@ -1,10 +1,10 @@
 import { error, log } from "../utils/logger.js";
 import { GuildMember, ChatInputCommandInteraction } from "discord.js";
-import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import checkBlacklist from "../utils/interaction/checkBlacklist.js";
 import hasRequiredRoles from "../utils/interaction/hasRequiredRoles.js";
 import hasRequiredPermissions from "../utils/interaction/hasRequiredPermissions.js";
 import { getSlashCommand } from "../utils/slash_commands_registery.js";
+import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
 
 export default {
 	callback: async function (interaction: ChatInputCommandInteraction) {
@@ -25,7 +25,7 @@ export default {
 			error(`Failed: ${logStr}`, 'Command');
 			error(e);
 
-			const embed = buildEmbed({ preset: "error" })
+			const embed = buildErrorEmbed()
 				.setDescription(`❌ **An error occurred while executing this command!**\n\nCommand: ${commandStr}`);
 
 			await interaction.reply({ embeds: [embed], ephemeral: true });

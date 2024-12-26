@@ -83,9 +83,6 @@ export default {
             error: {
                 thumbnail: "https://img.icons8.com/bubbles/200/error.png",
             },
-            loading: {
-                thumbnail: "https://img.icons8.com/bubbles/200/loading-bar.png",
-            },
             info: {
                 thumbnail: "https://img.icons8.com/bubbles/200/info--v1.png",
             },
@@ -105,10 +102,6 @@ export default {
                 image: null,
                 timestamp: true
             }
-        },
-        cooldown: {
-            title: "Cooldown",
-            description: ":x: **You can use this command again {timestamp}**"
         },
         panel: {
             title: "Create a new deployment",

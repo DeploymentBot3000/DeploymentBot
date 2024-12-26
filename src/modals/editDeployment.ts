@@ -1,11 +1,11 @@
 import {GuildTextBasedChannel} from "discord.js";
 import getStartTime from "../utils/getStartTime.js";
-import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
 import {success} from "../utils/logger.js";
 import Deployment from "../tables/Deployment.js";
 import { client } from "../custom_client.js"; // Import CommandInteraction type
 import * as emoji from 'node-emoji'
+import { buildErrorEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 
 export default {
     id: "editDeployment",
@@ -52,7 +52,7 @@ export default {
             for(const key in details)
                 if(details[key]) deployment[key] = details[key];
         } catch (e) {
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setTitle("Parsing Error!")
                 .setDescription("Please do not use emojis in any deployment fields!\n");
 
@@ -62,7 +62,7 @@ export default {
 
         await deployment.save();
 
-        const successEmbed = buildEmbed({ preset: "success" })
+        const successEmbed = buildSuccessEmbed()
             .setDescription("Deployment edited successfully");
 
         await interaction.reply({ embeds: [successEmbed], components: [], ephemeral: true }).catch(() => null);

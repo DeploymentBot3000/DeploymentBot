@@ -3,7 +3,7 @@ import Command from "../classes/Command.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
-import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
+import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 import {Like} from "typeorm";
 import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
 import {action, success, warn} from "../utils/logger.js";
@@ -86,7 +86,7 @@ export default new Command({
         // Prevent removing self
         if (targetUser.id === interaction.user.id) {
             await interaction.reply({ 
-                embeds: [buildEmbed({ preset: "error" })
+                embeds: [buildErrorEmbed()
                     .setDescription("You cannot remove yourself from the deployment")], 
                 ephemeral: true 
             });
@@ -109,7 +109,7 @@ export default new Command({
 
         if (!signup && !backup) {
             await interaction.reply({ 
-                embeds: [buildEmbed({ preset: "error" })
+                embeds: [buildErrorEmbed()
                     .setDescription("User is not signed up for this deployment")], 
                 ephemeral: true 
             });
@@ -125,7 +125,7 @@ export default new Command({
         // Send DM to removed user
         try {
             await targetUser.send({
-                embeds: [buildEmbed({ preset: "info" })
+                embeds: [buildInfoEmbed()
                     .setTitle("Deployment Removal")
                     .setDescription(`You have been removed from the deployment: **${deployment.title}**\n**By:** <@${interaction.user.id}>\n**Reason:** ${reason}`)
                 ]
@@ -148,7 +148,7 @@ export default new Command({
         } catch (error) {
             console.error("Failed to update deployment message:", error);
             await interaction.reply({ 
-                embeds: [buildEmbed({ preset: "error" })
+                embeds: [buildErrorEmbed()
                     .setDescription("Successfully removed user but failed to update deployment message")], 
                 ephemeral: true 
             });
@@ -158,7 +158,7 @@ export default new Command({
         success(`${targetUser.tag} removed from deployment "${deploymentTitle}" by ${interaction.user.tag}`, "Remove");
 
         await interaction.reply({ 
-            embeds: [buildEmbed({ preset: "success" })
+            embeds: [buildSuccessEmbed()
                 .setDescription(`Successfully removed <@${targetUser.id}> from the deployment\nReason: ${reason}`)], 
             ephemeral: true 
         });

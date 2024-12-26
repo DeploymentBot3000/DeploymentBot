@@ -1,34 +1,34 @@
 import { ButtonBuilder, EmbedBuilder } from "discord.js";
 import config from "../../config.js";
 
-/**
- * @function buildEmbed
- * @description A function that builds an embed
- * @param {string} name The name of the embed
- * @param {string} preset The preset of the embed
- * @param {EmbedBuilder} embed The embed to build
- * @param {Object} placeholders The placeholders to replace in the embed
- * @returns {EmbedBuilder} The built embed
- * @example
- * buildEmbed({ name: "cooldown", preset: "error", placeholders: { timestamp: "<t:1630000000:R>" } });
- */
-export function buildEmbed({ name, preset, embed, placeholders }: { name?: string, preset?: string, embed?: EmbedBuilder, placeholders?: { [key: string]: string }}) {
-    if (!embed) embed = new EmbedBuilder();
+export function buildErrorEmbed() {
+    return buildEmbed({ preset: 'error' });
+}
+
+export function buildInfoEmbed() {
+    return buildEmbed({ preset: 'info' });
+}
+
+export function buildSuccessEmbed() {
+    return buildEmbed({ preset: 'success' });
+}
+
+export function buildPanelEmbed() {
+    return buildEmbed({ name: 'panel' });
+}
+
+function buildEmbed({ name, preset }: { name?: string, preset?: string }) {
+    const embed = new EmbedBuilder();
 
     if (!name && !preset) throw new Error("You must provide a name or a preset to build an embed");
 
-    const { embeds } = config;
-    const { presets } = embeds;
-    const { default: defaultPreset } = presets;
+    const embeds = config.embeds;
+    const presets = embeds.presets;
+    const defaultPreset = presets.default;
 
     const format = (string: string) => {
         if (!string) return string;
         if (string == "N/A") return null;
-        if (placeholders) {
-            for (const [key, value] of Object.entries(placeholders)) {
-                string = string.replace(new RegExp(`{${key}}`, "g"), value);
-            }
-        }
         return string;
     };
     
@@ -44,14 +44,6 @@ export function buildEmbed({ name, preset, embed, placeholders }: { name?: strin
     return embed;
 }
 
-/**
- * @function buildButton
- * @description A function that builds a button
- * @param {string} name The name of the button
- * @returns {ButtonBuilder} The built button
- * @example
- * buildButton("example");
- */
 export function buildButton(name: keyof typeof config.buttons) {
     const button = new ButtonBuilder();
     const buttonConfig = config.buttons[name];

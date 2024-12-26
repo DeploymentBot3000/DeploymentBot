@@ -8,10 +8,10 @@ import {
 } from "discord.js";
 import Button from "../classes/Button.js";
 import Deployment from "../tables/Deployment.js";
-import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
 import {action, error, warn} from "../utils/logger.js";
 import { DateTime, Duration } from "luxon";
+import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
 
 export default new Button({
     id: "editDeployment",
@@ -26,7 +26,7 @@ export default new Button({
 
         if (!deployment) {
             error("Deployment not found", "EditDeployment");
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setDescription("Deployment not found");
 
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -34,14 +34,14 @@ export default new Button({
 
         if (deployment.user !== interaction.user.id) {
             warn(`Unauthorized edit attempt by ${interaction.user.tag}`, "EditDeployment");
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setDescription("You do not have permission to edit this deployment");
 
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
 
         if(deployment.noticeSent) {
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setDescription("You can't edit a deployment after the notice has been sent!");
 
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -51,7 +51,7 @@ export default new Button({
         const deploymentStartTime = DateTime.fromMillis(Number(deployment.startTime));
 
         if (now >= deploymentStartTime) {
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setDescription("You can't edit a deployment that has already started!");
 
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -61,7 +61,7 @@ export default new Button({
         const editLeadTime = Duration.fromObject({'minutes': config.deployment_edit_lead_time_minutes});
         
         if (timeUntilStart < editLeadTime) {
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setDescription(`You can't edit a deployment within ${editLeadTime.toHuman()} of its start time!\nThis deployment starts in ${timeUntilStart.toHuman()}.`);
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
@@ -83,7 +83,7 @@ export default new Button({
         }).catch(() => null);
 
         if (!selectmenuInteraction) {
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setDescription("Selection timed out");
 
             return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
@@ -95,7 +95,7 @@ export default new Button({
         const rows = [];
 
         if (!selectmenuInteraction.values || !Array.isArray(selectmenuInteraction.values)) {
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setDescription("Invalid selection");
 
             return await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);

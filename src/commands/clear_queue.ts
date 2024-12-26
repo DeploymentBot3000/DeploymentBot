@@ -1,5 +1,5 @@
 import Command from "../classes/Command.js";
-import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { action, success } from "../utils/logger.js";
 
@@ -16,7 +16,7 @@ export default new Command({
         await HotDropQueue.getHotDropQueue().clear();
         success(`Queue cleared by ${interaction.user.tag}`, "QueueClear");
 
-        const embed = buildEmbed({ preset: "success" })
+        const embed = buildSuccessEmbed()
             .setTitle("Queue cleared")
             .setDescription("The queue has been cleared");
 

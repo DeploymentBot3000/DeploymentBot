@@ -1,7 +1,7 @@
 import colors from "colors";
 import { error, log } from "../utils/logger.js";
 import { AnySelectMenuInteraction } from "discord.js";
-import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
 import checkBlacklist from "../utils/interaction/checkBlacklist.js";
 import hasRequiredRoles from "../utils/interaction/hasRequiredRoles.js";
 import hasRequiredPermissions from "../utils/interaction/hasRequiredPermissions.js";
@@ -34,7 +34,7 @@ export default {
             error(`[Select Menu Error] ${interaction.customId} ${colors.blue("||")} Author: ${interaction.user.username} ${colors.blue("||")} ID: ${interaction.user.id} ${colors.blue("||")} Server: ${interaction.guild?.name || "DM"} ${colors.red("||")} ${e}`);
             error(e);
 
-            const embed = buildEmbed({ preset: "error" })
+            const embed = buildErrorEmbed()
                 .setDescription(":x: **An error occurred while executing this command!**");
 
             await interaction.reply({ embeds: [embed], ephemeral: true });

@@ -1,6 +1,6 @@
 import { AnySelectMenuInteraction, ButtonInteraction, Snowflake } from "discord.js";
 import { DateTime, Duration } from "luxon";
-import { buildEmbed } from "../embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../embedBuilders/configBuilders.js";
 import { debug } from "../logger.js";
 
 /**
@@ -11,7 +11,7 @@ export async function userIsOnCooldownWithReply(interaction: AnySelectMenuIntera
     const error = checkCooldown(interaction.user.id, interactionItemId, cooldown);
     if (error instanceof Error) {
         await interaction.reply({
-            embeds: [buildEmbed({ preset: "error" })
+            embeds: [buildErrorEmbed()
                 .setDescription(error.toString())], ephemeral: true
         });
         return true;
