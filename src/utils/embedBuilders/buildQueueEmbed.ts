@@ -51,7 +51,7 @@ async function getFields(channel: GuildTextBasedChannel, currentQueue: Queue[]):
         if(currentField) rows[row][index] = currentField;
     });
 
-    const fields = [];
+    const fields: APIEmbedField[] = [];
     rows.forEach((row, index) => {
         fields.push({
             name: row[0] ? `**Hosts:**` : ' ',

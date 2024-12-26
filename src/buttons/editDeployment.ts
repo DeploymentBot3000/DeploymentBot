@@ -98,7 +98,7 @@ export default new Button({
         // Delete the select menu message
         await interaction.deleteReply();
 
-        const rows = [];
+        const rows: ActionRowBuilder<TextInputBuilder>[] = [];
 
         if (!selectmenuInteraction.values || !Array.isArray(selectmenuInteraction.values)) {
             const errorEmbed = buildErrorEmbed()
@@ -114,21 +114,21 @@ export default new Button({
                     rows.push(
                         new ActionRowBuilder().addComponents(
                             new TextInputBuilder().setCustomId("title").setLabel("Title").setPlaceholder("Deployment Title").setRequired(true).setStyle(TextInputStyle.Short).setMaxLength(50).setValue(deployment.title)
-                        )
+                        ) as ActionRowBuilder<TextInputBuilder>
                     );
                     break;
                 case "difficulty":
                     rows.push(
                         new ActionRowBuilder().addComponents(
                             new TextInputBuilder().setCustomId("difficulty").setLabel("Difficulty").setPlaceholder("Deployment Difficulty").setRequired(true).setStyle(TextInputStyle.Short).setMaxLength(15).setValue(deployment.difficulty)
-                        )
+                        ) as ActionRowBuilder<TextInputBuilder>
                     );
                     break;
                 case "description":
                     rows.push(
                         new ActionRowBuilder().addComponents(
                             new TextInputBuilder().setCustomId("description").setLabel("Description").setPlaceholder("Deployment Description").setRequired(true).setStyle(TextInputStyle.Paragraph).setMaxLength(1000).setValue(deployment.description)
-                        )
+                        ) as ActionRowBuilder<TextInputBuilder>
                     );
                     break;
                 case "startTime":
@@ -137,13 +137,13 @@ export default new Button({
                     rows.push(
                         new ActionRowBuilder().addComponents(
                             new TextInputBuilder().setCustomId("startTime").setLabel("Start Time").setPlaceholder("YYYY-MM-DD HH UTC+2").setRequired(true).setStyle(TextInputStyle.Short).setMaxLength(50).setValue(`${date.getUTCFullYear()}-${date.getUTCMonth() + 1}-${date.getUTCDate()} ${date.getUTCHours()}:${date.getUTCMinutes()} UTC+0`)
-                        )
+                        ) as ActionRowBuilder<TextInputBuilder>
                     );
                     break;
             }
         }
 
-        const modal = new ModalBuilder().setTitle("Edit Deployment").setCustomId(`editDeployment-${deployment.id}`).addComponents(rows)
+        const modal = new ModalBuilder().setTitle("Edit Deployment").setCustomId(`editDeployment-${deployment.id}`).addComponents(rows);
 
         await selectmenuInteraction.showModal(modal);
     }
