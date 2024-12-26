@@ -2,7 +2,7 @@ import config from "../../config.js";
 import Deployment from "../../tables/Deployment.js";
 import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
-import {ColorResolvable, EmbedBuilder, Guild} from "discord.js";
+import { ColorResolvable, EmbedBuilder, Guild, GuildMember } from "discord.js";
 import getGoogleCalendarLink from "../getGoogleCalendarLink.js";
 
 
@@ -41,7 +41,7 @@ export async function buildDeploymentEmbed(
                     let memberName = `Unknown Member (${signup.userId})`;
                     
                     if (guild && guild instanceof Guild) {
-                        const member = await guild.members.fetch(signup.userId).catch(() => null);
+                        const member = await guild.members.fetch(signup.userId).catch(() => null as GuildMember);
                         if (member) memberName = member.displayName;
                     }
                     
@@ -54,7 +54,7 @@ export async function buildDeploymentEmbed(
                 value: backups.length ? 
                     await Promise.all(backups.map(async backup => {
                         if (!guild || !(guild instanceof Guild)) return `Unknown Member (${backup.userId})`;
-                        const member = await guild.members.fetch(backup.userId).catch(() => null);
+                        const member = await guild.members.fetch(backup.userId).catch(() => null as GuildMember);
                         return `${config.backupEmoji} ${member ? member.displayName : backup.userId}`;
                     })).then(lines => lines.join("\n"))
                     : "` - `",

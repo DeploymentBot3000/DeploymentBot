@@ -105,17 +105,17 @@ export default new Modal({
             const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
             if (latestInput) await latestInput.remove();
 
-            const selectMenuResponse: StringSelectMenuInteraction = await interaction.channel.awaitMessageComponent({
+            const selectMenuResponse = await interaction.channel.awaitMessageComponent({
                 filter: i => i.user.id === interaction.user.id && i.customId === "channel",
                 time: 60000
-            }).catch(() => null);
+            }).catch(() => null as null) as StringSelectMenuInteraction;
 
             if (!selectMenuResponse) {
                 const errorEmbed = buildErrorEmbed()
                     .setDescription("Channel selection timed out");
 
-                await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
-                setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
+                await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => { });
+                setTimeout(() => interaction.deleteReply().catch(() => { }), 45000);
 
                 return;
             }
@@ -124,7 +124,7 @@ export default new Modal({
                 .setDescription("Deployment created successfully");
 
             await selectMenuResponse.update({ embeds: [successEmbed], components: [] });
-            setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
+            setTimeout(() => interaction.deleteReply().catch(() => { }), 45000);
 
             const channel = config.channels.find(channel => channel.channel === selectMenuResponse.values[0].split("-")[0]);
 
@@ -158,7 +158,7 @@ export default new Modal({
                 .setFooter({ text: `Sign ups: 1/4 ~ Backups: 0/4` })
                 .setTimestamp(startDate.getTime());
 
-            const ch = await interaction.client.channels.fetch(channel.channel).catch(() => null) as GuildTextBasedChannel;
+            const ch = await interaction.client.channels.fetch(channel.channel).catch(() => null as null) as GuildTextBasedChannel;
 
             const rows = [
                 new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -213,7 +213,7 @@ export default new Modal({
                 debug('Deleting deployment sign up message');
                 await msg.delete().catch(e => { error(`Failed to delete ${title} signup embed`); console.log(e); });
                 debug('Deleting success message');
-                await interaction.deleteReply().catch(() => null);
+                await interaction.deleteReply().catch(() => { });
                 if (deployment != null) {
                     debug('Deleting saved deployment from database');
                     await Deployment.remove(deployment).catch(e => { error(`Failed to delete ${deployment.title} from db`); console.log(e); });

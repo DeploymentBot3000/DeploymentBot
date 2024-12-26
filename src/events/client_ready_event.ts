@@ -173,11 +173,11 @@ async function deleteOldDeployments(client: Client, now: DateTime) {
 	});
 
 	for (const deployment of deploymentsToDelete) {
-		const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
-		const message = await channel.messages.fetch(deployment.message).catch(() => null);
+		const channel = await client.channels.fetch(deployment.channel).catch(() => null as null) as GuildTextBasedChannel;
+		const message = await channel?.messages.fetch(deployment.message).catch(() => null as null);
 
 		if (message) {
-			await message.delete().catch(() => null);
+			await message.delete().catch(() => { });
 		}
 		deployment.deleted = true;
 		await deployment.save();

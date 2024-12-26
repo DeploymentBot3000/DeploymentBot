@@ -82,10 +82,10 @@ export default new Button({
 
         await interaction.reply({ content: "Select an option to edit", components: [selectmenu], ephemeral: true });
 
-        const selectmenuInteraction: StringSelectMenuInteraction = await interaction.channel.awaitMessageComponent({
+        const selectmenuInteraction = await interaction.channel.awaitMessageComponent({
             filter: i => i.user.id === interaction.user.id && i.customId === "editDeployment",
             time: 120000
-        }).catch(() => null);
+        }).catch(() => null as null) as StringSelectMenuInteraction;
 
         if (!selectmenuInteraction) {
             const errorEmbed = buildErrorEmbed()
