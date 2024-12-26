@@ -41,16 +41,16 @@ export default {
 
         try {
             const startTime = await startTimeInput();
-            const details = {
-                title: emoji.strip(getFieldValue("title")).trim(),
-                difficulty: emoji.strip(getFieldValue("difficulty")).trim(),
-                description: emoji.strip(getFieldValue("description")).trim(),
-                startTime,
-                endTime: startTime ? startTime + 7200000 : null
-            }
 
-            for(const key in details)
-                if(details[key]) deployment[key] = details[key];
+            const title = emoji.strip(getFieldValue("title")).trim();
+            if (title) { deployment.title = title; }
+            const difficulty = emoji.strip(getFieldValue("difficulty")).trim();
+            if (difficulty) { deployment.difficulty = difficulty; }
+            const description = emoji.strip(getFieldValue("description")).trim();
+            if (description) { deployment.description = description; }
+            if (startTime) { deployment.startTime = startTime; }
+            const endTime = startTime ? startTime + 7200000 : null;
+            if (endTime) { deployment.endTime = endTime; }
         } catch (e) {
             const errorEmbed = buildErrorEmbed()
                 .setTitle("Parsing Error!")
