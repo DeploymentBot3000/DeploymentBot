@@ -2,10 +2,11 @@ import {ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle} from "
 import Button from "../classes/Button.js";
 import LatestInput from "../tables/LatestInput.js";
 import config from "../config.js";
+import { Duration } from "luxon";
 
 export default new Button({
     id: "newDeployment",
-    cooldown: config.buttonCooldown,
+    cooldown: Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }),
     permissions: [],
     requiredRoles: [{ role: config.hostRole, required: true }],
     blacklistedRoles: [...config.blacklistedRoles],

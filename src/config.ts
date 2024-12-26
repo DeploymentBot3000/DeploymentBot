@@ -144,5 +144,6 @@ export default {
             style: ButtonStyle.Danger
         }
     },
-    buttonCooldown: 5
+    buttonCooldownSeconds: 5,
+    selectMenuCooldownSeconds: 5
 }

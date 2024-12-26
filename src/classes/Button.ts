@@ -1,5 +1,6 @@
 import { ButtonInteraction, PermissionsString } from "discord.js";
 import { requiredRolesType } from "./Command.js";
+import { Duration } from "luxon";
 
 /**
  * @class Button
@@ -12,7 +13,7 @@ import { requiredRolesType } from "./Command.js";
  */
 export default class Button {
     public id: string;
-    public cooldown?: number;
+    public cooldown?: Duration;
     public permissions?: PermissionsString[];
     /**
      * The role required to run this command
@@ -28,7 +29,7 @@ export default class Button {
         interaction: ButtonInteraction;
     }) => Promise<void>;
     public constructor({ id, cooldown, permissions, requiredRoles, blacklistedRoles, callback }: {
-        id: string, cooldown: number, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], callback: (params: {
+        id: string, cooldown: Duration, permissions: PermissionsString[], requiredRoles: requiredRolesType, blacklistedRoles: string[], callback: (params: {
         interaction: ButtonInteraction;
         }) => Promise<void>
     }) {

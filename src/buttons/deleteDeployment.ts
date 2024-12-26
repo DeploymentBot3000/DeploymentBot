@@ -36,7 +36,7 @@ function buildDeploymentDeletedConfirmationEmbedForLog(deployment: Deployment, s
 
 export default new Button({
     id: "deleteDeployment",
-    cooldown: config.buttonCooldown,
+    cooldown: Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }),
     permissions: [],
     requiredRoles: [],
     blacklistedRoles: [...config.blacklistedRoles],

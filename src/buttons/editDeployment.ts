@@ -15,7 +15,7 @@ import { DateTime, Duration } from "luxon";
 
 export default new Button({
     id: "editDeployment",
-    cooldown: config.buttonCooldown,
+    cooldown: Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }),
     permissions: [],
     requiredRoles: [],
     blacklistedRoles: [...config.blacklistedRoles],

@@ -5,10 +5,11 @@ import Backups from "../tables/Backups.js";
 import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
 import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
+import { Duration } from "luxon";
 
 export default new Button({
     id: "leaveDeployment",
-    cooldown: 0,
+    cooldown: Duration.fromDurationLike({ seconds: 0 }),
     permissions: [],
     requiredRoles: [],
     blacklistedRoles: [...config.blacklistedRoles],
