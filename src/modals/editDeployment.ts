@@ -1,4 +1,4 @@
-import {GuildTextBasedChannel} from "discord.js";
+import { GuildTextBasedChannel, ModalSubmitInteraction } from "discord.js";
 import getStartTime from "../utils/getStartTime.js";
 import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
 import {success} from "../utils/logger.js";
@@ -9,8 +9,8 @@ import { buildErrorEmbed, buildSuccessEmbed } from "../utils/embedBuilders/confi
 
 export default {
     id: "editDeployment",
-    callback: async function ({ interaction }) {
-        const deployment = await Deployment.findOne({ where: { id: interaction.customId.split("-")[1] } });
+    callback: async function ({ interaction }: { interaction: ModalSubmitInteraction }) {
+        const deployment = await Deployment.findOne({ where: { id: Number(interaction.customId.split("-")[1]) } });
         if (!deployment) {
             return;
         }
