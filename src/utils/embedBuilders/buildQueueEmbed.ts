@@ -1,6 +1,8 @@
 import { APIEmbedField, EmbedBuilder, GuildMember, GuildTextBasedChannel } from "discord.js";
 import Queue from "../../tables/Queue.js";
 import { HotDropQueue } from "../hot_drop_queue.js";
+import { DiscordTimestampFormat, formatDiscordTime } from "../time.js";
+import { DateTime } from "luxon";
 
 async function getFields(channel: GuildTextBasedChannel, currentQueue: Queue[]): Promise<APIEmbedField[]> {
     const currentHosts = currentQueue.filter(q => q.isHost);
@@ -78,9 +80,9 @@ export default async function buildQueueEmbed(notEnoughPlayers: boolean = false,
 
     let content = null;
     if (notEnoughPlayers) {
-        content = `❌**┃Not enough players.** Next deployment starting <t:${Math.round(nextDeploymentTime / 1000)}:R>`;
+        content = `❌**┃Not enough players.** Next deployment starting ${formatDiscordTime(DateTime.fromMillis(nextDeploymentTime), DiscordTimestampFormat.RELATIVE_TIME)}`;
     } else if (deploymentCreated) {
-        content = `✅**┃Successfully created a deployment.** Next deployment starting <t:${Math.round(nextDeploymentTime / 1000)}:R>`;
+        content = `✅**┃Successfully created a deployment.** Next deployment starting ${formatDiscordTime(DateTime.fromMillis(nextDeploymentTime), DiscordTimestampFormat.RELATIVE_TIME)}`;
     }
 
     const embed = new EmbedBuilder()
@@ -121,7 +123,8 @@ export default async function buildQueueEmbed(notEnoughPlayers: boolean = false,
             ...fields,
             {
                 name: "Next game:",
-                value: `📅**┃**<t:${Math.round(nextDeploymentTime / 1000)}:d>\n🕒**┃**<t:${Math.round(nextDeploymentTime / 1000)}:t>`,
+                value: `📅**┃**${formatDiscordTime(DateTime.fromMillis(nextDeploymentTime), DiscordTimestampFormat.SHORT_DATE)}\n
+🕒**┃**${formatDiscordTime(DateTime.fromMillis(nextDeploymentTime), DiscordTimestampFormat.SHORT_TIME)}`,
             }
         );
 

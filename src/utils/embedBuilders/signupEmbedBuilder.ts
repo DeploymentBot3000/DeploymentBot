@@ -4,6 +4,8 @@ import Signups from "../../tables/Signups.js";
 import Backups from "../../tables/Backups.js";
 import { ColorResolvable, EmbedBuilder, Guild, GuildMember } from "discord.js";
 import getGoogleCalendarLink from "../getGoogleCalendarLink.js";
+import { DiscordTimestampFormat, formatDiscordTime } from "../time.js";
+import { DateTime } from "luxon";
 
 
 export async function buildDeploymentEmbed(
@@ -28,7 +30,9 @@ export async function buildDeploymentEmbed(
         .addFields([
             {
                 name: "Deployment Details:",
-                value: `📅 <t:${Math.round(deployment.startTime / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(deployment.startTime / 1000)}:t> - <t:${Math.round((deployment.endTime / 1000))}:t>\n🪖 ${deployment.difficulty}`
+                value: `📅 ${formatDiscordTime(DateTime.fromMillis(deployment.startTime), DiscordTimestampFormat.SHORT_DATE)} - [Calendar](${googleCalendarLink})\n
+🕒 ${formatDiscordTime(DateTime.fromMillis(deployment.startTime), DiscordTimestampFormat.SHORT_TIME)} - ${formatDiscordTime(DateTime.fromMillis(deployment.endTime), DiscordTimestampFormat.SHORT_TIME)}\n
+🪖 ${deployment.difficulty}`
             },
             {
                 name: "Description:",

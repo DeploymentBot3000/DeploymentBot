@@ -19,6 +19,7 @@ import { getAllSlashCommands } from "../utils/slash_commands_registery.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { setWakingUpActivity, startActivityInterval } from "../utils/bot_activity.js";
 import { buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { formatDiscordTime } from "../utils/time.js";
 
 export async function discordClientReadyCallback(client: Client) {
 	try {
@@ -146,7 +147,7 @@ async function startDeployments(client: Client, now: DateTime) {
 					{ name: "Title", value: deployment.title, inline: true },
 					{ name: "Host", value: message.guild.members.cache.get(deployment.user)?.nickname || deployment.user, inline: true },
 					{ name: "Difficulty", value: deployment.difficulty, inline: true },
-					{ name: "Time", value: `<t:${Math.floor(deployment.startTime / 1000)}:F>`, inline: false },
+					{ name: "Time", value: formatDiscordTime(DateTime.fromMillis(deployment.startTime)), inline: false },
 					{ name: "Players", value: signupsFormatted, inline: true },
 					{ name: "Backups", value: backupsFormatted, inline: true },
 					{ name: "Description", value: deployment.description || "No description provided" }

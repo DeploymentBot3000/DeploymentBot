@@ -19,6 +19,8 @@ import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
 import {action, debug, error, log, success} from "../utils/logger.js";
 import * as emoji from 'node-emoji';
+import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
+import { DateTime, Duration } from "luxon";
 
 async function storeLatestInput(interaction: ModalSubmitInteraction, title: string, difficulty: string, description: string) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
@@ -130,14 +132,18 @@ export default new Modal({
 
             const offenseRole = config.roles.find(role => role.name === "Offense");
 
-            const googleCalendarLink = getGoogleCalendarLink(title, description, startDate.getTime(), (startDate.getTime() + 7200000))
+            const endTime = DateTime.fromJSDate(startDate).plus(Duration.fromDurationLike({ hours: 2 }));
+
+            const googleCalendarLink = getGoogleCalendarLink(title, description, startDate.getTime(), endTime.toMillis());
 
             const embed = new EmbedBuilder()
                 .setTitle(title)
                 .addFields([
                     {
                         name: "Deployment Details:",
-                        value: `📅 <t:${Math.round(startDate.getTime() / 1000)}:d> - [Calendar](${googleCalendarLink})\n🕒 <t:${Math.round(startDate.getTime() / 1000)}:t> - <t:${Math.round((startDate.getTime() + 7200000) / 1000)}:t>\n🪖 ${difficulty}`
+                        value: `📅 ${formatDiscordTime(DateTime.fromJSDate(startDate), DiscordTimestampFormat.SHORT_DATE)} - [Calendar](${googleCalendarLink})\n
+🕒 ${formatDiscordTime(DateTime.fromJSDate(startDate), DiscordTimestampFormat.SHORT_TIME)} - ${formatDiscordTime(endTime, DiscordTimestampFormat.SHORT_TIME)}:\n
+🪖 ${difficulty}`
                     },
                     {
                         name: "Description:",
