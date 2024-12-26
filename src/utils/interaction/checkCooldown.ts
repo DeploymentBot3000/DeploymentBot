@@ -1,17 +1,42 @@
-import {buildEmbed} from "../embedBuilders/configBuilders.js";
-import Cooldown from "../../classes/Cooldown.js";
-import ReplyableInteraction from "./ReplyableInteraction.js";
+import { AnySelectMenuInteraction, ButtonInteraction, Snowflake } from "discord.js";
+import { DateTime, Duration } from "luxon";
+import { buildEmbed } from "../embedBuilders/configBuilders.js";
+import { debug } from "../logger.js";
 
-export default async function checkCooldowns(interaction: ReplyableInteraction, existingCooldown: Cooldown):Promise<boolean> {
-    if (!existingCooldown) {
-        return false;
+/**
+ * Check if the user is on cooldown for the interaction and reply with an error if they are.
+ * @returns true if the user is on cooldown, otherwise false.
+ */
+export async function userIsOnCooldownWithReply(interaction: AnySelectMenuInteraction | ButtonInteraction, interactionItemId: string, cooldown: Duration): Promise<boolean> {
+    const error = checkCooldown(interaction.user.id, interactionItemId, cooldown);
+    if (error instanceof Error) {
+        await interaction.reply({
+            embeds: [buildEmbed({ preset: "error" })
+                .setDescription(error.toString())], ephemeral: true
+        });
+        return true;
     }
-    if (existingCooldown && !existingCooldown.isExpired()) {
-        const cooldownEmbed = buildEmbed({preset: "error"})
-            .setDescription("Please wait before using this interaction again!");
-        await interaction.reply({embeds: [cooldownEmbed], ephemeral: true});
-        return true; // true if on cooldown
-    } else {
-        return false;
+    return false;
+}
+
+/**
+ * A map of user IDs and interaction item IDs to the last time the user used the interaction.
+ */
+const _kCooldowns: Map<string, DateTime> = new Map();
+
+/**
+ * @returns An error if the user is on cooldown, otherwise null.
+ */
+function checkCooldown(userId: Snowflake, interactionItemId: string, cooldown: Duration) {
+    const lastUsage = _kCooldowns.get(`${userId}-${interactionItemId}`);
+    debug(`Cooldown Last usage: ${lastUsage}; ${userId}-${interactionItemId}`);
+    const now = DateTime.now();
+    if (lastUsage) {
+        const timeUntilNextUseDuration = lastUsage.plus(cooldown).diff(now);
+        if (timeUntilNextUseDuration > Duration.fromMillis(0)) {
+            return new Error(`Please wait ${Math.ceil(timeUntilNextUseDuration.shiftTo('seconds').seconds)} seconds before using this interaction again!`);
+        }
     }
+    _kCooldowns.set(`${userId}-${interactionItemId}`, now);
+    return null;
 }

@@ -5,10 +5,11 @@ import Signups from "../tables/Signups.js";
 import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
 import config from "../config.js";
+import { Duration } from "luxon";
 
 export default new SelectMenu({
     id: "signup",
-    cooldown: 5,
+    cooldown: Duration.fromDurationLike({ seconds: config.selectMenuCooldownSeconds }),
     permissions: [],
     requiredRoles: [],
     blacklistedRoles: [...config.blacklistedRoles],

@@ -1,13 +1,7 @@
-import { Client, Collection, GatewayIntentBits } from "discord.js";
-import Cooldown from "./classes/Cooldown.js";
+import { Client, GatewayIntentBits } from "discord.js";
 
-// Define a new class that extends Client
-export class CustomClient extends Client {
-    cooldowns: Collection<String, Cooldown> = new Collection();
-}
-
-// Initialize the extended client
-export const client = new CustomClient({
+// Initialize the client
+export const client = new Client({
     // Invite link, this defines the permissions the bot has and what it can do.
     // https://discord.com/developers/applications/1312896264475508839/oauth2
     // Move Members

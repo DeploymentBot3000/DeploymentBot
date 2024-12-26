@@ -2,10 +2,11 @@ import Button from "../classes/Button.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
+import { Duration } from "luxon";
 
 export default new Button({
     id: "join",
-    cooldown: config.buttonCooldown,
+    cooldown: Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }),
     permissions: [],
     requiredRoles: [],
     blacklistedRoles: [...config.blacklistedRoles],
