@@ -24,7 +24,6 @@ export default {
     blacklistedRoles: discord_server.roles.blacklisted_role_ids,
     
     departureChannel: discord_server.channels.departure_channel_id,
-    bugReportChannelId: discord_server.channels.bug_report_channel_id,
     log_channel_id: discord_server.channels.log_channel_id,
 
     channels: discord_server.deployment_channels,
