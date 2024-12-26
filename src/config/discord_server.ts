@@ -6,7 +6,6 @@ export default {
     },
     channels: {
         departure_channel_id: "1312957214377512961",
-        bug_report_channel_id: "1312957290273570868",
         log_channel_id: "1312956393116008509",
         error_log_channel_id: "1314439689750577162",
     },

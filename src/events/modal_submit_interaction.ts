@@ -1,7 +1,6 @@
 import colors from "colors";
 import { ModalSubmitInteraction } from "discord.js";
 import Modal from "../classes/Modal.js";
-import bugReport from "../modals/bugReport.js";
 import editDeployment from "../modals/editDeployment.js";
 import newDeployment from "../modals/newDeployment.js";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
@@ -9,7 +8,6 @@ import { error, log } from "../utils/logger.js";
 
 const _kModals: Map<string, Modal> = new Map();
 
-_kModals.set(bugReport.id, bugReport);
 _kModals.set(editDeployment.id, editDeployment);
 _kModals.set(newDeployment.id, newDeployment);
 

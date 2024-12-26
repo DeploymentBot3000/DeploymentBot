@@ -134,11 +134,6 @@ export default async function buildQueueEmbed(notEnoughPlayers: boolean = false,
                 value: "⚠️**┃**Failing to attend an assigned Hot Drop will result in **3 Sanction points**.",
                 inline: false
             },
-            {
-                name: "",
-                value: "🐛**┃**If you experience a bug please use ``/bugreport``.",
-                inline: false
-            },
             ...fields,
             {
                 name: "Next game:",
