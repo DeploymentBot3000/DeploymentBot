@@ -13,7 +13,7 @@ export default new Button({
     callback: async function ({ interaction }) {
         await interaction.deferUpdate();
 
-        const member = await interaction.guild?.members.fetch(interaction.user.id).catch(() => null);
+        const member = await interaction.guild?.members.fetch(interaction.user.id).catch(() => null as null);
         if (!member) {
             const errorEmbed = buildErrorEmbed()
                 .setDescription("Failed to fetch your guild member data");

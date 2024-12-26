@@ -1,4 +1,4 @@
-import {GuildTextBasedChannel} from "discord.js";
+import { GuildMember, GuildTextBasedChannel } from "discord.js";
 import Queue from "../../tables/Queue.js";
 import HackedEmbedBuilder from "../../classes/HackedEmbedBuilder.js";
 import { HotDropQueue } from "../hot_drop_queue.js";
@@ -28,12 +28,12 @@ async function getFields(channel: GuildTextBasedChannel, currentQueue: Queue[]):
         ];
 
     const currentHostsNames = await Promise.all(currentHosts.map(async host => {
-        const member = await channel.guild.members.fetch(host.user).catch(() => null);
+        const member = await channel.guild.members.fetch(host.user).catch(() => null as GuildMember);
         return member ? member.displayName : 'Unknown User';
     }));
 
     const currentPlayersNames = await Promise.all(currentPlayers.map(async player => {
-        const member = await channel.guild.members.fetch(player.user).catch(() => null);
+        const member = await channel.guild.members.fetch(player.user).catch(() => null as GuildMember);
         return member ? member.displayName : 'Unknown User';
     }));
 

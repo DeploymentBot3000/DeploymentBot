@@ -68,14 +68,14 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
         const host = group.host;
         const selectedPlayers: Queue[] = group.players;
 
-        const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null) as GuildTextBasedChannel;
+        const departureChannel = await client.channels.fetch(config.departureChannel) as GuildTextBasedChannel;
 
         const signupsFormatted = selectedPlayers.map(player => {
             return `<@${player.user}>`;
         }).join("\n") || "` - `";
 
         // Fetch the GuildMember object for the host
-        const hostMember: GuildMember = await departureChannel.guild.members.fetch(host.user).catch(() => null);
+        const hostMember = await departureChannel.guild.members.fetch(host.user).catch(() => null as GuildMember);
 
         // Use the nickname if available, otherwise fall back to the username
         const hostDisplayName = hostMember?.nickname || hostMember?.user.username || 'Unknown Host';
@@ -84,7 +84,7 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
         const randomCode = `${generateRandomCode()}-${generateRandomCode()}`;
 
         await Promise.all(selectedPlayers.map(async player => {
-            await client.users.fetch(player.user).catch(() => null);
+            await client.users.fetch(player.user).catch(() => { });
         }));
 
         const vcCategory: CategoryChannel = findNextAvailableVoiceCategory(departureChannel.guild, strikeMode);
@@ -151,7 +151,7 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
 
         const defaultContent = `-------------------------------------------\n\n# ATTENTION HELLDIVERS\n\n\n**HOTDROP:** **${randomCode} (${hostDisplayName})**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**.\n**Communication Channel:** <#${vc.id}>.\n\n**Deployment Lead:**\n<@${host.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\nYou are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------`;
         const strikeContent = `-------------------------------------------\n\n# ATTENTION HELLDIVERS\n\n\n**You have been assigned to ${hostDisplayName}'s Strike Group**\nTheir Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**.\n**Communication Channel:** <#${vc.id}>.\n\n**Strike Leader:**\n<@${host.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\nYou are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------`;
-        await departureChannel.send({ content: strikeMode ? strikeContent : defaultContent }).catch(() => null);
+        await departureChannel.send({ content: strikeMode ? strikeContent : defaultContent }).catch(() => { });
 
         // remove the players from the queue
         for (const player of selectedPlayers) {
@@ -162,7 +162,7 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
         await Queue.delete({ user: host.user });
 
         // Fetch all player members to get their nicknames
-        const playerMembers = await Promise.all(selectedPlayers.map(p => departureChannel.guild.members.fetch(p.user).catch(() => null)));
+        const playerMembers = await Promise.all(selectedPlayers.map(p => departureChannel.guild.members.fetch(p.user).catch(() => null as GuildMember)));
 
         // Log to all logging channels
         await logQueueDeployment({

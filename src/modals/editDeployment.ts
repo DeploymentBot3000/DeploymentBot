@@ -65,13 +65,15 @@ export default {
         const successEmbed = buildSuccessEmbed()
             .setDescription("Deployment edited successfully");
 
-        await interaction.reply({ embeds: [successEmbed], components: [], ephemeral: true }).catch(() => null);
+        await interaction.reply({ embeds: [successEmbed], components: [], ephemeral: true }).catch(() => { });
 
         const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
 
-        const channel = await client.channels.fetch(deployment.channel).catch(() => null) as GuildTextBasedChannel;
-        const message = await channel.messages.fetch(deployment.message).catch(() => null);
-        await message.edit({ embeds: [embed] }).catch(() => null);
+        const channel = await client.channels.fetch(deployment.channel).catch(() => null as null) as GuildTextBasedChannel;
+        const message = await channel?.messages.fetch(deployment.message).catch(() => null as null);
+        if (message) {
+            await message.edit({ embeds: [embed] }).catch(() => { });
+        }
 
         success(`Deployment ${deployment.title} edited successfully by ${interaction.user.tag}`, "EditDeployment");
     }

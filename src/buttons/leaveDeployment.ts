@@ -16,7 +16,7 @@ export default new Button({
     callback: async function ({ interaction }) {
         try {
             // Fetch the member to ensure they still exist in the guild
-            const member = await interaction.guild.members.fetch(interaction.user.id).catch(() => null);
+            const member = await interaction.guild.members.fetch(interaction.user.id).catch(() => null as null);
             if (!member) {
                 const errorEmbed = buildErrorEmbed()
                     .setDescription("Failed to fetch your member data. Please try again.");

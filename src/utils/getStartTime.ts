@@ -80,7 +80,7 @@ export default async function getStartTime(startTime: string, interaction: Modal
         const errorEmbed = buildErrorEmbed()
             .setDescription(_kDateInputErrorDescription);
         await interaction.reply({embeds: [errorEmbed], ephemeral: true});
-        setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
+        setTimeout(() => interaction.deleteReply().catch(() => { }), 45000);
 
         // Log invalid time entry to specific channel
         const logChannel = await interaction.client.channels.fetch('1299122351291629599');
@@ -98,7 +98,7 @@ export default async function getStartTime(startTime: string, interaction: Modal
 
 
         await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-        setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
+        setTimeout(() => interaction.deleteReply().catch(() => { }), 45000);
         throw new Error();
     }
 
