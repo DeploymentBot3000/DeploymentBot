@@ -1,5 +1,5 @@
 import colors from "colors";
-import { error, log } from "../utils/logger.js";
+import { log } from "../utils/logger.js";
 import { ButtonInteraction } from "discord.js";
 import checkBlacklist from "../utils/interaction/checkBlacklist.js";
 import hasRequiredPermissions from "../utils/interaction/hasRequiredPermissions.js";
@@ -14,7 +14,6 @@ import leaveDeployment from "../buttons/leaveDeployment.js";
 import newDeployment from "../buttons/newDeployment.js";
 import Button from "../classes/Button.js";
 import { userIsOnCooldownWithReply } from "../utils/interaction/checkCooldown.js";
-import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
 
 const _kButtons: Map<string, Button> = new Map();
 
@@ -43,17 +42,7 @@ export default {
 		if (await userIsOnCooldownWithReply(interaction, button.id, button.cooldown)) { return; }
 
 
-		try {
-			log(`${colors.cyan('[Button Clicked]')} ${colors.yellow(interaction.customId)} ${colors.blue('||')} ${colors.green('Author:')} ${colors.magenta(interaction.user.username)}`);
-			await button.callback({ interaction });
-		} catch (e) {
-			error(`${colors.red('[Button Error]')} ${colors.yellow(interaction.customId)} ${colors.blue('||')} ${colors.green('Author:')} ${colors.magenta(interaction.user.username)} ${colors.red('||')} ${e}`);
-			error(e);
-
-			const embed = buildErrorEmbed()
-				.setDescription(":x: **An error occurred while executing this command!**");
-
-			await interaction.reply({ embeds: [embed], ephemeral: true });
-		}
+		log(`${colors.cyan('[Button Clicked]')} ${colors.yellow(interaction.customId)} ${colors.blue('||')} ${colors.green('Author:')} ${colors.magenta(interaction.user.username)}`);
+		await button.callback({ interaction });
 	},
 }
