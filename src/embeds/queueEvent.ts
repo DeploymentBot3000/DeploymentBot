@@ -1,4 +1,6 @@
 import { EmbedBuilder, VoiceChannel } from "discord.js";
+import { formatDiscordTime } from "../utils/time.js";
+import { DateTime } from "luxon";
 
 export type QueueEventEmbedOptions = {
     type: 'join' | 'leave' | 'host',
@@ -21,7 +23,7 @@ export function buildQueueEventEmbed(options: QueueEventEmbedOptions): EmbedBuil
                 .setTitle('✅┃Queue Join')
                 .addFields(
                     { name: `🪖┃Type: Diver`, value: ' ' },
-                    { name: `⏰┃Join Time: <t:${Math.floor(new Date().getTime() / 1000)}:F>`, value: ' ' }
+                    { name: `⏰┃Join Time: ${formatDiscordTime(DateTime.now())}`, value: ' ' }
                 );
             break;
         case 'host':
@@ -29,7 +31,7 @@ export function buildQueueEventEmbed(options: QueueEventEmbedOptions): EmbedBuil
                 .setTitle('👑┃Queue Host')
                 .addFields(
                     { name: `🪖┃Type: Host`, value: ' ' },
-                    { name: `⏰┃Join Time: <t:${Math.floor(new Date().getTime() / 1000)}:F>`, value: ' ' }
+                    { name: `⏰┃Join Time: ${formatDiscordTime(DateTime.now())}`, value: ' ' }
                 );
             break;
         case 'leave':
@@ -54,12 +56,12 @@ export function buildQueueEventEmbed(options: QueueEventEmbedOptions): EmbedBuil
                 };
 
                 embed.addFields(
-                    { name: `⏰┃Join Time: <t:${Math.floor(options.joinTime.getTime() / 1000)}:F>`, value: ' ' },
+                    { name: `⏰┃Join Time: ${formatDiscordTime(DateTime.fromJSDate(options.joinTime))}`, value: ' ' },
                     { name: `⏱️┃Time in Queue: ${formatDuration(queueDuration)}`, value: ' ' }
                 );
             }
             if (options.leaveTime) {
-                embed.addFields({ name: `⏰┃Leave Time: <t:${Math.floor(options.leaveTime.getTime() / 1000)}:F>`, value: ' ' });
+                embed.addFields({ name: `⏰┃Leave Time: ${formatDiscordTime(DateTime.fromJSDate(options.leaveTime))}`, value: ' ' });
             }
             if (options.queueBefore !== undefined && options.queueAfter !== undefined) {
                 embed.addFields({ name: `🦀┃Queue Change: ${options.queueBefore} → ${options.queueAfter}`, value: ' ' });
