@@ -1,13 +1,13 @@
+import { Events, Interaction, VoiceState } from "discord.js";
 import config from "./config.js";
 import { client } from "./custom_client.js";
 import autocompleteInteraction from "./events/auto_complete_Interaction.js";
 import buttonInteraction from "./events/button_interaction.js";
 import chatInputCommandInteraction from "./events/chat_input_command_interaction.js";
-import ready from "./events/client_ready_event.js";
+import { discordClientReadyCallback } from "./events/client_ready_event.js";
 import modalSubmittionInteraction from "./events/modal_submit_interaction.js";
 import selectMenuInteraction from "./events/select_menu_interaction.js";
 import removeExpiredVoiceChannels from "./events/voice_state_update_event.js";
-import { Events, Interaction, VoiceState } from "discord.js";
 import { sendErrorToLogChannel } from "./utils/log_channel.js";
 import { log } from "./utils/logger.js";
 
@@ -62,4 +62,4 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
 
 // Log in bot
 log('Logging in discord client', 'Startup');
-client.once(Events.ClientReady, ready.callback).login(config.token);
+client.once(Events.ClientReady, discordClientReadyCallback.bind(null)).login(config.token);
