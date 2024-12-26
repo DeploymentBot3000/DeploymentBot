@@ -20,7 +20,7 @@ import getStartTime from "../utils/getStartTime.js";
 import {action, debug, error, log, success} from "../utils/logger.js";
 import * as emoji from 'node-emoji';
 
-async function storeLatestInput(interaction, { title, difficulty, description }) {
+async function storeLatestInput(interaction: ModalSubmitInteraction, title: string, difficulty: string, description: string) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
 
     if (latestInput) {
@@ -79,7 +79,7 @@ export default new Modal({
 
         try { startDate = await getStartTime(startTime, interaction); }
         catch (e) {
-            await storeLatestInput(interaction, { title, difficulty, description });
+            await storeLatestInput(interaction, title, difficulty, description);
             log(`Invalid Start time!`, "NewDeployment");
             return;
         }
