@@ -1,15 +1,8 @@
-import { GuildMember, GuildTextBasedChannel } from "discord.js";
+import { APIEmbedField, EmbedBuilder, GuildMember, GuildTextBasedChannel } from "discord.js";
 import Queue from "../../tables/Queue.js";
-import HackedEmbedBuilder from "../../classes/HackedEmbedBuilder.js";
 import { HotDropQueue } from "../hot_drop_queue.js";
 
-interface Field {
-    name: string,
-    value: string,
-    inline: boolean
-}
-
-async function getFields(channel: GuildTextBasedChannel, currentQueue: Queue[]):Promise<Field[]> {
+async function getFields(channel: GuildTextBasedChannel, currentQueue: Queue[]): Promise<APIEmbedField[]> {
     const currentHosts = currentQueue.filter(q => q.isHost);
     const currentPlayers = currentQueue.filter(q => !q.isHost);
 
@@ -61,28 +54,27 @@ async function getFields(channel: GuildTextBasedChannel, currentQueue: Queue[]):
     const fields = [];
     rows.forEach((row, index) => {
         fields.push({
-            name: row[0] ? `**Hosts:**` : '',
-            value: row[0] || '',
+            name: row[0] ? `**Hosts:**` : ' ',
+            value: row[0] || ' ',
             inline: true
         });
         fields.push({
-            name: row[1] ? '**Participants:**' : '',
-            value: row[1] || '',
+            name: row[1] ? '**Participants:**' : ' ',
+            value: row[1] || ' ',
             inline: true
         });
         if(!fields[index]) return;
         fields.push({
-            name: '',
-            value: '',
-            inline: false
+            name: ' ',
+            value: ' ',
         });
     })
     return fields;
 }
 
-export default async function buildQueueEmbed(notEnoughPlayers: boolean = false, nextDeploymentTime: number, deploymentCreated: boolean = false, channel: GuildTextBasedChannel): Promise<HackedEmbedBuilder> {
+export default async function buildQueueEmbed(notEnoughPlayers: boolean = false, nextDeploymentTime: number, deploymentCreated: boolean = false, channel: GuildTextBasedChannel): Promise<EmbedBuilder> {
     const currentQueue = await Queue.find();
-    const fields:Field[] = await getFields(channel, currentQueue);
+    const fields: APIEmbedField[] = await getFields(channel, currentQueue);
 
     let content = null;
     if (notEnoughPlayers) {
@@ -91,48 +83,40 @@ export default async function buildQueueEmbed(notEnoughPlayers: boolean = false,
         content = `✅**┃Successfully created a deployment.** Next deployment starting <t:${Math.round(nextDeploymentTime / 1000)}:R>`;
     }
 
-    const embed = new HackedEmbedBuilder()
+    const embed = new EmbedBuilder()
         .setTitle(`🔥┃${HotDropQueue.getHotDropQueue().strikeModeEnabled ? 'Strike Queue' : 'Hot Drop Queue'}`)
         .addFields(
             {
-                name: "",
+                name: ' ',
                 value: "Hot drop deployments are urgent deployments, where random divers from the Queue Panel get selected at the listed interval of time below and sent to their hellpods!",
-                inline: false
             },
             {
-                name: "",
+                name: ' ',
                 value: content,
-                inline: false
             },
             {
-                name: "",
+                name: ' ',
                 value: "🚀**┃**Click **Host** to be added as a host",
-                inline: false
             },
             {
-                name: "",
+                name: ' ',
                 value: "📝**┃**Click **Join** to be added to the queue",
-                inline: false
             },
             {
-                name: "",
+                name: ' ',
                 value: "🚫**┃**Click **Leave** to leave the queue",
-                inline: false
             },
             {
-                name: "",
+                name: ' ',
                 value: "🛑**┃**Leave the queue if you are no longer available!",
-                inline: false
             },
             {
-                name: "",
+                name: ' ',
                 value: "🔊**┃**Once deployed, you have **15 MINUTES** to join the correct voice channel!",
-                inline: false
             },
             {
-                name: "",
+                name: ' ',
                 value: "⚠️**┃**Failing to attend an assigned Hot Drop will result in **3 Sanction points**.",
-                inline: false
             },
             ...fields,
             {
