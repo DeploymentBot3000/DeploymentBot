@@ -1,5 +1,4 @@
 import { EmbedBuilder, VoiceChannel } from "discord.js";
-import HackedEmbedBuilder from "../classes/HackedEmbedBuilder.js";
 
 export type QueueEventEmbedOptions = {
     type: 'join' | 'leave' | 'host',
@@ -11,9 +10,9 @@ export type QueueEventEmbedOptions = {
 };
 
 export function buildQueueEventEmbed(options: QueueEventEmbedOptions): EmbedBuilder {
-    const embed = new HackedEmbedBuilder()
+    const embed = new EmbedBuilder()
         .setTitle(`Queue ${options.type.charAt(0).toUpperCase() + options.type.slice(1)}`)
-        .addFields({ value: `User: <@${options.userId}>` })
+        .addFields({ name: ' ', value: `User: <@${options.userId}>` })
         .setTimestamp();
 
     switch (options.type) {
@@ -21,16 +20,16 @@ export function buildQueueEventEmbed(options: QueueEventEmbedOptions): EmbedBuil
             embed.setColor('#00FF00')
                 .setTitle('✅┃Queue Join')
                 .addFields(
-                    { name: `🪖┃Type: Diver` },
-                    { name: `⏰┃Join Time: <t:${Math.floor(new Date().getTime() / 1000)}:F>` }
+                    { name: `🪖┃Type: Diver`, value: ' ' },
+                    { name: `⏰┃Join Time: <t:${Math.floor(new Date().getTime() / 1000)}:F>`, value: ' ' }
                 );
             break;
         case 'host':
             embed.setColor('#FFFF00')
                 .setTitle('👑┃Queue Host')
                 .addFields(
-                    { name: `🪖┃Type: Host` },
-                    { name: `⏰┃Join Time: <t:${Math.floor(new Date().getTime() / 1000)}:F>` }
+                    { name: `🪖┃Type: Host`, value: ' ' },
+                    { name: `⏰┃Join Time: <t:${Math.floor(new Date().getTime() / 1000)}:F>`, value: ' ' }
                 );
             break;
         case 'leave':
@@ -55,15 +54,15 @@ export function buildQueueEventEmbed(options: QueueEventEmbedOptions): EmbedBuil
                 };
 
                 embed.addFields(
-                    { name: `⏰┃Join Time: <t:${Math.floor(options.joinTime.getTime() / 1000)}:F>` },
-                    { name: `⏱️┃Time in Queue: ${formatDuration(queueDuration)}` }
+                    { name: `⏰┃Join Time: <t:${Math.floor(options.joinTime.getTime() / 1000)}:F>`, value: ' ' },
+                    { name: `⏱️┃Time in Queue: ${formatDuration(queueDuration)}`, value: ' ' }
                 );
             }
             if (options.leaveTime) {
-                embed.addFields({ name: `⏰┃Leave Time: <t:${Math.floor(options.leaveTime.getTime() / 1000)}:F>` });
+                embed.addFields({ name: `⏰┃Leave Time: <t:${Math.floor(options.leaveTime.getTime() / 1000)}:F>`, value: ' ' });
             }
             if (options.queueBefore !== undefined && options.queueAfter !== undefined) {
-                embed.addFields({ name: `🦀┃Queue Change: ${options.queueBefore} → ${options.queueAfter}` });
+                embed.addFields({ name: `🦀┃Queue Change: ${options.queueBefore} → ${options.queueAfter}`, value: ' ' });
             }
             break;
     }
