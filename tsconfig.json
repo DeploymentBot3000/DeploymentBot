@@ -86,7 +86,7 @@
     // "strict": true, /* Enable all strict type-checking options. */
     // TODO: Enable alwaysStrict after strict
     // "alwaysStrict": true, /* Ensure 'use strict' is always emitted. */
-    // TODO: Enable noImplicitAny (Found 12 errors in 4 files.)
+    // TODO: Enable noImplicitAny (Found 8 errors in 2 files.)
     // "noImplicitAny": true, /* Enable error reporting for expressions and declarations with an implied 'any' type. */
     // TODO: Enable strictNullChecks (133+ errors)
     // "strictNullChecks": true, /* When type checking, take into account 'null' and 'undefined'. */
