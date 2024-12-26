@@ -90,17 +90,7 @@ export default {
                 title: null,
                 description: null,
                 color: "#00ffff",
-                author: {
-                    name: null,
-                    iconURL: null
-                },
-                footer: {
-                    text: null,
-                    iconURL: null
-                },
                 thumbnail: null,
-                image: null,
-                timestamp: true
             }
         },
         panel: {

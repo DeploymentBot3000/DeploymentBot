@@ -1,30 +1,33 @@
-import { ButtonBuilder, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ColorResolvable, EmbedBuilder } from "discord.js";
 import config from "../../config.js";
 
+interface EmbedConfigOptions {
+    title?: string;
+    description?: string;
+    color?: string;
+    thumbnail?: string;
+}
+
 export function buildErrorEmbed() {
-    return buildEmbed({ preset: 'error' });
+    return buildEmbed(config.embeds.presets.error);
 }
 
 export function buildInfoEmbed() {
-    return buildEmbed({ preset: 'info' });
+    return buildEmbed(config.embeds.presets.info);
 }
 
 export function buildSuccessEmbed() {
-    return buildEmbed({ preset: 'success' });
+    return buildEmbed(config.embeds.presets.success);
 }
 
 export function buildPanelEmbed() {
-    return buildEmbed({ name: 'panel' });
+    return buildEmbed(config.embeds.panel);
 }
 
-function buildEmbed({ name, preset }: { name?: string, preset?: string }) {
+function buildEmbed(options: EmbedConfigOptions) {
     const embed = new EmbedBuilder();
 
-    if (!name && !preset) throw new Error("You must provide a name or a preset to build an embed");
-
-    const embeds = config.embeds;
-    const presets = embeds.presets;
-    const defaultPreset = presets.default;
+    const defaultPreset = config.embeds.presets.default;
 
     const format = (string: string) => {
         if (!string) return string;
@@ -32,16 +35,12 @@ function buildEmbed({ name, preset }: { name?: string, preset?: string }) {
         return string;
     };
     
-    embed.setTitle(format(embeds[name]?.title || presets[preset]?.title || defaultPreset.title))
-    embed.setDescription(format(embeds[name]?.description || presets[preset]?.description || defaultPreset.description))
-    embed.setColor(embeds[name]?.color || presets[preset]?.color || defaultPreset.color)
-    embed.setFooter({ text: format(embeds[name]?.footer?.text || presets[preset]?.footer?.text || defaultPreset.footer.text), iconURL: embeds[name]?.footer?.iconURL || presets[preset]?.footer?.iconURL || defaultPreset.footer.iconURL })
-    embed.setThumbnail(embeds[name]?.thumbnail || presets[preset]?.thumbnail || defaultPreset.thumbnail)
-    embed.setImage(embeds[name]?.image || presets[preset]?.image || defaultPreset.image)
-    embed.setAuthor({ name: format(embeds[name]?.author?.name || presets[preset]?.author?.name || defaultPreset.author.name), iconURL: embeds[name]?.author?.iconURL || presets[preset]?.author?.iconURL || defaultPreset.author.iconURL })
-    if (embeds[name]?.timestamp != undefined ? embeds[name]?.timestamp : presets[preset]?.timestamp != undefined ? presets[preset]?.timestamp : defaultPreset.timestamp) embed.setTimestamp()
+    embed.setTitle(format(options.title || defaultPreset.title));
+    embed.setDescription(format(options.description || defaultPreset.description));
+    embed.setColor(options.color as ColorResolvable || defaultPreset.color as ColorResolvable);
+    embed.setThumbnail(options.thumbnail || defaultPreset.thumbnail);
 
-    return embed;
+    return embed.setTimestamp();
 }
 
 export function buildButton(name: keyof typeof config.buttons) {
