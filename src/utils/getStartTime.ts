@@ -1,4 +1,4 @@
-import {buildEmbed} from "./embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "./embedBuilders/configBuilders.js";
 import {CacheType, ChannelType, GuildMember, ModalSubmitInteraction} from "discord.js";
 import {DateTime, Duration} from "luxon";
 import config from "../config.js";
@@ -77,7 +77,7 @@ export default async function getStartTime(startTime: string, interaction: Modal
     const startDate: Date | Error = _parseStartDate(startTime);
 
     if (startDate instanceof Error) {
-        const errorEmbed = buildEmbed({preset: "error"})
+        const errorEmbed = buildErrorEmbed()
             .setDescription(_kDateInputErrorDescription);
         await interaction.reply({embeds: [errorEmbed], ephemeral: true});
         setTimeout(() => interaction.deleteReply().catch(() => null), 45000);
@@ -93,7 +93,7 @@ export default async function getStartTime(startTime: string, interaction: Modal
     const minDeploymentLeadTime: Duration = Duration.fromDurationLike({minutes: config.min_deployment_lead_time_minutes});
 
     if (DateTime.fromJSDate(startDate) < DateTime.now().plus(minDeploymentLeadTime)) {
-        const errorEmbed = buildEmbed({ preset: "error" })
+        const errorEmbed = buildErrorEmbed()
             .setDescription(`Start time must be at least ${minDeploymentLeadTime.toHuman()} in the future`);
 
 

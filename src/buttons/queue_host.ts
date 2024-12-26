@@ -1,5 +1,5 @@
 import Button from "../classes/Button.js";
-import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { Duration } from "luxon";
@@ -15,7 +15,7 @@ export default new Button({
 
         const error = await HotDropQueue.getHotDropQueue().joinAsHost(interaction.user.id);
         if (error instanceof Error) {
-            const errorEmbed = buildEmbed({ preset: "error" }).setDescription(error.toString());
+            const errorEmbed = buildErrorEmbed().setDescription(error.toString());
             await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
             return;
         }

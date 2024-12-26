@@ -3,8 +3,8 @@ import { ModalSubmitInteraction } from "discord.js";
 import Modal from "../classes/Modal.js";
 import editDeployment from "../modals/editDeployment.js";
 import newDeployment from "../modals/newDeployment.js";
-import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { error, log } from "../utils/logger.js";
+import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
 
 const _kModals: Map<string, Modal> = new Map();
 
@@ -26,7 +26,7 @@ export default {
             error(`[Modal Error] ${interaction.id} ${colors.blue("||")} Author: ${interaction.user.username} ${colors.blue("||")} ID: ${interaction.user.id} ${colors.blue("||")} Server: ${interaction.guild?.name || "DM"} ${colors.red("||")} ${e}`)
             error(e);
 
-            const embed = buildEmbed({ preset: "error" })
+            const embed = buildErrorEmbed()
                 .setDescription(":x: **An error occurred while running this command!**");
 
             await interaction.reply({ embeds: [embed], ephemeral: true });

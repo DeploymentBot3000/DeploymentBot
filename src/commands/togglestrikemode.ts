@@ -1,5 +1,5 @@
 import Command from "../classes/Command.js";
-import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
+import { buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
 export default new Command({
@@ -11,7 +11,7 @@ export default new Command({
     options: [],
     callback: async ({ interaction }) => {
         HotDropQueue.getHotDropQueue().toggleStrikeMode();
-        const successEmbed = buildEmbed({ preset: "success" })
+        const successEmbed = buildSuccessEmbed()
             .setTitle("Strike Mode Toggle")
             .setDescription(`Strike mode ${HotDropQueue.getHotDropQueue().strikeModeEnabled ? "enabled" : "disabled"}!`);
         await interaction.reply({ embeds: [successEmbed], ephemeral: true });

@@ -1,6 +1,6 @@
 import {ActionRowBuilder, ButtonBuilder} from "discord.js";
 import Command from "../classes/Command.js";
-import {buildButton, buildEmbed} from "../utils/embedBuilders/configBuilders.js";
+import { buildButton, buildPanelEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 
 export default new Command({
     name: "panel",
@@ -10,14 +10,14 @@ export default new Command({
     blacklistedRoles: [],
     options: [],
     callback: async function ({ interaction }) {
-        const embed = buildEmbed({ name: "panel" });
+        const embed = buildPanelEmbed();
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
             buildButton("newDeployment")
         );
 
         await interaction.channel.send({ embeds: [embed], components: [row] });
         
-        const successEmbed = buildEmbed({ preset: "success" })
+        const successEmbed = buildSuccessEmbed()
             .setDescription("Panel sent successfully");
 
         await interaction.reply({ embeds: [successEmbed], ephemeral: true });

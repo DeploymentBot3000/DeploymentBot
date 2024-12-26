@@ -1,6 +1,6 @@
 import Button from "../classes/Button.js";
 import Deployment from "../tables/Deployment.js";
-import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
+import { buildInfoEmbed, buildErrorEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
@@ -8,7 +8,7 @@ import { DateTime, Duration } from "luxon";
 import { sendEmbedToLogChannel, sendErrorToLogChannel } from "../utils/log_channel.js";
 
 function buildDeploymentDeletedConfirmationEmbed(deploymentTitle: string, timeToDeployment: Duration) {
-    return buildEmbed({ preset: "info" })
+    return buildInfoEmbed()
         .setColor('#FFA500')  // Orange
         .setTitle("Deployment Deleted!")
         .setDescription(`A deployment you were signed up for has been deleted!\nDeployment Name: ${deploymentTitle}\n Scheduled to start in: ${timeToDeployment.toHuman()}`);
@@ -27,7 +27,7 @@ function buildDeploymentDeletedConfirmationEmbedForLog(deployment: Deployment, s
         + `Fireteam: ${signups.filter(player => player.userId != deployment.user).map(player => `${getRoleEmoji(player.role)} <@${player.userId}>`).join(', ') || '` - `'}\n`
         + `Backups: ${backups.map(player => `${config.backupEmoji} <@${player.userId}>`).join(', ') || '` - `'}`;
 
-    return buildEmbed({ preset: "info" })
+    return buildInfoEmbed()
         .setColor('#FFA500')  // Orange
         .setTitle("Deployment Deleted!")
         .setDescription(description);
@@ -44,7 +44,7 @@ export default new Button({
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
 
         if (!deployment) {
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setDescription("Deployment not found");
 
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -52,7 +52,7 @@ export default new Button({
         }
 
         if (deployment.user !== interaction.user.id) {
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setDescription("You do not have permission to delete this deployment");
 
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -87,7 +87,7 @@ export default new Button({
 
         await deployment.remove();
 
-        const successEmbed = buildEmbed({ preset: "success" })
+        const successEmbed = buildSuccessEmbed()
         .setDescription("Deployment deleted successfully");
         
         await interaction.reply({ embeds: [successEmbed], ephemeral: true });

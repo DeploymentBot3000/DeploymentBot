@@ -1,9 +1,9 @@
 import {ApplicationCommandOptionType} from "discord.js";
 import Command from "../classes/Command.js";
 import ms from "ms";
-import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { Duration } from "luxon";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
+import { buildErrorEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 
 function parseDeploymentTimeString(input: string) {
     const milis = ms(input);
@@ -39,7 +39,7 @@ export default new Command({
         const deploymentInterval = parseDeploymentTimeString(interaction.options.getString("time"));
 
         if (deploymentInterval instanceof Error) {
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setTitle("Invalid time")
                 .setDescription(deploymentInterval.message);
 
@@ -49,7 +49,7 @@ export default new Command({
 
         await HotDropQueue.getHotDropQueue().setDeploymentTime(deploymentInterval);
 
-        const successEmbed = buildEmbed({ preset: "success" })
+        const successEmbed = buildSuccessEmbed()
             .setTitle("Deployment time set")
             .setDescription(`The deployment time has been set to ${deploymentInterval.toHuman()}`);
 

@@ -11,7 +11,7 @@ import {
 } from "discord.js";
 import Modal from "../classes/Modal.js";
 import LatestInput from "../tables/LatestInput.js";
-import {buildButton, buildEmbed} from "../utils/embedBuilders/configBuilders.js";
+import { buildButton, buildErrorEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
@@ -39,7 +39,7 @@ async function storeLatestInput(interaction, { title, difficulty, description })
 }
 
 async function reportFailedInteractionToUser(interaction: ModalSubmitInteraction, e: Error) {
-    const errorEmbed = buildEmbed({ preset: "error" })
+    const errorEmbed = buildErrorEmbed()
         .setDescription(`The following error occurred while processing your request: ${e.toString()}`);
     
     await interaction.followUp({
@@ -67,7 +67,7 @@ export default new Modal({
 
             if(!(title && difficulty && description)) throw new Error();
         } catch (e) {
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setTitle("Parsing Error!")
                 .setDescription("Please do not use emojis in any deployment fields!\n");
             
@@ -111,7 +111,7 @@ export default new Modal({
             }).catch(() => null);
 
             if (!selectMenuResponse) {
-                const errorEmbed = buildEmbed({ preset: "error" })
+                const errorEmbed = buildErrorEmbed()
                     .setDescription("Channel selection timed out");
 
                 await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => null);
@@ -120,7 +120,7 @@ export default new Modal({
                 return;
             }
 
-            const successEmbed = buildEmbed({ preset: "success" })
+            const successEmbed = buildSuccessEmbed()
                 .setDescription("Deployment created successfully");
 
             await selectMenuResponse.update({ embeds: [successEmbed], components: [] });

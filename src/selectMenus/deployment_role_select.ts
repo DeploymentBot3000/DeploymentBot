@@ -2,7 +2,7 @@ import SelectMenu from "../classes/SelectMenu.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
-import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
 import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
 import config from "../config.js";
 import { Duration } from "luxon";
@@ -18,7 +18,7 @@ export default new SelectMenu({
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
 
         if (!deployment) {
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setDescription("Deployment not found!");
 
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -36,14 +36,14 @@ export default new SelectMenu({
         if(alreadySignedUp) { // if already signed up logic
             if(newRole == "backup") { // switching to backup
                 if (deployment.user == interaction.user.id) { // error out if host tries to signup as a backup
-                    const errorEmbed = buildEmbed({ preset: "error" })
+                    const errorEmbed = buildErrorEmbed()
                         .setDescription("You cannot signup as a backup to your own deployment!");
                     return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                 }
 
                 const backupsCount = await Backups.count({ where: { deploymentId: deployment.id } });
                 if (backupsCount >= 4) { // errors out if backup slots are full
-                    const errorEmbed = buildEmbed({ preset: "error" })
+                    const errorEmbed = buildErrorEmbed()
                         .setDescription("Backup slots are full!");
                     return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                 }
@@ -55,7 +55,7 @@ export default new SelectMenu({
                 });
             } else if(alreadySignedUp?.role == newRole) { // checks if new role is the same as the old role
                 if (deployment.user == interaction.user.id) { // errors out if host tries to leave own deployment
-                    const errorEmbed = buildEmbed({ preset: "error" })
+                    const errorEmbed = buildErrorEmbed()
                         .setDescription("You cannot abandon your own deployment!");
                     return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                 }
@@ -75,7 +75,7 @@ export default new SelectMenu({
                 const signupsCount = await Signups.count({where: {deploymentId: deployment.id}});
 
                 if (signupsCount >= 4) {
-                    const errorEmbed = buildEmbed({preset: "error"})
+                    const errorEmbed = buildErrorEmbed()
                         .setDescription("Sign up slots are full!");
                     return await interaction.reply({embeds: [errorEmbed], ephemeral: true});
                 }
@@ -92,7 +92,7 @@ export default new SelectMenu({
                 const backupsCount = await Backups.count({ where: { deploymentId: deployment.id } });
 
                 if (backupsCount >= 4) {
-                    const errorEmbed = buildEmbed({ preset: "error" })
+                    const errorEmbed = buildErrorEmbed()
                         .setDescription("Backup slots are full!");
                     return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                 }
@@ -105,7 +105,7 @@ export default new SelectMenu({
                 const signupsCount = await Signups.count({where: {deploymentId: deployment.id}});
 
                 if (signupsCount >= 4) {
-                    const errorEmbed = buildEmbed({preset: "error"})
+                    const errorEmbed = buildErrorEmbed()
                         .setDescription("Sign up slots are full!");
                     return await interaction.reply({embeds: [errorEmbed], ephemeral: true});
                 }

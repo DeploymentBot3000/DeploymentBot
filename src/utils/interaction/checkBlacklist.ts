@@ -1,4 +1,4 @@
-import {buildEmbed} from "../embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../embedBuilders/configBuilders.js";
 import ReplyableInteraction from "./ReplyableInteraction.js";
 
 export default async function checkBlacklist(interaction: ReplyableInteraction, blacklist: string[]):Promise<boolean> {
@@ -11,7 +11,7 @@ export default async function checkBlacklist(interaction: ReplyableInteraction, 
         return role ? role.name : null;
     }));
     const description = `${blacklistedRolesNames.length >= 3 ? `${blacklistedRolesNames.slice(0, -1).join("'s , ")}'s, & ${blacklistedRolesNames[blacklistedRolesNames.length - 1]}` : `${blacklistedRolesNames.join("'s & ")}'s`} are not permitted to to use this interaction.`;
-    const errorEmbed = buildEmbed({ preset: "error" })
+    const errorEmbed = buildErrorEmbed()
         .setTitle("Blacklisted Role!")
         .setDescription(description);
     await interaction.reply({ embeds: [errorEmbed], ephemeral: true });

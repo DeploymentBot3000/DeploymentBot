@@ -2,10 +2,10 @@ import Button from "../classes/Button.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
-import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
 import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
 import { Duration } from "luxon";
+import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
 
 export default new Button({
     id: "leaveDeployment",
@@ -18,7 +18,7 @@ export default new Button({
             // Fetch the member to ensure they still exist in the guild
             const member = await interaction.guild.members.fetch(interaction.user.id).catch(() => null);
             if (!member) {
-                const errorEmbed = buildEmbed({ preset: "error" })
+                const errorEmbed = buildErrorEmbed()
                     .setDescription("Failed to fetch your member data. Please try again.");
                 await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                 return;
@@ -27,7 +27,7 @@ export default new Button({
             const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
 
             if (!deployment) {
-                const errorEmbed = buildEmbed({ preset: "error" })
+                const errorEmbed = buildErrorEmbed()
                     .setDescription("Deployment not found");
 
                 await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -35,7 +35,7 @@ export default new Button({
             }
 
             if (deployment.user === interaction.user.id) {
-                const errorEmbed = buildEmbed({ preset: "error" })
+                const errorEmbed = buildErrorEmbed()
                     .setDescription("You cannot leave your own deployment!");
 
                 await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -56,7 +56,7 @@ export default new Button({
             });
 
             if (!existingSignup && !existingBackup) {
-                const errorEmbed = buildEmbed({ preset: "error" })
+                const errorEmbed = buildErrorEmbed()
                     .setDescription("You are not signed up for this deployment!");
 
                 await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -68,7 +68,7 @@ export default new Button({
                 if (existingSignup) await existingSignup.remove();
                 if (existingBackup) await existingBackup.remove();
             } catch (error) {
-                const errorEmbed = buildEmbed({ preset: "error" })
+                const errorEmbed = buildErrorEmbed()
                     .setDescription("Failed to remove you from the deployment. Please try again.");
                 await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                 return;
@@ -80,7 +80,7 @@ export default new Button({
             try {
                 await interaction.message.edit({ embeds: [embed] });
             } catch (error) {
-                const errorEmbed = buildEmbed({ preset: "error" })
+                const errorEmbed = buildErrorEmbed()
                     .setDescription("Failed to update the deployment message. Your signup was removed.");
                 await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                 return;
@@ -89,7 +89,7 @@ export default new Button({
             await interaction.update({});
         } catch (error) {
             console.error('Error in leaveDeployment button:', error);
-            const errorEmbed = buildEmbed({ preset: "error" })
+            const errorEmbed = buildErrorEmbed()
                 .setDescription("An unexpected error occurred. Please try again later.");
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true }).catch(() => {});
         }

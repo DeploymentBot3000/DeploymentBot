@@ -2,11 +2,11 @@ import { CategoryChannel, ChannelType, Guild, GuildMember, GuildTextBasedChannel
 import { client } from "../custom_client.js";
 import Queue from "../tables/Queue.js";
 import config from "../config.js";
-import {logQueueDeployment} from "./queueLogger.js";
-import { buildEmbed } from "./embedBuilders/configBuilders.js";
+import { logQueueDeployment } from "./queueLogger.js";
 import {debug, success} from "./logger.js";
 import discord_server_config from "../config/discord_server.js";
 import { findAllVcCategories } from "./findChannels.js";
+import { buildSuccessEmbed } from "./embedBuilders/configBuilders.js";
 
 // Add this function to generate a random 4-digit number
 function generateRandomCode(){let $=[7734,1337,6969,4200,9001,2319,8008,4040,1234,2001,1984,1221,4004,5e3,1024,2e3,2012,8055,1138,1977,1942,3141,2718,1123,6174,4321,8086,6502,1701],_=$[Math.floor(Math.random()*$.length)],o=function $(){let _=[1,1];for(let o=2;o<15;o++)_.push((_[o-1]+_[o-2])%100);return _}()[Math.floor(15*Math.random())],e=[()=>_+o,()=>Number(String(_).slice(0,2)+String(o).padStart(2,"0")),()=>_^o,()=>Math.abs(_*o%1e4)],n=e[Math.floor(Math.random()*e.length)]();return n<1e3?n+=1e3:n>9999&&(n=Number(String(n).slice(0,4))),n}
@@ -115,7 +115,7 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
         });
 
         // Create base embed for players
-        const playerEmbed = buildEmbed({ preset: "success" })
+        const playerEmbed = buildSuccessEmbed()
             .setTitle("🚀 You've Been Selected for a Deployment!")
             .setDescription(
                 `You have been selected for a HOTDROP deployment!\n\n` +
@@ -126,7 +126,7 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
             );
 
         // Create specific embed for host
-        const hostEmbed = buildEmbed({ preset: "success" })
+        const hostEmbed = buildSuccessEmbed()
             .setTitle("🎮 Your Squad is Ready!")
             .setDescription(
                 `Your HOTDROP deployment squad has been assembled!\n\n` +
