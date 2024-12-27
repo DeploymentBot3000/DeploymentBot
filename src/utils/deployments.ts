@@ -121,8 +121,8 @@ function _departureMessage(deployment: Deployment, signups: Signups[], backups: 
 # ATTENTION HELLDIVERS
 
 **Operation: ${deployment.title}**
-A Super Earth Destroyer will be mission ready and deploying to the operation grounds.
-The host will open communication channels in the next **5 minutes**.
+A Super Earth Destroyer will be mission ready and deploying to the operation grounds imminently.
+Host, please open a communication channels in the next **5 minutes**.
 Assigned divers, please join ASAP.
 Backup divers, please to be ready to join if needed.
 If you are late or can't make it, inform the deployment host ASAP.
@@ -130,7 +130,7 @@ The operation starts in **${departureNoticeLeadTimeMinutes} minutes**.
 
 **Difficulty:** **${deployment.difficulty}**
 
-**Deployment host:** <@${deployment.user}>
+**Host:** <@${deployment.user}>
 **Assigned divers:** ${signupsFormatted}
 **Standby divers:** ${backupsFormatted}
 -------------------------------------------`
