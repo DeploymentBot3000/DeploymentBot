@@ -10,11 +10,12 @@ export default class Modal {
     public id: string;
     public callback: (params: {
         interaction: ModalSubmitInteraction;
-    }) => void;
+    }) => Promise<void>;
     public constructor({ id, callback }: {
         id: string, callback: (params: {
         interaction: ModalSubmitInteraction;
-    }) => void }) {
+        }) => Promise<void>
+    }) {
         this.id = id;
         this.callback = callback;
     }
