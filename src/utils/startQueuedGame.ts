@@ -1,4 +1,4 @@
-import { GuildMember, GuildTextBasedChannel } from "discord.js";
+import { GuildMember, GuildTextBasedChannel, VoiceChannel } from "discord.js";
 import { client } from "../custom_client.js";
 import Queue from "../tables/Queue.js";
 import config from "../config.js";
@@ -60,7 +60,7 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
 
         const signupsFormatted = selectedPlayers.map(player => {
             return `<@${player.user}>`;
-        }).join("\n") || "` - `";
+        }).join(",") || "` - `";
 
         // Fetch the GuildMember object for the host
         const hostMember = await departureChannel.guild.members.fetch(host.user).catch(() => null as GuildMember);
@@ -114,8 +114,8 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
                 .catch(() => console.log(`Failed to DM host ${host.user}`)))
         ]);
 
-        const defaultContent = `-------------------------------------------\n\n# ATTENTION HELLDIVERS\n\n\n**HOTDROP:** **${randomCode} (${hostDisplayName})**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**.\n**Communication Channel:** <#${vc.id}>.\n\n**Deployment Lead:**\n<@${host.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\nYou are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------`;
-        const strikeContent = `-------------------------------------------\n\n# ATTENTION HELLDIVERS\n\n\n**You have been assigned to ${hostDisplayName}'s Strike Group**\nTheir Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**.\n**Communication Channel:** <#${vc.id}>.\n\n**Strike Leader:**\n<@${host.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\nYou are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------`;
+        const defaultContent = _hotDropDepartureNotice(randomCode, hostDisplayName, vc, host, signupsFormatted);
+        const strikeContent = _strikeDepartureNotice(hostDisplayName, vc, host, signupsFormatted);
         await departureChannel.send({ content: strikeMode ? strikeContent : defaultContent }).catch(() => { });
 
         // remove the players from the queue
@@ -138,4 +138,37 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
         success(`Successfully created deployment for ${hostDisplayName}`, 'Queue System');
     }
     return true;
+}
+
+function _hotDropDepartureNotice(randomCode: string, hostDisplayName: string, vc: VoiceChannel, host: Queue, signupsFormatted: string) {
+    const departureNoticeLeadTimeMinutes = config.departure_notice_lead_time_minutes;
+
+    return `
+-------------------------------------------
+# ATTENTION HELLDIVERS
+
+**Hot Drop:** **${randomCode} (${hostDisplayName})**
+A Super Earth Destroyer will be mission ready and deploying to the operation grounds imminently.
+**Communication Channel:** <#${vc.id}>.
+Host and assigned divers, please join ASAP.
+The operation starts in **${departureNoticeLeadTimeMinutes} minutes**.
+
+**Host:** <@${host.user}>
+**Assigned divers:** ${signupsFormatted}
+-------------------------------------------`;
+}
+
+function _strikeDepartureNotice(hostDisplayName: string, vc: VoiceChannel, host: Queue, signupsFormatted: string) {
+    return `
+-------------------------------------------
+# ATTENTION HELLDIVERS
+
+**You have been assigned to ${hostDisplayName}'s Strike Group**
+A Super Earth Destroyer will be mission ready and deploying to the operation grounds imminently.
+**Communication Channel:** <#${vc.id}>.
+Host and assigned divers, please join ASAP.
+
+**Host:** <@${host.user}>
+**Assigned divers:** ${signupsFormatted}
+-------------------------------------------`;
 }
