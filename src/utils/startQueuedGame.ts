@@ -1,26 +1,14 @@
-import { CategoryChannel, ChannelType, Guild, GuildMember, GuildTextBasedChannel } from "discord.js";
+import { GuildMember, GuildTextBasedChannel } from "discord.js";
 import { client } from "../custom_client.js";
 import Queue from "../tables/Queue.js";
 import config from "../config.js";
 import { logQueueDeployment } from "./queueLogger.js";
-import {debug, success} from "./logger.js";
-import discord_server_config from "../config/discord_server.js";
-import { findAllVcCategories } from "./findChannels.js";
+import { debug, success } from "./logger.js";
 import { buildSuccessEmbed } from "./embedBuilders/configBuilders.js";
+import { VoiceChannelManager } from "./voice_channels.js";
 
 // Add this function to generate a random 4-digit number
 function generateRandomCode(){let $=[7734,1337,6969,4200,9001,2319,8008,4040,1234,2001,1984,1221,4004,5e3,1024,2e3,2012,8055,1138,1977,1942,3141,2718,1123,6174,4321,8086,6502,1701],_=$[Math.floor(Math.random()*$.length)],o=function $(){let _=[1,1];for(let o=2;o<15;o++)_.push((_[o-1]+_[o-2])%100);return _}()[Math.floor(15*Math.random())],e=[()=>_+o,()=>Number(String(_).slice(0,2)+String(o).padStart(2,"0")),()=>_^o,()=>Math.abs(_*o%1e4)],n=e[Math.floor(Math.random()*e.length)]();return n<1e3?n+=1e3:n>9999&&(n=Number(String(n).slice(0,4))),n}
-
-function findNextAvailableVoiceCategory(guild: Guild, strikeMode: boolean): CategoryChannel {
-    const vcCategoryPrefix = strikeMode ? discord_server_config.strike_vc_category_prefix : discord_server_config.hotdrop_vc_category_prefix;
-    const maxChannels = strikeMode ? discord_server_config.strike_vc_category_max_channels : discord_server_config.hotdrop_vc_category_max_channels;
-    let channels = findAllVcCategories(guild, vcCategoryPrefix)
-        .filter(channel => channel.children.cache.size < maxChannels);
-    if (!channels.size) {
-        throw new Error(`All VC categories for prefix ${vcCategoryPrefix} are full`);
-    }
-    return channels.at(0);
-}
 
 export async function startQueuedGameImpl(strikeMode: boolean) {
     const queue = await Queue.find();
@@ -87,32 +75,9 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
             await client.users.fetch(player.user).catch(() => { });
         }));
 
-        const vcCategory: CategoryChannel = findNextAvailableVoiceCategory(departureChannel.guild, strikeMode);
-
         const vcChannelName = !strikeMode ? `🔊| HOTDROP ${randomCode} ${hostDisplayName}` : `🔊| ${hostDisplayName}'s Strike Group!`;
-        debug(`Creating voice channel: ${vcChannelName}`); (`Creating voice channel: ${vcChannelName}`);
-        const vc = await departureChannel.guild.channels.create({
-            name: vcChannelName,
-            type: ChannelType.GuildVoice,
-            parent: vcCategory,
-            userLimit: 4,
-            permissionOverwrites: [
-                {
-                    id: client.user,
-                    allow: ["ViewChannel", "ManageChannels", "MoveMembers", "CreateInstantInvite"]
-                },
-                {
-                    id: host.user,
-                    allow: ["Connect", "Speak", "Stream", "MoveMembers", "CreateInstantInvite"]
-                },
-                ...selectedPlayers.map(player => {
-                    return {
-                        id: player.user,
-                        allow: ["Connect", "Speak", "Stream"]
-                    }
-                }) as any
-            ]
-        });
+        debug(`Creating voice channel: ${vcChannelName}`);
+        const vc = await VoiceChannelManager.get().create(departureChannel.guild, strikeMode, vcChannelName, host.user, selectedPlayers.map(p => p.user));
 
         // Create base embed for players
         const playerEmbed = buildSuccessEmbed()
