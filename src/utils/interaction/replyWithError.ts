@@ -20,3 +20,9 @@ export async function editReplyWithError(interaction: ModalSubmitInteraction, ti
     interaction.editReply({ embeds: [embed] });
     setTimeout(() => interaction.deleteReply().catch(() => { }), 45000);
 }
+
+export async function followUpWithError(interaction: ModalSubmitInteraction, message: string) {
+    const errorEmbed = buildErrorEmbed().setDescription(message);
+
+    await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+}

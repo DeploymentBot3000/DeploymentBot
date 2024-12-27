@@ -9,7 +9,7 @@ import { replyWithError } from "../utils/interaction/replyWithError.js";
 
 export default {
     id: "editDeployment",
-    callback: async function ({ interaction }: { interaction: ModalSubmitInteraction }): Promise<void> {
+    callback: async function ({ interaction }: { interaction: ModalSubmitInteraction<'cached'> }): Promise<void> {
         const deployment = await Deployment.findOne({ where: { id: Number(interaction.customId.split("-")[1]) } });
         if (!deployment) {
             return;
