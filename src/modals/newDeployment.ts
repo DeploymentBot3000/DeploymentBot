@@ -22,7 +22,7 @@ import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
 import { action, success } from "../utils/logger.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
-import { editReplyWithError, followUpWithError, replyWithError } from "../utils/interaction/replyWithError.js";
+import { editReplyWithError, replyWithError } from "../utils/interaction/replyWithError.js";
 import { EntityManager } from "typeorm";
 import { dataSource } from "../data_source.js";
 import { sendErrorToLogChannel } from "../utils/log_channel.js";
@@ -54,7 +54,7 @@ export default new Modal({
         
         const details = await _parseDeploymentInput(interaction);
         if (details instanceof Error) {
-            await replyWithError(interaction, "Parsing Error!", details.message);
+            await replyWithError(interaction, details.message);
             return;
         }
 
@@ -62,10 +62,9 @@ export default new Modal({
 
         const channel = await _getSignupChannel(interaction);
         if (channel instanceof Error) {
-            await editReplyWithError(interaction, /*title=*/null, channel.message);
+            await editReplyWithError(interaction, channel.message);
             return;
         }
-        interaction.deleteReply();
 
         let msg: Message = null;
 
@@ -99,7 +98,7 @@ export default new Modal({
                 deployment.save();
             });
         } catch (e: any) {
-            await followUpWithError(interaction, "An error occurred while creating the deployment");
+            await editReplyWithError(interaction, 'An error occurred while creating the deployment');
             if (msg) {
                 await sendErrorToLogChannel(new Error('Deleting signup message for partially created deployment'), interaction.client);
                 await msg.delete().catch((e: any) => sendErrorToLogChannel(e, interaction.client));
@@ -109,7 +108,7 @@ export default new Modal({
 
         const successEmbed = buildSuccessEmbed()
             .setDescription("Deployment created successfully");
-        interaction.followUp({ embeds: [successEmbed], ephemeral: true });
+        await interaction.followUp({ embeds: [successEmbed], ephemeral: true });
 
         success(`New deployment "${details.title}" Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${interaction.member.nickname}(${interaction.member.displayName}/${interaction.user.username}/${interaction.user.id});`, "NewDeployment");
     }
@@ -207,7 +206,6 @@ async function _getSignupChannel(interaction: ModalSubmitInteraction): Promise<G
         time: Duration.fromDurationLike({ minutes: 1 }).toMillis()
     }).catch(() => null as null) as StringSelectMenuInteraction;
     if (!selectMenuResponse) {
-        interaction.editReply({ content: "Channel selection timed out", components: [] });
         return new Error("Channel selection timed out");
     }
 

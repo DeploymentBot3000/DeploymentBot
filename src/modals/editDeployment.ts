@@ -30,7 +30,7 @@ export default {
             }
             const startTime = await getStartTime(interaction.fields.getTextInputValue("startTime"));
             if (startTime instanceof Error) {
-                await replyWithError(interaction, "Parsing Error!", startTime.message);
+                await replyWithError(interaction, startTime.message);
                 return null;
             }
             return startTime.toMillis();
