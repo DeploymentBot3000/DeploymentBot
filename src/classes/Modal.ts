@@ -9,11 +9,11 @@ import { ModalSubmitInteraction } from "discord.js";
 export default class Modal {
     public id: string;
     public callback: (params: {
-        interaction: ModalSubmitInteraction;
+        interaction: ModalSubmitInteraction<'cached'>;
     }) => Promise<void>;
     public constructor({ id, callback }: {
         id: string, callback: (params: {
-        interaction: ModalSubmitInteraction;
+            interaction: ModalSubmitInteraction<'cached'>;
         }) => Promise<void>
     }) {
         this.id = id;

@@ -3,12 +3,12 @@ import {
     ButtonBuilder,
     ButtonStyle,
     EmbedBuilder,
-    GuildMember,
     GuildTextBasedChannel,
+    Message,
     ModalSubmitInteraction,
     Snowflake,
     StringSelectMenuBuilder,
-    StringSelectMenuInteraction
+    StringSelectMenuInteraction,
 } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import * as emoji from 'node-emoji';
@@ -17,12 +17,15 @@ import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
 import LatestInput from "../tables/LatestInput.js";
 import Signups from "../tables/Signups.js";
-import { buildButton, buildErrorEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildButton, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
-import { action, debug, error, success } from "../utils/logger.js";
+import { action, success } from "../utils/logger.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
-import { editReplyWithError, replyWithError } from "../utils/interaction/replyWithError.js";
+import { editReplyWithError, followUpWithError, replyWithError } from "../utils/interaction/replyWithError.js";
+import { EntityManager } from "typeorm";
+import { dataSource } from "../data_source.js";
+import { sendErrorToLogChannel } from "../utils/log_channel.js";
 
 async function storeLatestInput(userId: Snowflake, title: string, difficulty: string, description: string) {
     const latestInput = await LatestInput.findOne({ where: { userId: userId } });
@@ -42,21 +45,11 @@ async function storeLatestInput(userId: Snowflake, title: string, difficulty: st
     }
 }
 
-async function reportFailedInteractionToUser(interaction: ModalSubmitInteraction, e: Error) {
-    const errorEmbed = buildErrorEmbed()
-        .setDescription(`The following error occurred while processing your request: ${e.toString()}`);
-    
-    await interaction.followUp({
-        embeds: [errorEmbed],
-        ephemeral: true
-    });
-}
-
 type DeploymentDetails = { title: string, difficulty: string, description: string, startTime: DateTime, endTime: DateTime };
 
 export default new Modal({
     id: "newDeployment",
-    callback: async function ({ interaction }: { interaction: ModalSubmitInteraction }) {
+    callback: async function ({ interaction }: { interaction: ModalSubmitInteraction<'cached'> }) {
         action(`User ${interaction.user.tag} creating new deployment`, "NewDeployment");
         
         const details = await _parseDeploymentInput(interaction);
@@ -65,22 +58,22 @@ export default new Modal({
             return;
         }
 
+        await interaction.deferReply({ ephemeral: true });
+
+        const channel = await _getSignupChannel(interaction);
+        if (channel instanceof Error) {
+            await editReplyWithError(interaction, /*title=*/null, channel.message);
+            return;
+        }
+        interaction.deleteReply();
+
+        let msg: Message = null;
+
         try {
-            await interaction.deferReply({ ephemeral: true });
-
-            const channel = await _getSignupChannel(interaction);
-            if (channel instanceof Error) {
-                await editReplyWithError(interaction, /*title=*/null, channel.message);
-                return;
-            }
-
-            const msg = await _sendDeploymentSignupMessage(interaction, channel, details);
-
-            let deployment: Deployment = null;
-            try {
-                deployment = await Deployment.create({
+            await dataSource.transaction(async (entityManager: EntityManager) => {
+                const deployment = await entityManager.create(Deployment, {
                     channel: channel.id,
-                    message: msg.id,
+                    message: "",
                     user: interaction.user.id,
                     title: details.title,
                     difficulty: details.difficulty,
@@ -92,38 +85,37 @@ export default new Modal({
                     edited: false,
                     noticeSent: false
                 }).save();
-
-                await Signups.insert({
+                await entityManager.insert(Signups, {
                     deploymentId: deployment.id,
                     userId: interaction.user.id,
                     role: "Offense"
                 });
-            } catch (e) {
-                debug('Failed to save deployment to database');
-                debug('Deleting deployment sign up message');
-                await msg.delete().catch((e: any) => { error(`Failed to delete ${details.title} signup embed`); console.log(e); });
-                debug('Deleting success message');
-                await interaction.deleteReply().catch(() => { });
-                if (deployment != null) {
-                    debug('Deleting saved deployment from database');
-                    await Deployment.remove(deployment).catch(e => { error(`Failed to delete ${deployment.title} from db`); console.log(e); });
-                }
-                throw e;
-            }
 
-            await interaction.editReply({
-                // your response content
+                // Send the message as part of the transaction so we can save the message id to the deployment.
+                // If the transaction fails, the message is deleted in the catch block.
+                msg = await _sendDeploymentSignupMessage(interaction.user.id, channel, details);
+
+                deployment.message = msg.id;
+                deployment.save();
             });
-
-            success(`New deployment "${details.title}" created by ${interaction.user.tag}`, "NewDeployment");
-        } catch (e) {
-            error(`Failed to handle interaction in channel: ${interaction.channel.name} for user: ${interaction.user.tag} (${interaction.user.id})`); console.log(e);
-            await reportFailedInteractionToUser(interaction, e).catch(e => { error(`Failed to respond to user with error for deployment ${details.title}`); console.log(e); });
+        } catch (e: any) {
+            await followUpWithError(interaction, "An error occurred while creating the deployment");
+            if (msg) {
+                await sendErrorToLogChannel(new Error('Deleting signup message for partially created deployment'), interaction.client);
+                await msg.delete().catch((e: any) => sendErrorToLogChannel(e, interaction.client));
+            }
+            throw e;
         }
+
+        const successEmbed = buildSuccessEmbed()
+            .setDescription("Deployment created successfully");
+        interaction.followUp({ embeds: [successEmbed], ephemeral: true });
+
+        success(`New deployment "${details.title}" Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${interaction.member.nickname}(${interaction.member.displayName}/${interaction.user.username}/${interaction.user.id});`, "NewDeployment");
     }
 })
 
-function _buildDeploymentEmbed(title: string, startDate: DateTime, googleCalendarLink: string, endTime: DateTime, difficulty: string, description: string, interaction: ModalSubmitInteraction) {
+function _buildDeploymentEmbed(title: string, startDate: DateTime, googleCalendarLink: string, endTime: DateTime, difficulty: string, description: string, hostUserId: Snowflake) {
     const role = config.roles.find(role => role.name === "Offense");
 
     return new EmbedBuilder()
@@ -141,7 +133,7 @@ function _buildDeploymentEmbed(title: string, startDate: DateTime, googleCalenda
             },
             {
                 name: "Signups:",
-                value: `${role.emoji} ${interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.member.user.username}`,
+                value: `${role.emoji} <@${hostUserId}>`,
                 inline: true
             },
             {
@@ -219,11 +211,6 @@ async function _getSignupChannel(interaction: ModalSubmitInteraction): Promise<G
         return new Error("Channel selection timed out");
     }
 
-    const successEmbed = buildSuccessEmbed()
-        .setDescription("Deployment created successfully");
-    await selectMenuResponse.update({ embeds: [successEmbed], components: [] });
-    setTimeout(() => interaction.deleteReply().catch(() => { }), 45000);
-
     const channelId = selectMenuResponse.values[0].split("-")[0];
     const channel = interaction.client.channels.cache.get(channelId);
     if (!channel) {
@@ -235,10 +222,10 @@ async function _getSignupChannel(interaction: ModalSubmitInteraction): Promise<G
     return channel as GuildTextBasedChannel;
 }
 
-async function _sendDeploymentSignupMessage(interaction: ModalSubmitInteraction, channel: GuildTextBasedChannel, details: DeploymentDetails) {
+async function _sendDeploymentSignupMessage(hostUserId: Snowflake, channel: GuildTextBasedChannel, details: DeploymentDetails) {
     const googleCalendarLink = getGoogleCalendarLink(details.title, details.description, details.startTime.toMillis(), details.endTime.toMillis());
 
-    const embed = _buildDeploymentEmbed(details.title, details.startTime, googleCalendarLink, details.endTime, details.difficulty, details.description, interaction);
+    const embed = _buildDeploymentEmbed(details.title, details.startTime, googleCalendarLink, details.endTime, details.difficulty, details.description, hostUserId);
 
     const rows = [
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -264,7 +251,7 @@ async function _sendDeploymentSignupMessage(interaction: ModalSubmitInteraction,
         )
     ];
 
-    return await channel.send({ content: `<@${interaction.user.id}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
+    return await channel.send({ content: `<@${hostUserId}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
 }
 
 
