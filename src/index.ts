@@ -1,4 +1,4 @@
-import { Events, Interaction, VoiceState } from "discord.js";
+import { Events, Interaction } from "discord.js";
 import config from "./config.js";
 import { client } from "./custom_client.js";
 import autocompleteInteraction from "./events/auto_complete_Interaction.js";
@@ -7,7 +7,6 @@ import chatInputCommandInteraction from "./events/chat_input_command_interaction
 import { discordClientReadyCallback } from "./events/client_ready_event.js";
 import modalSubmittionInteraction from "./events/modal_submit_interaction.js";
 import selectMenuInteraction from "./events/select_menu_interaction.js";
-import removeExpiredVoiceChannels from "./events/voice_state_update_event.js";
 import { sendErrorToLogChannel } from "./utils/log_channel.js";
 import { log } from "./utils/logger.js";
 
@@ -27,14 +26,6 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
             await sendErrorToLogChannel(new Error(`Unknown interaction: ${interaction.id}`), client);
             console.log(interaction);
         }
-    } catch (e: any) {
-        await sendErrorToLogChannel(e, client);
-    }
-});
-
-client.on(Events.VoiceStateUpdate, async (oldState: VoiceState, newState: VoiceState) => {
-    try {
-        await removeExpiredVoiceChannels.callback(oldState, newState);
     } catch (e: any) {
         await sendErrorToLogChannel(e, client);
     }

@@ -1,9 +1,9 @@
 import config from "../config.js";
 import colors from "colors";
-import { debug, error, log, success } from "../utils/logger.js";
+import { error, log, success } from "../utils/logger.js";
 import { REST } from '@discordjs/rest';
-import { Routes, Snowflake } from 'discord-api-types/v10';
-import { EmbedBuilder, GuildTextBasedChannel, ChannelType, Client, Colors, CategoryChildChannel } from 'discord.js';
+import { Routes } from 'discord-api-types/v10';
+import { EmbedBuilder, GuildTextBasedChannel, Client, Colors } from 'discord.js';
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
@@ -12,14 +12,13 @@ import { DateTime, Duration } from 'luxon';
 import cron from 'node-cron';
 import { buildDeploymentEmbed } from "../utils/embedBuilders/signupEmbedBuilder.js"
 import LatestInput from "../tables/LatestInput.js";
-import { findAllVcCategories } from "../utils/findChannels.js";
-import discord_server_config from "../config/discord_server.js";
-import { sendEmbedToLogChannel, sendErrorToLogChannel } from "../utils/log_channel.js";
+import { sendEmbedToLogChannel } from "../utils/log_channel.js";
 import { getAllSlashCommands } from "../utils/slash_commands_registery.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { setWakingUpActivity, startActivityInterval } from "../utils/bot_activity.js";
 import { buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { formatDiscordTime } from "../utils/time.js";
+import { VoiceChannelManager } from "../utils/voice_channels.js";
 
 export async function discordClientReadyCallback(client: Client) {
 	try {
@@ -42,9 +41,7 @@ export async function discordClientReadyCallback(client: Client) {
 
 		await HotDropQueue.initHotDropQueue(client);
 
-		// Clear voice channels once once on startup and then set an interval to clear them every X minutes.
-		await clearEmptyVoiceChannels(client);
-		setInterval(clearEmptyVoiceChannels.bind(null, client), Duration.fromDurationLike({ 'minutes': discord_server_config.clear_vc_channels_every_minutes }).toMillis()).unref();
+		await VoiceChannelManager.init(client);
 
 		// At the top of every hour.
 		cron.schedule("0 * * * *", removeOldSignups.bind(null));
@@ -190,38 +187,6 @@ async function checkDeployments(client: Client) {
 	await sendDeploymentNotices(client, now);
 	await startDeployments(client, now);
 	await deleteOldDeployments(client, now);
-}
-
-async function clearEmptyVoiceChannels(client: Client) {
-	const clearVcChannelsInterval = Duration.fromDurationLike({ 'minutes': discord_server_config.clear_vc_channels_every_minutes });
-	const deleteChannelAfterVacantFor = clearVcChannelsInterval.minus({ 'seconds': 30 });
-	debug("Clearing empty voice channels");
-	const guild = client.guilds.cache.get(config.guildId);
-	for (const prefix of [discord_server_config.strike_vc_category_prefix, discord_server_config.hotdrop_vc_category_prefix]) {
-		for (const vcCategory of findAllVcCategories(guild, prefix).values()) {
-			for (const channel of vcCategory.children.cache.values()) {
-				await removeOldVoiceChannel(client, channel, deleteChannelAfterVacantFor);
-
-			}
-		}
-	}
-}
-
-// Map from vc channel id to the last time it was seen empty.
-const lastSeenEmptyVcTime: Map<Snowflake, DateTime> = new Map();
-
-async function removeOldVoiceChannel(client: Client, channel: CategoryChildChannel, deleteChannelAfterVacantFor: Duration) {
-	if (channel.type == ChannelType.GuildVoice && channel.members.size == 0) {
-		const lastSeenEmpty = lastSeenEmptyVcTime.get(channel.id) || DateTime.now();
-		lastSeenEmptyVcTime.set(channel.id, lastSeenEmpty);
-		if (lastSeenEmpty.plus(deleteChannelAfterVacantFor) < DateTime.now()) {
-			debug(`Deleting voice channel: ${channel.name} with id: ${channel.id}`);
-			await channel.delete().catch(e => sendErrorToLogChannel(e, client));
-			lastSeenEmptyVcTime.delete(channel.id);
-		} else {
-			debug(`Voice channel: ${channel.name} with id: ${channel.id} was last seen empty on ${lastSeenEmpty.toISO()}, not old enough to delete`);
-		}
-	}
 }
 
 async function deleteOldDeploymentsFromDatabase() {
