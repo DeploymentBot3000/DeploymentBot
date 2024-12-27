@@ -5,9 +5,6 @@ import { Duration } from "luxon";
 
 enum SettingKey {
     deployment_time = "deployment_time",
-    min_players = "min_players",
-    max_players = "max_players",
-    min_deployment_lead_time_minutes = "min_deployment_lead_time_minutes",
 }
 
 async function getSetting(guildId: Snowflake, name: SettingKey, defaultValue: string): Promise<string> {
