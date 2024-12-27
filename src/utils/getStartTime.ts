@@ -1,5 +1,3 @@
-import { buildErrorEmbed } from "./embedBuilders/configBuilders.js";
-import {CacheType, ChannelType, GuildMember, ModalSubmitInteraction} from "discord.js";
 import {DateTime, Duration} from "luxon";
 import config from "../config.js";
 
@@ -50,18 +48,16 @@ function _parseRelativeTimeString(input: string): number | Error {
     return totalMs;
 }
 
-function _parseStartDate(input: string) {
+function _parseStartDate(input: string): DateTime | Error {
     const parsedDate = _parseAbsoluteDateString(input);
     if (!(parsedDate instanceof Error)) {
-        return parsedDate.toJSDate();
+        return parsedDate;
     }
     const deltaMilis = _parseRelativeTimeString(input);
     if (!(deltaMilis instanceof Error)) {
-        return new Date(Date.now() + deltaMilis);
+        return DateTime.now().plus(deltaMilis);
     }
-    console.log(parsedDate);
-    console.log(deltaMilis);
-    return new Error('Failed to parse input as absolute or relative time.');
+    return new Error(_kDateInputErrorDescription);
 }
 
 const _kDateInputErrorDescription : string = `# Invalid start time format\n
@@ -71,35 +67,15 @@ Please use on of the following formats:\n
 * \`??h??m??s\` - Relative time. E.g. \`1h10m30s\`\n
 Time zone names are available at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones`;
 
-export default async function getStartTime(startTime: string, interaction: ModalSubmitInteraction<CacheType>) {
-    // Regex for relative time formats
-
-    const startDate: Date | Error = _parseStartDate(startTime);
-
+export default async function getStartTime(startTime: string) {
+    const startDate = _parseStartDate(startTime);
     if (startDate instanceof Error) {
-        const errorEmbed = buildErrorEmbed()
-            .setDescription(_kDateInputErrorDescription);
-        await interaction.reply({embeds: [errorEmbed], ephemeral: true});
-        setTimeout(() => interaction.deleteReply().catch(() => { }), 45000);
-
-        // Log invalid time entry to specific channel
-        const logChannel = await interaction.client.channels.fetch('1299122351291629599');
-        if (logChannel?.type === ChannelType.GuildText) {
-            await logChannel.send(`-----------------\n\nInvalid time format used by ${interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.user.username}\nAttempted time:** ${startTime}**`);
-        }
-        throw startDate;
+        return startDate;
     }
 
     const minDeploymentLeadTime: Duration = Duration.fromDurationLike({minutes: config.min_deployment_lead_time_minutes});
-
-    if (DateTime.fromJSDate(startDate) < DateTime.now().plus(minDeploymentLeadTime)) {
-        const errorEmbed = buildErrorEmbed()
-            .setDescription(`Start time must be at least ${minDeploymentLeadTime.toHuman()} in the future`);
-
-
-        await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-        setTimeout(() => interaction.deleteReply().catch(() => { }), 45000);
-        throw new Error();
+    if (startDate < DateTime.now().plus(minDeploymentLeadTime)) {
+        return new Error(`Deployment start time must be at least ${config.min_deployment_lead_time_minutes} minutes in the future.`);
     }
 
     return startDate;

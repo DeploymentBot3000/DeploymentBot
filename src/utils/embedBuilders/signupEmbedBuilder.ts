@@ -25,13 +25,16 @@ export async function buildDeploymentEmbed(
 
     const googleCalendarLink = getGoogleCalendarLink(deployment.title, deployment.description, deployment.startTime, deployment.endTime);
 
+    const startTime = DateTime.fromMillis(Number(deployment.startTime));
+    const endtTime = DateTime.fromMillis(Number(deployment.endTime));
+
     return new EmbedBuilder()
         .setTitle(started ? `${deployment.title} - Started` : deployment.title)
         .addFields([
             {
                 name: "Deployment Details:",
-                value: `📅 ${formatDiscordTime(DateTime.fromMillis(deployment.startTime), DiscordTimestampFormat.SHORT_DATE)} - [Calendar](${googleCalendarLink})\n
-🕒 ${formatDiscordTime(DateTime.fromMillis(deployment.startTime), DiscordTimestampFormat.SHORT_TIME)} - ${formatDiscordTime(DateTime.fromMillis(deployment.endTime), DiscordTimestampFormat.SHORT_TIME)}\n
+                value: `📅 ${formatDiscordTime(startTime, DiscordTimestampFormat.SHORT_DATE)} - [Calendar](${googleCalendarLink})\n
+🕒 ${formatDiscordTime(startTime, DiscordTimestampFormat.SHORT_TIME)} - ${formatDiscordTime(endtTime, DiscordTimestampFormat.SHORT_TIME)}\n
 🪖 ${deployment.difficulty}`
             },
             {

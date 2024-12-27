@@ -3,13 +3,13 @@ import getStartTime from "../utils/getStartTime.js";
 import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
 import {success} from "../utils/logger.js";
 import Deployment from "../tables/Deployment.js";
-import { client } from "../custom_client.js"; // Import CommandInteraction type
 import * as emoji from 'node-emoji'
 import { buildErrorEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { replyWithError } from "../utils/interaction/replyWithError.js";
 
 export default {
     id: "editDeployment",
-    callback: async function ({ interaction }: { interaction: ModalSubmitInteraction }) {
+    callback: async function ({ interaction }: { interaction: ModalSubmitInteraction }): Promise<void> {
         const deployment = await Deployment.findOne({ where: { id: Number(interaction.customId.split("-")[1]) } });
         if (!deployment) {
             return;
@@ -28,15 +28,12 @@ export default {
             if (!getFieldValue("startTime")) {
                 return null;
             }
-            const startTime = interaction.fields.getTextInputValue("startTime");
-            let startDate:Date = null;
-
-            try { startDate = await getStartTime(startTime, interaction); }
-            catch (e) {
+            const startTime = await getStartTime(interaction.fields.getTextInputValue("startTime"));
+            if (startTime instanceof Error) {
+                await replyWithError(interaction, "Parsing Error!", startTime.message);
                 return null;
             }
-
-            return startDate.getTime();
+            return startTime.toMillis();
         }
 
         try {
@@ -69,7 +66,7 @@ export default {
 
         const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
 
-        const channel = await client.channels.fetch(deployment.channel).catch(() => null as null) as GuildTextBasedChannel;
+        const channel = await interaction.client.channels.fetch(deployment.channel).catch(() => null as null) as GuildTextBasedChannel;
         const message = await channel?.messages.fetch(deployment.message).catch(() => null as null);
         if (message) {
             await message.edit({ embeds: [embed] }).catch(() => { });

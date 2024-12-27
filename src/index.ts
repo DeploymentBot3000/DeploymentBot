@@ -23,8 +23,8 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         } else if (interaction.isAnySelectMenu()) {
             await selectMenuInteraction.callback(interaction);
         } else {
+            console.log('Unknown interaction object:', interaction);
             await sendErrorToLogChannel(new Error(`Unknown interaction: ${interaction.id}`), client);
-            console.log(interaction);
         }
     } catch (e: any) {
         await sendErrorToLogChannel(e, client);

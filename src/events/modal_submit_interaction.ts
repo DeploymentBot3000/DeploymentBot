@@ -33,6 +33,6 @@ export default {
             return;
         }
 
-        modal.callback({ interaction });
+        await modal.callback({ interaction });
     },
 }

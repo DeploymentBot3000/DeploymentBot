@@ -6,24 +6,26 @@ import {
     GuildMember,
     GuildTextBasedChannel,
     ModalSubmitInteraction,
+    Snowflake,
     StringSelectMenuBuilder,
     StringSelectMenuInteraction
 } from "discord.js";
+import { DateTime, Duration } from "luxon";
+import * as emoji from 'node-emoji';
 import Modal from "../classes/Modal.js";
-import LatestInput from "../tables/LatestInput.js";
-import { buildButton, buildErrorEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
+import LatestInput from "../tables/LatestInput.js";
 import Signups from "../tables/Signups.js";
+import { buildButton, buildErrorEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
-import {action, debug, error, log, success} from "../utils/logger.js";
-import * as emoji from 'node-emoji';
+import { action, debug, error, success } from "../utils/logger.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
-import { DateTime, Duration } from "luxon";
+import { editReplyWithError, replyWithError } from "../utils/interaction/replyWithError.js";
 
-async function storeLatestInput(interaction: ModalSubmitInteraction, title: string, difficulty: string, description: string) {
-    const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
+async function storeLatestInput(userId: Snowflake, title: string, difficulty: string, description: string) {
+    const latestInput = await LatestInput.findOne({ where: { userId: userId } });
 
     if (latestInput) {
         latestInput.title = title;
@@ -32,7 +34,7 @@ async function storeLatestInput(interaction: ModalSubmitInteraction, title: stri
         await latestInput.save();
     } else {
         await LatestInput.insert({
-            userId: interaction.user.id,
+            userId: userId,
             title: title,
             difficulty: difficulty,
             description: description
@@ -50,159 +52,41 @@ async function reportFailedInteractionToUser(interaction: ModalSubmitInteraction
     });
 }
 
+type DeploymentDetails = { title: string, difficulty: string, description: string, startTime: DateTime, endTime: DateTime };
+
 export default new Modal({
     id: "newDeployment",
-    callback: async function ({ interaction }) {
+    callback: async function ({ interaction }: { interaction: ModalSubmitInteraction }) {
         action(`User ${interaction.user.tag} creating new deployment`, "NewDeployment");
         
-        let title = interaction.fields.getTextInputValue("title");
-        debug(`Title: ${title}`, "NewDeployment");
-        
-        let difficulty = interaction.fields.getTextInputValue("difficulty");
-        let description = interaction.fields.getTextInputValue("description");
-        const startTime = interaction.fields.getTextInputValue("startTime");
-
-        try {
-            title = emoji.strip(title).trim();
-            difficulty = emoji.strip(difficulty).trim();
-            description = emoji.strip(description).trim();
-
-            if(!(title && difficulty && description)) throw new Error();
-        } catch (e) {
-            const errorEmbed = buildErrorEmbed()
-                .setTitle("Parsing Error!")
-                .setDescription("Please do not use emojis in any deployment fields!\n");
-            
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        const details = await _parseDeploymentInput(interaction);
+        if (details instanceof Error) {
+            await replyWithError(interaction, "Parsing Error!", details.message);
             return;
         }
-
-        let startDate:Date = null;
-
-        try { startDate = await getStartTime(startTime, interaction); }
-        catch (e) {
-            await storeLatestInput(interaction, title, difficulty, description);
-            log(`Invalid Start time!`, "NewDeployment");
-            return;
-        }
-
-        const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-            new StringSelectMenuBuilder().setPlaceholder("Select a channel").setCustomId("channel").addOptions(
-                config.channels.map(channel => ({
-                    label: channel.name,
-                    value: `${channel.channel}-${Math.random() * 1000}`,
-                    emoji: channel.emoji
-                })
-            ))
-        );
 
         try {
             await interaction.deferReply({ ephemeral: true });
-            
-            await interaction.editReply({
-                content: `Helldivers, it's time to pick your battlefield. Select your region below to ensure you're dropped into the right chaos with the least lag (because lag's the real enemy here). Select the appropriate region to join your battalion's ranks!\n\n<@${interaction.user.id}>`,
-                components: [row]
-            });
 
-            const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
-            if (latestInput) await latestInput.remove();
-
-            const selectMenuResponse = await interaction.channel.awaitMessageComponent({
-                filter: i => i.user.id === interaction.user.id && i.customId === "channel",
-                time: 60000
-            }).catch(() => null as null) as StringSelectMenuInteraction;
-
-            if (!selectMenuResponse) {
-                const errorEmbed = buildErrorEmbed()
-                    .setDescription("Channel selection timed out");
-
-                await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => { });
-                setTimeout(() => interaction.deleteReply().catch(() => { }), 45000);
-
+            const channel = await _getSignupChannel(interaction);
+            if (channel instanceof Error) {
+                await editReplyWithError(interaction, /*title=*/null, channel.message);
                 return;
             }
 
-            const successEmbed = buildSuccessEmbed()
-                .setDescription("Deployment created successfully");
-
-            await selectMenuResponse.update({ embeds: [successEmbed], components: [] });
-            setTimeout(() => interaction.deleteReply().catch(() => { }), 45000);
-
-            const channel = config.channels.find(channel => channel.channel === selectMenuResponse.values[0].split("-")[0]);
-
-            const offenseRole = config.roles.find(role => role.name === "Offense");
-
-            const endTime = DateTime.fromJSDate(startDate).plus(Duration.fromDurationLike({ hours: 2 }));
-
-            const googleCalendarLink = getGoogleCalendarLink(title, description, startDate.getTime(), endTime.toMillis());
-
-            const embed = new EmbedBuilder()
-                .setTitle(title)
-                .addFields([
-                    {
-                        name: "Deployment Details:",
-                        value: `📅 ${formatDiscordTime(DateTime.fromJSDate(startDate), DiscordTimestampFormat.SHORT_DATE)} - [Calendar](${googleCalendarLink})\n
-🕒 ${formatDiscordTime(DateTime.fromJSDate(startDate), DiscordTimestampFormat.SHORT_TIME)} - ${formatDiscordTime(endTime, DiscordTimestampFormat.SHORT_TIME)}:\n
-🪖 ${difficulty}`
-                    },
-                    {
-                        name: "Description:",
-                        value: description
-                    },
-                    {   
-                        name: "Signups:",
-                        value: `${offenseRole.emoji} ${interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.member.user.username}`,
-                        inline: true
-                    },
-                    {
-                        name: "Backups:",
-                        value: "` - `",
-                        inline: true
-                    }
-                ])
-                .setColor("Green")
-                .setFooter({ text: `Sign ups: 1/4 ~ Backups: 0/4` })
-                .setTimestamp(startDate.getTime());
-
-            const ch = await interaction.client.channels.fetch(channel.channel).catch(() => null as null) as GuildTextBasedChannel;
-
-            const rows = [
-                new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-                    new StringSelectMenuBuilder().setPlaceholder("Select a role to sign up...").setCustomId("signup").addOptions(
-                        ...config.roles.map(role => ({
-                            label: role.name,
-                            value: role.name,
-                            emoji: role.emoji || undefined
-                        })),
-                        {
-                            label: "Backup",
-                            value: "backup",
-                            emoji: config.backupEmoji
-                        }
-                )),
-                new ActionRowBuilder<ButtonBuilder>().addComponents(
-                    buildButton("editDeployment"),
-                    buildButton("deleteDeployment"),
-                    new ButtonBuilder()
-                        .setCustomId("leaveDeployment")
-                        .setLabel("Leave")
-                        .setStyle(ButtonStyle.Danger)
-                )
-            ];
-
-            const msg = await ch.send({ content: `<@${interaction.user.id}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
+            const msg = await _sendDeploymentSignupMessage(interaction, channel, details);
 
             let deployment: Deployment = null;
             try {
                 deployment = await Deployment.create({
-                    channel: channel.channel,
+                    channel: channel.id,
                     message: msg.id,
                     user: interaction.user.id,
-                    title: title,
-                    difficulty: difficulty,
-                    description: description,
-                    startTime: startDate.getTime(),
-                    endTime: startDate.getTime() + 7200000,
+                    title: details.title,
+                    difficulty: details.difficulty,
+                    description: details.description,
+                    startTime: details.startTime.toMillis(),
+                    endTime: details.endTime.toMillis(),
                     started: false,
                     deleted: false,
                     edited: false,
@@ -214,10 +98,10 @@ export default new Modal({
                     userId: interaction.user.id,
                     role: "Offense"
                 });
-            } catch(e) {
+            } catch (e) {
                 debug('Failed to save deployment to database');
                 debug('Deleting deployment sign up message');
-                await msg.delete().catch(e => { error(`Failed to delete ${title} signup embed`); console.log(e); });
+                await msg.delete().catch((e: any) => { error(`Failed to delete ${details.title} signup embed`); console.log(e); });
                 debug('Deleting success message');
                 await interaction.deleteReply().catch(() => { });
                 if (deployment != null) {
@@ -231,10 +115,156 @@ export default new Modal({
                 // your response content
             });
 
-            success(`New deployment "${title}" created by ${interaction.user.tag}`, "NewDeployment");
+            success(`New deployment "${details.title}" created by ${interaction.user.tag}`, "NewDeployment");
         } catch (e) {
             error(`Failed to handle interaction in channel: ${interaction.channel.name} for user: ${interaction.user.tag} (${interaction.user.id})`); console.log(e);
-            await reportFailedInteractionToUser(interaction, e).catch(e => { error(`Failed to respond to user with error for deployment ${title}`); console.log(e); });
+            await reportFailedInteractionToUser(interaction, e).catch(e => { error(`Failed to respond to user with error for deployment ${details.title}`); console.log(e); });
         }
     }
 })
+
+function _buildDeploymentEmbed(title: string, startDate: DateTime, googleCalendarLink: string, endTime: DateTime, difficulty: string, description: string, interaction: ModalSubmitInteraction) {
+    const role = config.roles.find(role => role.name === "Offense");
+
+    return new EmbedBuilder()
+        .setTitle(title)
+        .addFields([
+            {
+                name: "Deployment Details:",
+                value: `📅 ${formatDiscordTime(startDate, DiscordTimestampFormat.SHORT_DATE)} - [Calendar](${googleCalendarLink})\n
+🕒 ${formatDiscordTime(startDate, DiscordTimestampFormat.SHORT_TIME)} - ${formatDiscordTime(endTime, DiscordTimestampFormat.SHORT_TIME)}:\n
+🪖 ${difficulty}`
+            },
+            {
+                name: "Description:",
+                value: description
+            },
+            {
+                name: "Signups:",
+                value: `${role.emoji} ${interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.member.user.username}`,
+                inline: true
+            },
+            {
+                name: "Backups:",
+                value: "` - `",
+                inline: true
+            }
+        ])
+        .setColor("Green")
+        .setFooter({ text: `Sign ups: 1/4 ~ Backups: 0/4` })
+        .setTimestamp(startDate.toMillis());
+}
+
+function hasEmoji(input: string): boolean {
+    return input != emoji.strip(emoji.emojify(input));
+}
+
+async function _parseDeploymentInput(interaction: ModalSubmitInteraction): Promise<DeploymentDetails | Error> {
+    const title = interaction.fields.getTextInputValue("title");
+    const difficulty = interaction.fields.getTextInputValue("difficulty");
+    const description = interaction.fields.getTextInputValue("description");
+
+    if (hasEmoji(title) || hasEmoji(difficulty) || hasEmoji(description)) {
+        return new Error("Emojis are not allowed in deployment fields");
+    }
+    const startTime = await getStartTime(interaction.fields.getTextInputValue("startTime"));
+    if (startTime instanceof Error) {
+        await storeLatestInput(interaction.user.id, title, difficulty, description);
+        return startTime;
+    }
+    const endTime = startTime.plus(Duration.fromDurationLike({ hours: 2 }));
+    return { title, difficulty, description, startTime, endTime };
+}
+
+/**
+ * Handles the interaction for selecting a channel from a dropdown menu.
+ * 
+ * @param interaction - The interaction object from the modal submission.
+ * @returns A promise that resolves to the selected text-based channel where the deployment signup should be posted or an error if the selection fails.
+ * 
+ * @throws Will throw an error if the selected channel is not found or is not a text-based channel.
+ * 
+ * @remarks
+ * This function presents the user with a dropdown menu to select a channel. It waits for the user to make a selection,
+ * and then validates the selected channel. If the selection times out or the selected channel is invalid, it returns an error.
+ * 
+ * The function also removes any previous input from the user and updates the interaction with a success message upon successful selection.
+ */
+async function _getSignupChannel(interaction: ModalSubmitInteraction): Promise<GuildTextBasedChannel | Error> {
+    const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+        new StringSelectMenuBuilder().setPlaceholder("Select a channel").setCustomId("channel").addOptions(
+            config.channels.map(channel => ({
+                label: channel.name,
+                value: `${channel.channel}-${Math.random() * 1000}`,
+                emoji: channel.emoji
+            })))
+    );
+
+    await interaction.editReply({
+        content: `Helldivers, it's time to pick your battlefield. Select your region below to ensure you're dropped into the right chaos with the least lag (because lag's the real enemy here). Select the appropriate region to join your battalion's ranks!\n\n<@${interaction.user.id}>`,
+        components: [row]
+    });
+
+    const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
+    if (latestInput) {
+        await latestInput.remove();
+    }
+
+    const selectMenuResponse = await interaction.channel.awaitMessageComponent({
+        filter: i => i.user.id === interaction.user.id && i.customId === "channel",
+        time: Duration.fromDurationLike({ minutes: 1 }).toMillis()
+    }).catch(() => null as null) as StringSelectMenuInteraction;
+    if (!selectMenuResponse) {
+        interaction.editReply({ content: "Channel selection timed out", components: [] });
+        return new Error("Channel selection timed out");
+    }
+
+    const successEmbed = buildSuccessEmbed()
+        .setDescription("Deployment created successfully");
+    await selectMenuResponse.update({ embeds: [successEmbed], components: [] });
+    setTimeout(() => interaction.deleteReply().catch(() => { }), 45000);
+
+    const channelId = selectMenuResponse.values[0].split("-")[0];
+    const channel = interaction.client.channels.cache.get(channelId);
+    if (!channel) {
+        throw new Error(`Can't find channel with id: ${selectMenuResponse.values[0]}`);
+    }
+    if (!channel.isTextBased()) {
+        throw new Error("Selected channel is not a text channel");
+    }
+    return channel as GuildTextBasedChannel;
+}
+
+async function _sendDeploymentSignupMessage(interaction: ModalSubmitInteraction, channel: GuildTextBasedChannel, details: DeploymentDetails) {
+    const googleCalendarLink = getGoogleCalendarLink(details.title, details.description, details.startTime.toMillis(), details.endTime.toMillis());
+
+    const embed = _buildDeploymentEmbed(details.title, details.startTime, googleCalendarLink, details.endTime, details.difficulty, details.description, interaction);
+
+    const rows = [
+        new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+            new StringSelectMenuBuilder().setPlaceholder("Select a role to sign up...").setCustomId("signup").addOptions(
+                ...config.roles.map(role => ({
+                    label: role.name,
+                    value: role.name,
+                    emoji: role.emoji || undefined
+                })),
+                {
+                    label: "Backup",
+                    value: "backup",
+                    emoji: config.backupEmoji
+                }
+            )),
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+            buildButton("editDeployment"),
+            buildButton("deleteDeployment"),
+            new ButtonBuilder()
+                .setCustomId("leaveDeployment")
+                .setLabel("Leave")
+                .setStyle(ButtonStyle.Danger)
+        )
+    ];
+
+    return await channel.send({ content: `<@${interaction.user.id}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
+}
+
+
