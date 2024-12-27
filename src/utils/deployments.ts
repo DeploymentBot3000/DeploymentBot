@@ -90,31 +90,50 @@ async function _sendDeploymentNotices(client: Client, now: DateTime) {
     });
 
     for (const deployment of deploymentsNoNotice) {
-        const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null as null) as GuildTextBasedChannel;
-        const signups = await Signups.find({ where: { deploymentId: deployment.id } });
-        const backups = await Backups.find({ where: { deploymentId: deployment.id } });
-
-        const signupsFormatted = signups.filter(s => s.userId != deployment.user).map(signup => {
-            const role = config.roles.find(role => role.name === signup.role);
-            return `${role.emoji} <@${signup.userId}>`;
-        }).join("\n") || "` - `";
-
-        const backupsFormatted = backups.map(backup => `${config.backupEmoji} <@${backup.userId}>`).join("\n");
-
-        const operationRegex = /^(op(p)?eration|operration|opperation|operacion):?\s*/i;
-        const formattedTitle = operationRegex.test(deployment.title)
-            ? deployment.title
-            : `Operation: ${deployment.title}`;
-
-        await departureChannel.send({
-            content: `-------------------------------------------\n\n# ATTENTION HELLDIVERS \n\n\n**${formattedTitle}**\nA Super Earth Destroyer will be mission ready and deploying to the Operation grounds in **15 minutes**. <@${deployment.user}> will open communication channels in the next **5 minutes** and Divers are expected to be present.\n\n**Difficulty:** **${deployment.difficulty}**\n\n**Deployment Lead:**\n<@${deployment.user}>\n\n**Helldivers assigned:**\n${signupsFormatted}\n\n${backupsFormatted.length ? `**Standby divers:**\n${backupsFormatted}\n\n` : ""}You are the selected Divers for this operation. Be ready **15 minutes** before deployment time. If you are to be late make sure you inform the deployment host.\n-------------------------------------------`
-        });
-
-        deployment.noticeSent = true;
-
-        await deployment.save();
+        _sendDepartureMessage(client, deployment);
 
     }
+}
+
+async function _sendDepartureMessage(client: Client, deployment: Deployment) {
+    const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null as null) as GuildTextBasedChannel;
+    const signups = await Signups.find({ where: { deploymentId: deployment.id } });
+    const backups = await Backups.find({ where: { deploymentId: deployment.id } });
+
+    await departureChannel.send({ content: _departureMessage(deployment, signups, backups), });
+
+    deployment.noticeSent = true;
+    await deployment.save();
+}
+
+function _departureMessage(deployment: Deployment, signups: Signups[], backups: Backups[]) {
+    const signupsFormatted = signups.filter(s => s.userId != deployment.user).map(signup => {
+        const role = config.roles.find(role => role.name === signup.role);
+        return `${role.emoji} <@${signup.userId}>`;
+    }).join(",") || "` - `";
+
+    const backupsFormatted = backups.map(backup => `${config.backupEmoji} <@${backup.userId}>`).join(",") || "` - `";
+
+    const departureNoticeLeadTimeMinutes = config.departure_notice_lead_time_minutes;
+
+    return `
+-------------------------------------------
+# ATTENTION HELLDIVERS
+
+**Operation: ${deployment.title}**
+A Super Earth Destroyer will be mission ready and deploying to the operation grounds.
+The host will open communication channels in the next **5 minutes**.
+Assigned divers, please join ASAP.
+Backup divers, please to be ready to join if needed.
+If you are late or can't make it, inform the deployment host ASAP.
+The operation starts in **${departureNoticeLeadTimeMinutes} minutes**.
+
+**Difficulty:** **${deployment.difficulty}**
+
+**Deployment host:** <@${deployment.user}>
+**Assigned divers:** ${signupsFormatted}
+**Standby divers:** ${backupsFormatted}
+-------------------------------------------`
 }
 
 async function _startDeployments(client: Client, now: DateTime) {
