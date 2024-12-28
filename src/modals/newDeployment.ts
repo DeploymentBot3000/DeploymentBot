@@ -2,6 +2,8 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
+    ComponentType,
+    DiscordjsErrorCodes,
     EmbedBuilder,
     GuildTextBasedChannel,
     Message,
@@ -203,12 +205,18 @@ async function _getSignupChannel(interaction: ModalSubmitInteraction): Promise<G
         await latestInput.remove();
     }
 
-    const selectMenuResponse = await interaction.channel.awaitMessageComponent({
-        filter: i => i.user.id === interaction.user.id && i.customId === "channel",
-        time: Duration.fromDurationLike({ minutes: 1 }).toMillis()
-    }).catch(() => null as null) as StringSelectMenuInteraction;
-    if (!selectMenuResponse) {
-        return new Error("Channel selection timed out");
+    let selectMenuResponse: StringSelectMenuInteraction;
+    try {
+        selectMenuResponse = await interaction.channel.awaitMessageComponent({
+            componentType: ComponentType.StringSelect,
+            time: Duration.fromDurationLike({ minutes: 1 }).toMillis(),
+            filter: i => i.user.id === interaction.user.id && i.customId === "channel",
+        });
+    } catch (e: any) {
+        if (e.code == DiscordjsErrorCodes.InteractionCollectorError && e.message.includes('time')) {
+            return new Error("Channel selection timed out");
+        }
+        throw e;
     }
 
     const channelId = selectMenuResponse.values[0].split("-")[0];
