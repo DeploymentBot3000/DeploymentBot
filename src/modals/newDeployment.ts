@@ -19,10 +19,10 @@ import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
 import LatestInput from "../tables/LatestInput.js";
 import Signups from "../tables/Signups.js";
-import { buildButton, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildButton } from "../utils/embedBuilders/configBuilders.js";
 import getStartTime from "../utils/getStartTime.js";
 import { action, success } from "../utils/logger.js";
-import { editReplyWithError, replyWithError } from "../utils/interaction/replyWithError.js";
+import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
 import { EntityManager } from "typeorm";
 import { dataSource } from "../data_source.js";
 import { sendErrorToLogChannel } from "../utils/log_channel.js";
@@ -52,14 +52,14 @@ export default new Modal({
     id: "newDeployment",
     callback: async function ({ interaction }: { interaction: ModalSubmitInteraction<'cached'> }) {
         action(`User ${interaction.user.tag} creating new deployment`, "NewDeployment");
+        await interaction.deferReply({ ephemeral: true });
         
         const details = await _parseDeploymentInput(interaction);
         if (details instanceof Error) {
-            await replyWithError(interaction, details.message);
+            await editReplyWithError(interaction, details.message);
             return;
         }
 
-        await interaction.deferReply({ ephemeral: true });
 
         const channel = await _getSignupChannel(interaction);
         if (channel instanceof Error) {
@@ -110,9 +110,7 @@ export default new Modal({
             throw e;
         }
 
-        const successEmbed = buildSuccessEmbed()
-            .setDescription("Deployment created successfully");
-        await interaction.editReply({ content: '', embeds: [successEmbed], components: [] });
+        await editReplyWithSuccess(interaction, 'Deployment created successfully');
 
         success(`New deployment "${details.title}" Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${interaction.member.nickname}(${interaction.member.displayName}/${interaction.user.username}/${interaction.user.id});`, "NewDeployment");
     }
@@ -188,14 +186,14 @@ async function _getSignupChannel(interaction: ModalSubmitInteraction): Promise<G
     }
 
     const channelId = selectMenuResponse.values[0].split("-")[0];
-    const channel = interaction.client.channels.cache.get(channelId);
+    const channel = interaction.guild.channels.cache.get(channelId);
     if (!channel) {
         throw new Error(`Can't find channel with id: ${selectMenuResponse.values[0]}`);
     }
     if (!channel.isTextBased()) {
         throw new Error("Selected channel is not a text channel");
     }
-    return channel as GuildTextBasedChannel;
+    return channel;
 }
 
 async function _sendDeploymentSignupMessage(channel: GuildTextBasedChannel, deployment: Deployment, signups: Signups[]) {
