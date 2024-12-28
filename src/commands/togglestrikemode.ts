@@ -1,5 +1,5 @@
 import Command from "../classes/Command.js";
-import { buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildSuccessEmbed } from "../embeds/embed.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
 export default new Command({

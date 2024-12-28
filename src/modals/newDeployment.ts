@@ -19,14 +19,14 @@ import config from "../config.js";
 import Deployment from "../tables/Deployment.js";
 import LatestInput from "../tables/LatestInput.js";
 import Signups from "../tables/Signups.js";
-import { buildButton } from "../utils/embedBuilders/configBuilders.js";
+import { buildButton } from "../buttons/button.js";
 import getStartTime from "../utils/getStartTime.js";
 import { action, success } from "../utils/logger.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
 import { EntityManager } from "typeorm";
 import { dataSource } from "../data_source.js";
 import { sendErrorToLogChannel } from "../utils/log_channel.js";
-import { buildDeploymentEmbed } from "../utils/embedBuilders/signupEmbedBuilder.js";
+import { buildDeploymentEmbed } from "../embeds/deployment.js";
 
 async function storeLatestInput(userId: Snowflake, title: string, difficulty: string, description: string) {
     const latestInput = await LatestInput.findOne({ where: { userId: userId } });

@@ -8,7 +8,7 @@ import { sendEmbedToLogChannel } from "../utils/log_channel.js";
 import { getAllSlashCommands } from "../utils/slash_commands_registery.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { setWakingUpActivity, startActivityInterval } from "../utils/bot_activity.js";
-import { buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildSuccessEmbed } from "../embeds/embed.js";
 import { VoiceChannelManager } from "../utils/voice_channels.js";
 import { DeploymentManager } from "../utils/deployments.js";
 

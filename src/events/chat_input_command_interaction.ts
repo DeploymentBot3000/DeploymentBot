@@ -4,7 +4,7 @@ import checkBlacklist from "../utils/interaction/checkBlacklist.js";
 import hasRequiredRoles from "../utils/interaction/hasRequiredRoles.js";
 import hasRequiredPermissions from "../utils/interaction/hasRequiredPermissions.js";
 import { getSlashCommand } from "../utils/slash_commands_registery.js";
-import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../embeds/embed.js";
 
 export default {
 	callback: async function (interaction: ChatInputCommandInteraction) {

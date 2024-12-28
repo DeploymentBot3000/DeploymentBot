@@ -1,6 +1,6 @@
 import { AnySelectMenuInteraction, ButtonInteraction, Snowflake } from "discord.js";
 import { DateTime, Duration } from "luxon";
-import { buildErrorEmbed } from "../embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../../embeds/embed.js";
 import { debug } from "../logger.js";
 
 /**

@@ -3,9 +3,9 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
 import config from "../config.js";
-import { buildDeploymentEmbedFromDb } from "../utils/embedBuilders/signupEmbedBuilder.js";
+import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 import { Duration } from "luxon";
-import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../embeds/embed.js";
 import { Colors } from "discord.js";
 
 export default new Button({

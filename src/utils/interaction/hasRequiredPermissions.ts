@@ -1,4 +1,4 @@
-import { buildErrorEmbed } from "../embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../../embeds/embed.js";
 import {PermissionsBitField, PermissionsString} from "discord.js";
 import ReplyableInteraction from "./ReplyableInteraction.js";
 

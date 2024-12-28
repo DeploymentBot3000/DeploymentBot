@@ -1,6 +1,8 @@
 import {ActionRowBuilder, ButtonBuilder} from "discord.js";
 import Command from "../classes/Command.js";
-import { buildButton, buildPanelEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildSuccessEmbed } from "../embeds/embed.js";
+import { buildButton } from "../buttons/button.js";
+import { buildPanelEmbed } from "../embeds/deployment.js";
 
 export default new Command({
     name: "panel",

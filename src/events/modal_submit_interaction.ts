@@ -4,7 +4,7 @@ import Modal from "../classes/Modal.js";
 import editDeployment from "../modals/editDeployment.js";
 import newDeployment from "../modals/newDeployment.js";
 import { error, log } from "../utils/logger.js";
-import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../embeds/embed.js";
 
 const _kModals: Map<string, Modal> = new Map();
 

@@ -1,5 +1,5 @@
 import Button from "../classes/Button.js";
-import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../embeds/embed.js";
 import config from "../config.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { Duration } from "luxon";

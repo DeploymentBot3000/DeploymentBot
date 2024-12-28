@@ -1,5 +1,5 @@
 import { client } from "../custom_client.js";
-import { buildQueueDeploymentEmbed, buildQueueEventEmbed, QueueDeploymentEmbedOptions, QueueEventEmbedOptions } from "../embeds/queueEvent.js";
+import { buildHotDropStartedEmbed, buildQueueEventEmbed, QueueDeploymentEmbedOptions, QueueEventEmbedOptions } from "../embeds/queue.js";
 import { sendEmbedToLogChannel } from "./log_channel.js";
 import { error } from "./logger.js";
 
@@ -10,8 +10,8 @@ export async function logQueueAction(options: QueueEventEmbedOptions) {
     });
 }
 
-export async function logQueueDeployment(options: QueueDeploymentEmbedOptions) {
-    await sendEmbedToLogChannel(buildQueueDeploymentEmbed(options), client).catch(e => {
+export async function logHotDropStarted(options: QueueDeploymentEmbedOptions) {
+    await sendEmbedToLogChannel(buildHotDropStartedEmbed(options), client).catch(e => {
         error('Failed to send embed to log channel');
         error(e);
     });
