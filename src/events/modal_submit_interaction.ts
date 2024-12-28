@@ -1,15 +1,15 @@
 import colors from "colors";
 import { ModalSubmitInteraction } from "discord.js";
 import Modal from "../classes/Modal.js";
-import editDeployment from "../modals/editDeployment.js";
-import newDeployment from "../modals/newDeployment.js";
-import { error, log } from "../utils/logger.js";
 import { buildErrorEmbed } from "../embeds/embed.js";
+import { DeploymentEditModal } from "../interactions/deployment_edit.js";
+import { DeploymentNewModal } from "../interactions/deployment_new.js";
+import { error, log } from "../utils/logger.js";
 
 const _kModals: Map<string, Modal> = new Map();
 
-_kModals.set(editDeployment.id, editDeployment);
-_kModals.set(newDeployment.id, newDeployment);
+_kModals.set(DeploymentEditModal.id, DeploymentEditModal);
+_kModals.set(DeploymentNewModal.id, DeploymentNewModal);
 
 function getModalById(id: string) {
     return _kModals.get(id);

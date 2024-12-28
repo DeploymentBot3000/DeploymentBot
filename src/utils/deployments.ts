@@ -10,6 +10,14 @@ import config from "../config.js";
 import { formatDiscordTime } from "./time.js";
 import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 
+export interface DeploymentDetails {
+    title: string,
+    difficulty: string,
+    description: string,
+    startTime: DateTime,
+    endTime: DateTime,
+}
+
 export class DeploymentManager {
     public static async init(client: Client) {
         if (DeploymentManager._instance) {
