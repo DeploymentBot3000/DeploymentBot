@@ -70,7 +70,7 @@ export default new Modal({
 
         try {
             await dataSource.transaction(async (entityManager: EntityManager) => {
-                const deployment = await entityManager.create(Deployment, {
+                const deployment = entityManager.create(Deployment, {
                     channel: channel.id,
                     message: "",
                     user: interaction.user.id,
@@ -83,7 +83,9 @@ export default new Modal({
                     deleted: false,
                     edited: false,
                     noticeSent: false
-                }).save();
+                });
+                await entityManager.save(deployment);
+
                 await entityManager.insert(Signups, {
                     deploymentId: deployment.id,
                     userId: interaction.user.id,
@@ -95,7 +97,7 @@ export default new Modal({
                 msg = await _sendDeploymentSignupMessage(interaction.user.id, channel, details);
 
                 deployment.message = msg.id;
-                deployment.save();
+                await entityManager.save(deployment);
             });
         } catch (e: any) {
             await editReplyWithError(interaction, 'An error occurred while creating the deployment');
@@ -251,5 +253,3 @@ async function _sendDeploymentSignupMessage(hostUserId: Snowflake, channel: Guil
 
     return await channel.send({ content: `<@${hostUserId}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
 }
-
-
