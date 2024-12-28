@@ -1,4 +1,4 @@
-import Button from "./button.js";
+import Button2 from "./button.js";
 import Deployment from "../tables/Deployment.js";
 import { buildInfoEmbed, buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
 import config from "../config.js";
@@ -6,6 +6,8 @@ import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
 import { DateTime, Duration } from "luxon";
 import { sendEmbedToLogChannel, sendErrorToLogChannel } from "../utils/log_channel.js";
+import { ButtonInteraction, PermissionsString } from "discord.js";
+import { requiredRolesType } from "../classes/Command.js";
 
 function buildDeploymentDeletedConfirmationEmbed(deploymentTitle: string, timeToDeployment: Duration) {
     return buildInfoEmbed()
@@ -33,14 +35,12 @@ function buildDeploymentDeletedConfirmationEmbedForLog(deployment: Deployment, s
         .setDescription(description);
 }
 
+class DeploymentDeleteButtonImpl extends Button2 {
+    constructor() {
+        super(/*id=*/"deleteDeployment", /*cooldown=*/Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }), /*permissions=*/[], /*requiredRoles=*/[]);
+    }
 
-export default new Button({
-    id: "deleteDeployment",
-    cooldown: Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }),
-    permissions: [],
-    requiredRoles: [],
-    blacklistedRoles: [...config.blacklistedRoles],
-    callback: async function ({ interaction }) {
+    override async callback(interaction: ButtonInteraction) {
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
 
         if (!deployment) {
@@ -94,4 +94,6 @@ export default new Button({
 
         await interaction.message.delete();
     }
-})
+}
+
+export const DeploymentDeleteButton = new DeploymentDeleteButtonImpl();

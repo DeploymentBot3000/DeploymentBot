@@ -49,3 +49,19 @@ export default class Button {
         this.callback = callback;
     }
 }
+
+export abstract class Button2 {
+    constructor(id: string, cooldown: Duration, permissions: PermissionsString[], requiredRoles: requiredRolesType) {
+        this.id = id;
+        this.cooldown = cooldown;
+        this.permissions = permissions;
+        this.requiredRoles = requiredRoles;
+        this.blacklistedRoles = [...config.blacklistedRoles];
+    }
+    readonly id: string;
+    readonly cooldown?: Duration;
+    readonly permissions?: PermissionsString[];
+    readonly requiredRoles?: requiredRolesType;
+    readonly blacklistedRoles?: string[];
+    abstract callback(interaction: ButtonInteraction): Promise<void>;
+}

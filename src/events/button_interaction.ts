@@ -5,7 +5,6 @@ import checkBlacklist from "../utils/interaction/checkBlacklist.js";
 import hasRequiredPermissions from "../utils/interaction/hasRequiredPermissions.js";
 import hasRequiredRoles from "../utils/interaction/hasRequiredRoles.js";
 
-import deleteDeployment from "../buttons/deployment_delete.js";
 import editDeployment from "../buttons/deployment_edit.js";
 import host from "../buttons/queue_host.js";
 import join from "../buttons/queue_join.js";
@@ -14,10 +13,11 @@ import leaveDeployment from "../buttons/deployment_leave.js";
 import newDeployment from "../buttons/deployment_new.js";
 import Button from "../buttons/button.js";
 import { userIsOnCooldownWithReply } from "../utils/interaction/checkCooldown.js";
+import { DeploymentDeleteButton } from "../buttons/deployment_delete.js";
 
 const _kButtons: Map<string, Button> = new Map();
 
-_kButtons.set(deleteDeployment.id, deleteDeployment);
+_kButtons.set(DeploymentDeleteButton.id, DeploymentDeleteButton as Button);
 _kButtons.set(editDeployment.id, editDeployment);
 _kButtons.set(host.id, host);
 _kButtons.set(join.id, join);
