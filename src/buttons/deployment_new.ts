@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
-import Button from "../classes/Button.js";
+import Button from "./button.js";
 import LatestInput from "../tables/LatestInput.js";
 import config from "../config.js";
 import { Duration } from "luxon";

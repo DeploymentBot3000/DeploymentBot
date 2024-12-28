@@ -1,4 +1,4 @@
-import Button from "../classes/Button.js";
+import Button from "./button.js";
 import { buildErrorEmbed } from "../embeds/embed.js";
 import config from "../config.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
