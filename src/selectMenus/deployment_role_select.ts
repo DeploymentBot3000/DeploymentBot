@@ -3,9 +3,10 @@ import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
-import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
+import { buildDeploymentEmbedFromDb } from "../utils/embedBuilders/signupEmbedBuilder.js";
 import config from "../config.js";
 import { Duration } from "luxon";
+import { Colors } from "discord.js";
 
 export default new SelectMenu({
     id: "signup",
@@ -26,7 +27,7 @@ export default new SelectMenu({
         }
 
         const updateEmbed = async () => {
-            const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
+            const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
             await interaction.update({ embeds: [embed] });
             return;
         };

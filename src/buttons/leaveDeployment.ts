@@ -3,9 +3,10 @@ import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
 import config from "../config.js";
-import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
+import { buildDeploymentEmbedFromDb } from "../utils/embedBuilders/signupEmbedBuilder.js";
 import { Duration } from "luxon";
 import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { Colors } from "discord.js";
 
 export default new Button({
     id: "leaveDeployment",
@@ -74,7 +75,7 @@ export default new Button({
                 return;
             }
 
-            const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
+            const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
 
             // Add error handling for message edit
             try {
