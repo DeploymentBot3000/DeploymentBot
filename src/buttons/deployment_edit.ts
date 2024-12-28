@@ -9,7 +9,7 @@ import {
     TextInputBuilder,
     TextInputStyle
 } from "discord.js";
-import Button from "../classes/Button.js";
+import Button from "./button.js";
 import Deployment from "../tables/Deployment.js";
 import config from "../config.js";
 import { action } from "../utils/logger.js";

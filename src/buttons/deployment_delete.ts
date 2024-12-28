@@ -1,4 +1,4 @@
-import Button from "../classes/Button.js";
+import Button from "./button.js";
 import Deployment from "../tables/Deployment.js";
 import { buildInfoEmbed, buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
 import config from "../config.js";
@@ -88,10 +88,10 @@ export default new Button({
         await deployment.remove();
 
         const successEmbed = buildSuccessEmbed()
-        .setDescription("Deployment deleted successfully");
-        
+            .setDescription("Deployment deleted successfully");
+
         await interaction.reply({ embeds: [successEmbed], ephemeral: true });
-        
+
         await interaction.message.delete();
     }
 })

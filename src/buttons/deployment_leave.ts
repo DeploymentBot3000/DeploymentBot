@@ -1,4 +1,4 @@
-import Button from "../classes/Button.js";
+import Button from "./button.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
@@ -43,17 +43,17 @@ export default new Button({
                 return;
             }
 
-            const existingSignup = await Signups.findOne({ 
-                where: { 
-                    deploymentId: deployment.id, 
-                    userId: interaction.user.id 
-                } 
+            const existingSignup = await Signups.findOne({
+                where: {
+                    deploymentId: deployment.id,
+                    userId: interaction.user.id
+                }
             });
-            const existingBackup = await Backups.findOne({ 
-                where: { 
-                    deploymentId: deployment.id, 
-                    userId: interaction.user.id 
-                } 
+            const existingBackup = await Backups.findOne({
+                where: {
+                    deploymentId: deployment.id,
+                    userId: interaction.user.id
+                }
             });
 
             if (!existingSignup && !existingBackup) {
@@ -92,7 +92,7 @@ export default new Button({
             console.error('Error in leaveDeployment button:', error);
             const errorEmbed = buildErrorEmbed()
                 .setDescription("An unexpected error occurred. Please try again later.");
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true }).catch(() => {});
+            await interaction.reply({ embeds: [errorEmbed], ephemeral: true }).catch(() => { });
         }
     }
 }) 
