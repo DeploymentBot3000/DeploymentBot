@@ -1,4 +1,4 @@
-import { Client, EmbedBuilder, GuildTextBasedChannel } from "discord.js";
+import { Client, Colors, EmbedBuilder, GuildTextBasedChannel } from "discord.js";
 import cron from 'node-cron';
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
@@ -8,7 +8,7 @@ import { In, LessThanOrEqual } from "typeorm";
 import { DateTime, Duration } from "luxon";
 import config from "../config.js";
 import { formatDiscordTime } from "./time.js";
-import { buildDeploymentEmbed } from "./embedBuilders/signupEmbedBuilder.js";
+import { buildDeploymentEmbedFromDb } from "./embedBuilders/signupEmbedBuilder.js";
 
 export class DeploymentManager {
     public static async init(client: Client) {
@@ -154,7 +154,7 @@ async function _startDeployments(client: Client, now: DateTime) {
         }
 
         try {
-            const embed = await buildDeploymentEmbed(deployment, message.guild, "Red", true);
+            const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Red, /*started=*/true);
             await message.edit({ content: "", embeds: [embed], components: [] });
 
             // Fetch all logging channels and send to each

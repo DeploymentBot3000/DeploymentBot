@@ -2,9 +2,9 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
+    Colors,
     ComponentType,
     DiscordjsErrorCodes,
-    EmbedBuilder,
     GuildTextBasedChannel,
     Message,
     ModalSubmitInteraction,
@@ -20,14 +20,13 @@ import Deployment from "../tables/Deployment.js";
 import LatestInput from "../tables/LatestInput.js";
 import Signups from "../tables/Signups.js";
 import { buildButton, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
-import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import getStartTime from "../utils/getStartTime.js";
 import { action, success } from "../utils/logger.js";
-import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 import { editReplyWithError, replyWithError } from "../utils/interaction/replyWithError.js";
 import { EntityManager } from "typeorm";
 import { dataSource } from "../data_source.js";
 import { sendErrorToLogChannel } from "../utils/log_channel.js";
+import { buildDeploymentEmbed } from "../utils/embedBuilders/signupEmbedBuilder.js";
 
 async function storeLatestInput(userId: Snowflake, title: string, difficulty: string, description: string) {
     const latestInput = await LatestInput.findOne({ where: { userId: userId } });
@@ -88,15 +87,16 @@ export default new Modal({
                 });
                 await entityManager.save(deployment);
 
-                await entityManager.insert(Signups, {
+                const signup = entityManager.create(Signups, {
                     deploymentId: deployment.id,
                     userId: interaction.user.id,
                     role: "Offense"
                 });
+                await entityManager.save(signup);
 
                 // Send the message as part of the transaction so we can save the message id to the deployment.
                 // If the transaction fails, the message is deleted in the catch block.
-                msg = await _sendDeploymentSignupMessage(interaction.user.id, channel, details);
+                msg = await _sendDeploymentSignupMessage(channel, deployment, [signup]);
 
                 deployment.message = msg.id;
                 await entityManager.save(deployment);
@@ -112,43 +112,11 @@ export default new Modal({
 
         const successEmbed = buildSuccessEmbed()
             .setDescription("Deployment created successfully");
-        await interaction.followUp({ embeds: [successEmbed], ephemeral: true });
+        await interaction.editReply({ content: '', embeds: [successEmbed], components: [] });
 
         success(`New deployment "${details.title}" Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${interaction.member.nickname}(${interaction.member.displayName}/${interaction.user.username}/${interaction.user.id});`, "NewDeployment");
     }
 })
-
-function _buildDeploymentEmbed(title: string, startDate: DateTime, googleCalendarLink: string, endTime: DateTime, difficulty: string, description: string, hostUserId: Snowflake) {
-    const role = config.roles.find(role => role.name === "Offense");
-
-    return new EmbedBuilder()
-        .setTitle(title)
-        .addFields([
-            {
-                name: "Deployment Details:",
-                value: `📅 ${formatDiscordTime(startDate, DiscordTimestampFormat.SHORT_DATE)} - [Calendar](${googleCalendarLink})\n
-🕒 ${formatDiscordTime(startDate, DiscordTimestampFormat.SHORT_TIME)} - ${formatDiscordTime(endTime, DiscordTimestampFormat.SHORT_TIME)}:\n
-🪖 ${difficulty}`
-            },
-            {
-                name: "Description:",
-                value: description
-            },
-            {
-                name: "Signups:",
-                value: `${role.emoji} <@${hostUserId}>`,
-                inline: true
-            },
-            {
-                name: "Backups:",
-                value: "` - `",
-                inline: true
-            }
-        ])
-        .setColor("Green")
-        .setFooter({ text: `Sign ups: 1/4 ~ Backups: 0/4` })
-        .setTimestamp(startDate.toMillis());
-}
 
 function hasEmoji(input: string): boolean {
     return input != emoji.strip(emoji.emojify(input));
@@ -230,10 +198,8 @@ async function _getSignupChannel(interaction: ModalSubmitInteraction): Promise<G
     return channel as GuildTextBasedChannel;
 }
 
-async function _sendDeploymentSignupMessage(hostUserId: Snowflake, channel: GuildTextBasedChannel, details: DeploymentDetails) {
-    const googleCalendarLink = getGoogleCalendarLink(details.title, details.description, details.startTime.toMillis(), details.endTime.toMillis());
-
-    const embed = _buildDeploymentEmbed(details.title, details.startTime, googleCalendarLink, details.endTime, details.difficulty, details.description, hostUserId);
+async function _sendDeploymentSignupMessage(channel: GuildTextBasedChannel, deployment: Deployment, signups: Signups[]) {
+    const embed = buildDeploymentEmbed(deployment, signups, /*backups=*/[], Colors.Green, /*started=*/false);
 
     const rows = [
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -259,5 +225,5 @@ async function _sendDeploymentSignupMessage(hostUserId: Snowflake, channel: Guil
         )
     ];
 
-    return await channel.send({ content: `<@${hostUserId}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
+    return await channel.send({ content: `<@${deployment.user}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
 }

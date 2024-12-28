@@ -1,6 +1,6 @@
-import { GuildTextBasedChannel, ModalSubmitInteraction } from "discord.js";
+import { Colors, GuildTextBasedChannel, ModalSubmitInteraction } from "discord.js";
 import getStartTime from "../utils/getStartTime.js";
-import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
+import { buildDeploymentEmbedFromDb } from "../utils/embedBuilders/signupEmbedBuilder.js";
 import {success} from "../utils/logger.js";
 import Deployment from "../tables/Deployment.js";
 import * as emoji from 'node-emoji'
@@ -64,7 +64,7 @@ export default {
 
         await interaction.reply({ embeds: [successEmbed], components: [], ephemeral: true }).catch(() => { });
 
-        const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
+        const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
 
         const channel = await interaction.client.channels.fetch(deployment.channel).catch(() => null as null) as GuildTextBasedChannel;
         const message = await channel?.messages.fetch(deployment.message).catch(() => null as null);

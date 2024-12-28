@@ -1,11 +1,11 @@
-import {ApplicationCommandOptionType, AutocompleteInteraction, GuildMember} from "discord.js";
+import { ApplicationCommandOptionType, AutocompleteInteraction, Colors, GuildMember } from "discord.js";
 import Command from "../classes/Command.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
 import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
 import {Like} from "typeorm";
-import {buildDeploymentEmbed} from "../utils/embedBuilders/signupEmbedBuilder.js";
+import { buildDeploymentEmbedFromDb } from "../utils/embedBuilders/signupEmbedBuilder.js";
 import {action, success, warn} from "../utils/logger.js";
 
 export default new Command({
@@ -142,7 +142,7 @@ export default new Command({
                 throw new Error("Channel not found or not text-based");
             }
             const message = await channel.messages.fetch(deployment.message);
-            const embed = await buildDeploymentEmbed(deployment, interaction.guild, "Green", false);
+            const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
 
             await message.edit({ embeds: [embed] });
         } catch (error) {
