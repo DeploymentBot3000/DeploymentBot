@@ -1,5 +1,8 @@
 import {
     ActionRowBuilder,
+    ButtonInteraction,
+    ComponentType,
+    DiscordjsErrorCodes,
     ModalBuilder,
     StringSelectMenuBuilder,
     StringSelectMenuInteraction,
@@ -9,9 +12,9 @@ import {
 import Button from "../classes/Button.js";
 import Deployment from "../tables/Deployment.js";
 import config from "../config.js";
-import {action, error, warn} from "../utils/logger.js";
+import { action } from "../utils/logger.js";
 import { DateTime, Duration } from "luxon";
-import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { editReplyWithError } from "../utils/interaction/replies.js";
 
 export default new Button({
     id: "editDeployment",
@@ -21,94 +24,24 @@ export default new Button({
     blacklistedRoles: [...config.blacklistedRoles],
     callback: async function ({ interaction }) {
         action(`User ${interaction.user.tag} attempting to edit deployment`, "EditDeployment");
-        
-        const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
+        await interaction.deferReply({ ephemeral: true });
 
-        if (!deployment) {
-            error("Deployment not found", "EditDeployment");
-            const errorEmbed = buildErrorEmbed()
-                .setDescription("Deployment not found");
-
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        const deployment = await _checkCanEditDeployment(interaction);
+        if (deployment instanceof Error) {
+            await editReplyWithError(interaction, deployment.message);
             return;
         }
 
-        if (deployment.user !== interaction.user.id) {
-            warn(`Unauthorized edit attempt by ${interaction.user.tag}`, "EditDeployment");
-            const errorEmbed = buildErrorEmbed()
-                .setDescription("You do not have permission to edit this deployment");
-
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        const selectMenuInteraction = await _selectFieldsToEdit(interaction);
+        if (selectMenuInteraction instanceof Error) {
+            await editReplyWithError(interaction, selectMenuInteraction.message);
             return;
         }
-
-        if(deployment.noticeSent) {
-            const errorEmbed = buildErrorEmbed()
-                .setDescription("You can't edit a deployment after the notice has been sent!");
-
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-            return;
-        }
-
-        const now = DateTime.now();
-        const deploymentStartTime = DateTime.fromMillis(Number(deployment.startTime));
-
-        if (now >= deploymentStartTime) {
-            const errorEmbed = buildErrorEmbed()
-                .setDescription("You can't edit a deployment that has already started!");
-
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-            return;
-        }
-
-        const timeUntilStart = deploymentStartTime.diff(now, 'minutes');
-        const editLeadTime = Duration.fromObject({'minutes': config.deployment_edit_lead_time_minutes});
-        
-        if (timeUntilStart < editLeadTime) {
-            const errorEmbed = buildErrorEmbed()
-                .setDescription(`You can't edit a deployment within ${editLeadTime.toHuman()} of its start time!\nThis deployment starts in ${timeUntilStart.toHuman()}.`);
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-            return;
-        }
-
-        const selectmenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-            new StringSelectMenuBuilder().setCustomId("editDeployment").setPlaceholder("Select an option").setMaxValues(4).addOptions(
-                { label: "Title", value: "title", emoji: config.editEmoji },
-                { label: "Difficulty", value: "difficulty", emoji: config.editEmoji },
-                { label: "Description", value: "description", emoji: config.editEmoji },
-                { label: "Start Time", value: "startTime", emoji: config.editEmoji }
-            )
-        );
-
-        await interaction.reply({ content: "Select an option to edit", components: [selectmenu], ephemeral: true });
-
-        const selectmenuInteraction = await interaction.channel.awaitMessageComponent({
-            filter: i => i.user.id === interaction.user.id && i.customId === "editDeployment",
-            time: 120000
-        }).catch(() => null as null) as StringSelectMenuInteraction;
-
-        if (!selectmenuInteraction) {
-            const errorEmbed = buildErrorEmbed()
-                .setDescription("Selection timed out");
-
-            await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => { });
-            return;
-        }
-
-        // Delete the select menu message
+        // Now that we finished all the validation and about to show a modal, delete the select option reply.
         await interaction.deleteReply();
 
         const rows: ActionRowBuilder<TextInputBuilder>[] = [];
-
-        if (!selectmenuInteraction.values || !Array.isArray(selectmenuInteraction.values)) {
-            const errorEmbed = buildErrorEmbed()
-                .setDescription("Invalid selection");
-
-            await interaction.editReply({ embeds: [errorEmbed], components: [] }).catch(() => { });
-            return;
-        }
-
-        for (const choice of selectmenuInteraction.values) {
+        for (const choice of selectMenuInteraction.values) {
             switch (choice) {
                 case "title":
                     rows.push(
@@ -144,7 +77,62 @@ export default new Button({
         }
 
         const modal = new ModalBuilder().setTitle("Edit Deployment").setCustomId(`editDeployment-${deployment.id}`).addComponents(rows);
-
-        await selectmenuInteraction.showModal(modal);
+        await selectMenuInteraction.showModal(modal);
     }
 })
+
+async function _checkCanEditDeployment(interaction: ButtonInteraction): Promise<Deployment | Error> {
+    const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
+    if (!deployment) {
+        return new Error("Deployment not found");
+    }
+    if (deployment.user !== interaction.user.id) {
+        return new Error("You do not have permission to edit this deployment");
+    }
+    if (deployment.noticeSent) {
+        return new Error("You can't edit a deployment after the notice has been sent!");
+    }
+
+    const now = DateTime.now();
+    const deploymentStartTime = DateTime.fromMillis(Number(deployment.startTime));
+    if (now >= deploymentStartTime) {
+        return new Error("You can't edit a deployment that has already started!");
+    }
+
+    const timeUntilStart = deploymentStartTime.diff(now, 'minutes');
+    const editLeadTime = Duration.fromObject({ 'minutes': config.deployment_edit_lead_time_minutes });
+    if (timeUntilStart < editLeadTime) {
+        return new Error(`You can't edit a deployment within ${editLeadTime.toHuman()} of its start time!\nThis deployment starts in ${timeUntilStart.toHuman()}.`);
+    }
+    return deployment;
+}
+
+async function _selectFieldsToEdit(interaction: ButtonInteraction): Promise<StringSelectMenuInteraction | Error> {
+    const selectmenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+        new StringSelectMenuBuilder().setCustomId("editDeployment").setPlaceholder("Select an option").setMaxValues(4).addOptions(
+            { label: "Title", value: "title", emoji: config.editEmoji },
+            { label: "Difficulty", value: "difficulty", emoji: config.editEmoji },
+            { label: "Description", value: "description", emoji: config.editEmoji },
+            { label: "Start Time", value: "startTime", emoji: config.editEmoji }
+        )
+    );
+    await interaction.editReply({ content: "Select an option to edit", components: [selectmenu], embeds: [] });
+
+    let selectMenuResponse: StringSelectMenuInteraction;
+    try {
+        selectMenuResponse = await interaction.channel.awaitMessageComponent({
+            componentType: ComponentType.StringSelect,
+            time: Duration.fromDurationLike({ minutes: 1 }).toMillis(),
+            filter: i => i.user.id === interaction.user.id && i.customId === "editDeployment",
+        });
+    } catch (e: any) {
+        if (e.code == DiscordjsErrorCodes.InteractionCollectorError && e.message.includes('time')) {
+            return new Error("Selection timed out");
+        }
+        throw e;
+    }
+    if (!selectMenuResponse.values || !Array.isArray(selectMenuResponse.values)) {
+        return new Error("Invalid selection");
+    }
+    return selectMenuResponse;
+}
