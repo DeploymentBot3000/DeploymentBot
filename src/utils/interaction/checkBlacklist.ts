@@ -1,4 +1,4 @@
-import { buildErrorEmbed } from "../embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../../embeds/embed.js";
 import ReplyableInteraction from "./ReplyableInteraction.js";
 
 export default async function checkBlacklist(interaction: ReplyableInteraction, blacklist: string[]):Promise<boolean> {

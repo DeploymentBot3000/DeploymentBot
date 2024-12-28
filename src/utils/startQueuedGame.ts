@@ -2,9 +2,9 @@ import { GuildMember, GuildTextBasedChannel, VoiceChannel } from "discord.js";
 import { client } from "../custom_client.js";
 import Queue from "../tables/Queue.js";
 import config from "../config.js";
-import { logQueueDeployment } from "./queueLogger.js";
+import { logHotDropStarted } from "./queueLogger.js";
 import { debug, success } from "./logger.js";
-import { buildSuccessEmbed } from "./embedBuilders/configBuilders.js";
+import { buildSuccessEmbed } from "../embeds/embed.js";
 import { VoiceChannelManager } from "./voice_channels.js";
 
 // Add this function to generate a random 4-digit number
@@ -130,7 +130,7 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
         const playerMembers = await Promise.all(selectedPlayers.map(p => departureChannel.guild.members.fetch(p.user).catch(() => null as GuildMember)));
 
         // Log to all logging channels
-        await logQueueDeployment({
+        await logHotDropStarted({
             hostDisplayName,
             playerMembers,
             vc

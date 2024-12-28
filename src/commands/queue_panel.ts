@@ -1,7 +1,8 @@
 import Command from "../classes/Command.js";
-import { buildButton, buildErrorEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
+import { buildButton } from "../buttons/button.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
-import buildQueueEmbed from "../utils/embedBuilders/buildQueueEmbed.js";
+import buildQueuePanelEmbed from "../embeds/queue.js";
 import {ActionRowBuilder, ButtonBuilder,} from "discord.js";
 import {action, error, log, success} from "../utils/logger.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
@@ -23,7 +24,7 @@ export default new Command({
         }
 
         try {
-            const embed = await buildQueueEmbed(true, HotDropQueue.getHotDropQueue().nextGame.toMillis(), false, interaction.channel);
+            const embed = await buildQueuePanelEmbed(true, HotDropQueue.getHotDropQueue().nextGame.toMillis(), false, interaction.channel);
 
             const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
                 buildButton("host"),

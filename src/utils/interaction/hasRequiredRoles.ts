@@ -1,4 +1,4 @@
-import { buildErrorEmbed } from "../embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../../embeds/embed.js";
 import { requiredRolesType } from "../../classes/Command.js";
 import ReplyableInteraction from "./ReplyableInteraction.js";
 

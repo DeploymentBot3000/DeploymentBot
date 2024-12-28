@@ -1,11 +1,12 @@
-import config from "../../config.js";
-import Deployment from "../../tables/Deployment.js";
-import Signups from "../../tables/Signups.js";
-import Backups from "../../tables/Backups.js";
 import { ColorResolvable, EmbedBuilder } from "discord.js";
-import getGoogleCalendarLink from "../getGoogleCalendarLink.js";
-import { DiscordTimestampFormat, formatDiscordTime } from "../time.js";
 import { DateTime } from "luxon";
+import config from "../config.js";
+import Backups from "../tables/Backups.js";
+import Deployment from "../tables/Deployment.js";
+import Signups from "../tables/Signups.js";
+import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
+import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
+import { buildEmbed } from "./embed.js";
 
 
 export async function buildDeploymentEmbedFromDb(deployment: Deployment, color: ColorResolvable, started: boolean) {
@@ -50,6 +51,9 @@ export function buildDeploymentEmbed(deployment: Deployment, signups: Signups[],
             }
         ])
         .setColor(color)
-        .setFooter({text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4`})
+        .setFooter({ text: `Sign ups: ${signups.length}/4 ~ Backups: ${backups.length}/4` })
         .setTimestamp(Number(deployment.startTime));
+} export function buildPanelEmbed() {
+    return buildEmbed(config.embeds.panel);
 }
+

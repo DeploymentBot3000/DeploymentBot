@@ -3,7 +3,7 @@ import { startQueuedGameImpl } from "./startQueuedGame.js";
 import { sendErrorToLogChannel } from "./log_channel.js";
 import { Client, GuildTextBasedChannel } from "discord.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
-import buildQueueEmbed from "./embedBuilders/buildQueueEmbed.js";
+import buildQueuePanelEmbed from "../embeds/queue.js";
 import { log } from "./logger.js";
 import { getDeploymentTimeSetting, setDeploymentTimeSetting } from "./settings.js";
 import config from "../config.js";
@@ -25,7 +25,7 @@ async function _updateHotDropEmbed(client: Client, notEnoughPlayers: boolean, ne
 
     log(`Next deployment time: ${nextDeploymentTime.toISO()}`, 'Queue System');
 
-    const embed = await buildQueueEmbed(notEnoughPlayers, nextDeploymentTime.toMillis(), deploymentCreated, channel);
+    const embed = await buildQueuePanelEmbed(notEnoughPlayers, nextDeploymentTime.toMillis(), deploymentCreated, channel);
 
     await message.edit({ embeds: [embed] });
     log(`Hot Drop Embed updated: ${message.id}`, 'Queue System');

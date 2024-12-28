@@ -3,7 +3,7 @@ import Command from "../classes/Command.js";
 import ms from "ms";
 import { Duration } from "luxon";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
-import { buildErrorEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
 
 function parseDeploymentTimeString(input: string) {
     const milis = ms(input);

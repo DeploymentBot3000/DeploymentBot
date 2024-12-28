@@ -3,9 +3,9 @@ import Command from "../classes/Command.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";
-import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../embeds/embed.js";
 import {Like} from "typeorm";
-import { buildDeploymentEmbedFromDb } from "../utils/embedBuilders/signupEmbedBuilder.js";
+import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 import {action, success, warn} from "../utils/logger.js";
 
 export default new Command({

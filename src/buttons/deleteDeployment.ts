@@ -1,6 +1,6 @@
 import Button from "../classes/Button.js";
 import Deployment from "../tables/Deployment.js";
-import { buildInfoEmbed, buildErrorEmbed, buildSuccessEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildInfoEmbed, buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
 import config from "../config.js";
 import Signups from "../tables/Signups.js";
 import Backups from "../tables/Backups.js";

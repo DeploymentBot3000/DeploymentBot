@@ -1,6 +1,6 @@
 import { Colors, ModalSubmitInteraction } from "discord.js";
 import getStartTime from "../utils/getStartTime.js";
-import { buildDeploymentEmbedFromDb } from "../utils/embedBuilders/signupEmbedBuilder.js";
+import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 import {success} from "../utils/logger.js";
 import Deployment from "../tables/Deployment.js";
 import * as emoji from 'node-emoji'

@@ -8,7 +8,7 @@ import { In, LessThanOrEqual } from "typeorm";
 import { DateTime, Duration } from "luxon";
 import config from "../config.js";
 import { formatDiscordTime } from "./time.js";
-import { buildDeploymentEmbedFromDb } from "./embedBuilders/signupEmbedBuilder.js";
+import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 
 export class DeploymentManager {
     public static async init(client: Client) {

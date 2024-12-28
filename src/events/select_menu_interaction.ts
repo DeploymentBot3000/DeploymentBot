@@ -1,7 +1,7 @@
 import colors from "colors";
 import { error, log } from "../utils/logger.js";
 import { AnySelectMenuInteraction } from "discord.js";
-import { buildErrorEmbed } from "../utils/embedBuilders/configBuilders.js";
+import { buildErrorEmbed } from "../embeds/embed.js";
 import checkBlacklist from "../utils/interaction/checkBlacklist.js";
 import hasRequiredRoles from "../utils/interaction/hasRequiredRoles.js";
 import hasRequiredPermissions from "../utils/interaction/hasRequiredPermissions.js";
