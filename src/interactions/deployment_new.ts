@@ -18,7 +18,7 @@ import { buildNewDeploymentModal, getDeploymentModalValues, getDeploymentModalVa
 import LatestInput from "../tables/LatestInput.js";
 import { DeploymentManager } from "../utils/deployments.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
-import { action, success } from "../utils/logger.js";
+import { action } from "../utils/logger.js";
 import { formatDiscordTime } from "../utils/time.js";
 
 export const DeploymentNewButton = new Button({
@@ -48,34 +48,37 @@ async function onNewDeploymentButtonPress(interaction: ButtonInteraction) {
 async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'cached'>) {
     action(`User ${interaction.user.tag} creating new deployment`, "NewDeployment");
     await interaction.deferReply({ ephemeral: true });
-
-    const details = getDeploymentModalValues(interaction.fields);
-    if (details instanceof Error) {
-        const detailsRaw = getDeploymentModalValuesRaw(interaction.fields);
-        await storeLatestInput(interaction.user.id, detailsRaw.title, detailsRaw.difficulty, detailsRaw.description);
-        await editReplyWithError(interaction, details.message);
-        return;
-    }
-
-    const channel = await _getSignupChannel(interaction);
-    if (channel instanceof Error) {
-        await editReplyWithError(interaction, channel.message);
-        return;
-    }
-
-    let msg: Message;
     try {
-        msg = await DeploymentManager.get().create(interaction.user.id, channel, details);
+        const details = getDeploymentModalValues(interaction.fields);
+        if (details instanceof Error) {
+            const detailsRaw = getDeploymentModalValuesRaw(interaction.fields);
+            await storeLatestInput(interaction.user.id, detailsRaw.title, detailsRaw.difficulty, detailsRaw.description);
+            await editReplyWithError(interaction, details.message);
+            return;
+        }
+
+        const channel = await _getSignupChannel(interaction);
+        if (channel instanceof Error) {
+            await editReplyWithError(interaction, channel.message);
+            return;
+        }
+
+        let msg: Message;
+        try {
+            msg = await DeploymentManager.get().create(interaction.user.id, channel, details);
+        } catch (e: any) {
+            await editReplyWithError(interaction, 'An error occurred while creating the deployment');
+            throw e;
+        }
+
+        const link = `https://discord.com/channels/${interaction.guild.id}/${channel.id}/${msg.id}`;
+        await interaction.user.send({ content: `You create a new deployment: ${details.title}.\nScheduled for: ${formatDiscordTime(details.startTime)} (${details.startTime.toISO()}).\n${link}` });
+
+        await editReplyWithSuccess(interaction, 'Deployment created successfully');
     } catch (e: any) {
-        await editReplyWithError(interaction, 'An error occurred while creating the deployment');
+        await editReplyWithError(interaction, 'Failed to create deployment');
         throw e;
     }
-
-    const link = `https://discord.com/channels/${interaction.guild.id}/${channel.id}/${msg.id}`;
-    await interaction.user.send({ content: `You create a new deployment: ${details.title}.\nScheduled for: ${formatDiscordTime(details.startTime)} (${details.startTime.toISO()}).\n${link}` });
-
-    await editReplyWithSuccess(interaction, 'Deployment created successfully');
-    success(`New deployment "${details.title}" Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${interaction.member.nickname}(${interaction.member.displayName}/${interaction.user.username}/${interaction.user.id});`, "NewDeployment");
 }
 
 /**

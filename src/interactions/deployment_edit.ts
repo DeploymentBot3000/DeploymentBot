@@ -122,16 +122,16 @@ async function _selectFieldsToEdit(interaction: ButtonInteraction): Promise<Stri
 }
 
 async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'cached'>) {
+    action(`User ${interaction.user.tag} editing deployment`, "EditDeployment");
     await interaction.deferReply({ ephemeral: true });
-
-    const details = getDeploymentModalValues(interaction.fields);
-    if (details instanceof Error) {
-        await editReplyWithError(interaction, details.message);
-        return;
-    }
-    const deploymentId = Number(interaction.customId.split("-")[1]);
-
     try {
+        const details = getDeploymentModalValues(interaction.fields);
+        if (details instanceof Error) {
+            await editReplyWithError(interaction, details.message);
+            return;
+        }
+        const deploymentId = Number(interaction.customId.split("-")[1]);
+
         const deployment = await DeploymentManager.get().update(deploymentId, details);
         const channel = interaction.guild.channels.cache.get(deployment.channel);
         if (!channel.isTextBased()) {
@@ -139,9 +139,9 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
         }
         const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
         await channel.messages.cache.get(deployment.message).edit({ embeds: [embed] });
+        await editReplyWithSuccess(interaction, 'Deployment edited successfully');
     } catch (e: any) {
-        await editReplyWithError(interaction, 'Failed to update deployment');
+        await editReplyWithError(interaction, 'Failed to edit deployment');
         throw e;
     }
-    await editReplyWithSuccess(interaction, 'Deployment edited successfully');
 }
