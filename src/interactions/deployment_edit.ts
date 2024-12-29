@@ -18,9 +18,10 @@ import Modal from "../classes/Modal.js";
 import config from "../config.js";
 import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 import Deployment from "../tables/Deployment.js";
+import { DeploymentManager } from "../utils/deployments.js";
 import getStartTime from "../utils/getStartTime.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
-import { action, success } from "../utils/logger.js";
+import { action } from "../utils/logger.js";
 
 export const DeploymentEditButton = new Button({
     id: "editDeployment",
@@ -58,6 +59,11 @@ async function onDeploymentEditButtonPress(interaction: ButtonInteraction) {
     // Now that we finished all the validation and about to show a modal, delete the select option reply.
     await interaction.deleteReply();
 
+    const modal = _buildEditDeploymentModal(selectMenuInteraction, deployment);
+    await selectMenuInteraction.showModal(modal);
+}
+
+function _buildEditDeploymentModal(selectMenuInteraction: StringSelectMenuInteraction, deployment: Deployment) {
     const rows: ActionRowBuilder<TextInputBuilder>[] = [];
     for (const choice of selectMenuInteraction.values) {
         switch (choice) {
@@ -93,8 +99,7 @@ async function onDeploymentEditButtonPress(interaction: ButtonInteraction) {
         }
     }
 
-    const modal = new ModalBuilder().setTitle("Edit Deployment").setCustomId(`editDeployment-${deployment.id}`).addComponents(rows);
-    await selectMenuInteraction.showModal(modal);
+    return new ModalBuilder().setTitle("Edit Deployment").setCustomId(`editDeployment-${deployment.id}`).addComponents(rows);
 }
 
 async function _checkCanEditDeployment(interaction: ButtonInteraction): Promise<Deployment | Error> {
@@ -156,22 +161,8 @@ async function _selectFieldsToEdit(interaction: ButtonInteraction): Promise<Stri
 async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'cached'>) {
     await interaction.deferReply({ ephemeral: true });
 
-    const deployment = await Deployment.findOne({ where: { id: Number(interaction.customId.split("-")[1]) } });
-    if (!deployment) {
-        await editReplyWithError(interaction, 'Failed to find deployment');
-        return;
-    }
-
-    const getFieldValue = (customId: string): string => {
-        try {
-            return interaction.fields.getTextInputValue(customId).trim();
-        } catch {
-            return "";
-        }
-    }
-
     const startTimeInput = async () => {
-        if (!getFieldValue("startTime")) {
+        if (!_getFieldValue(interaction, "startTime")) {
             return null;
         }
         const startTime = await getStartTime(interaction.fields.getTextInputValue("startTime"));
@@ -182,34 +173,43 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
         return startTime.toMillis();
     }
 
-    const title = getFieldValue("title");
-    if (title) { deployment.title = title; }
-    const difficulty = getFieldValue("difficulty");
-    if (difficulty) { deployment.difficulty = difficulty; }
-    const description = getFieldValue("description");
-    if (description) { deployment.description = description; }
-
+    const title = _getFieldValue(interaction, "title");
+    const difficulty = _getFieldValue(interaction, "difficulty");
+    const description = _getFieldValue(interaction, "description");
     if (hasEmoji(title) || hasEmoji(difficulty) || hasEmoji(description)) {
         await editReplyWithError(interaction, 'Emojis are not allowed in deployment fields');
         return;
     }
-
     const startTime = await startTimeInput();
-    if (startTime) {
-        deployment.startTime = startTime;
-        deployment.endTime = DateTime.fromMillis(startTime).plus(Duration.fromDurationLike({ hours: 2 })).toMillis();
-    }
-    await deployment.save();
+    const deploymentId = Number(interaction.customId.split("-")[1]);
 
-    const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
-    const channel = interaction.guild.channels.cache.get(deployment.channel);
-    if (!channel.isTextBased()) {
-        throw new Error(`Invalid channel type: ${channel.id}`);
+    try {
+        const deployment = await DeploymentManager.get().update(deploymentId, {
+            title: title,
+            difficulty: difficulty,
+            description: description,
+            startTime: startTime ? DateTime.fromMillis(startTime) : null,
+            endTime: startTime ? DateTime.fromMillis(startTime).plus(Duration.fromDurationLike({ hours: 2 })) : null,
+        });
+        const channel = interaction.guild.channels.cache.get(deployment.channel);
+        if (!channel.isTextBased()) {
+            throw new Error(`Invalid channel type: ${channel.id}`);
+        }
+        const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
+        await channel.messages.cache.get(deployment.message).edit({ embeds: [embed] });
+    } catch (e: any) {
+        await editReplyWithError(interaction, 'Failed to update deployment');
+        throw e;
     }
-    await channel.messages.cache.get(deployment.message).edit({ embeds: [embed] });
-
     await editReplyWithSuccess(interaction, 'Deployment edited successfully');
-    success(`Deployment ${deployment.title} edited successfully by ${interaction.user.tag}`, "EditDeployment");
+}
+
+function _getFieldValue(interaction: ModalSubmitInteraction, customId: string) {
+    try {
+        return interaction.fields.getTextInputValue(customId).trim();
+    } catch {
+        return "";
+    }
 }
 
 function hasEmoji(input: string): boolean {

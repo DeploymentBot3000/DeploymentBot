@@ -1,14 +1,17 @@
-import { Client, Colors, EmbedBuilder, GuildTextBasedChannel } from "discord.js";
-import cron from 'node-cron';
-import Deployment from "../tables/Deployment.js";
-import Signups from "../tables/Signups.js";
-import Backups from "../tables/Backups.js";
-import LatestInput from "../tables/LatestInput.js";
-import { In, LessThanOrEqual } from "typeorm";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Colors, EmbedBuilder, GuildTextBasedChannel, Message, Snowflake, StringSelectMenuBuilder } from "discord.js";
 import { DateTime, Duration } from "luxon";
+import cron from 'node-cron';
+import { EntityManager, In, LessThanOrEqual } from "typeorm";
+import { buildButton } from "../buttons/button.js";
 import config from "../config.js";
+import { dataSource } from "../data_source.js";
+import { buildDeploymentEmbed, buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
+import Backups from "../tables/Backups.js";
+import Deployment from "../tables/Deployment.js";
+import LatestInput from "../tables/LatestInput.js";
+import Signups from "../tables/Signups.js";
+import { sendErrorToLogChannel } from "./log_channel.js";
 import { formatDiscordTime } from "./time.js";
-import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 
 export interface DeploymentDetails {
     title: string,
@@ -83,6 +86,77 @@ export class DeploymentManager {
         console.log(`Cleared ${signupsToDelete.length} invalid signups!`);
         console.log(`Cleared ${backupsToDelete.length} invalid backups!`);
         console.log(`Cleared last input data!`);
+    }
+
+    public async create(userId: Snowflake, channel: GuildTextBasedChannel, details: DeploymentDetails) {
+        let msg: Message = null;
+
+        try {
+            await dataSource.transaction(async (entityManager: EntityManager) => {
+                const deployment = entityManager.create(Deployment, {
+                    channel: channel.id,
+                    message: "",
+                    user: userId,
+                    title: details.title,
+                    difficulty: details.difficulty,
+                    description: details.description,
+                    startTime: details.startTime.toMillis(),
+                    endTime: details.endTime.toMillis(),
+                    started: false,
+                    deleted: false,
+                    edited: false,
+                    noticeSent: false
+                });
+                await entityManager.save(deployment);
+
+                const signup = entityManager.create(Signups, {
+                    deploymentId: deployment.id,
+                    userId: userId,
+                    role: "Offense"
+                });
+                await entityManager.save(signup);
+
+                // Send the message as part of the transaction so we can save the message id to the deployment.
+                // If the transaction fails, the message is deleted in the catch block below.
+                msg = await _sendDeploymentSignupMessage(channel, deployment, [signup]);
+
+                deployment.message = msg.id;
+                await entityManager.save(deployment);
+            });
+        } catch (e: any) {
+            if (msg) {
+                await sendErrorToLogChannel(new Error('Deleting signup message for partially created deployment'), this._client);
+                await msg.delete().catch((e: any) => sendErrorToLogChannel(e, this._client));
+            }
+            throw e;
+        }
+    }
+
+    public async update(deploymentId: number, details: DeploymentDetails): Promise<Deployment> {
+        return await dataSource.transaction(async (entityManager: EntityManager) => {
+            const deployment = await entityManager.findOne(Deployment, { where: { id: deploymentId } });
+            if (!deployment) {
+                throw new Error('Failed to find deployment');
+            }
+            if (details.title) {
+                deployment.title = details.title;
+            }
+            if (details.difficulty) {
+                deployment.difficulty = details.difficulty;
+            }
+            if (details.description) {
+                deployment.description = details.description;
+            }
+            if (details.startTime) {
+                deployment.startTime = details.startTime.toMillis();
+                if (!details.endTime) {
+                    throw new Error(`Missing end time on deployment: ${deployment}; details: ${details}`);
+                }
+                deployment.endTime = details.endTime.toMillis();
+            }
+            await entityManager.save(deployment);
+            return deployment;
+        });
     }
 
     private _client: Client;
@@ -226,3 +300,38 @@ async function _deleteOldDeployments(client: Client, now: DateTime) {
         await deployment.save();
     }
 }
+
+async function _sendDeploymentSignupMessage(channel: GuildTextBasedChannel, deployment: Deployment, signups: Signups[]) {
+    const embed = buildDeploymentEmbed(deployment, signups, /*backups=*/[], Colors.Green, /*started=*/false);
+
+    const rows = _buildDeploymentSignupRows();
+
+    return await channel.send({ content: `<@${deployment.user}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
+}
+
+function _buildDeploymentSignupRows() {
+    return [
+        new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+            new StringSelectMenuBuilder().setPlaceholder("Select a role to sign up...").setCustomId("signup").addOptions(
+                ...config.roles.map(role => ({
+                    label: role.name,
+                    value: role.name,
+                    emoji: role.emoji || undefined
+                })),
+                {
+                    label: "Backup",
+                    value: "backup",
+                    emoji: config.backupEmoji
+                }
+            )),
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+            buildButton("editDeployment"),
+            buildButton("deleteDeployment"),
+            new ButtonBuilder()
+                .setCustomId("leaveDeployment")
+                .setLabel("Leave")
+                .setStyle(ButtonStyle.Danger)
+        )
+    ];
+}
+
