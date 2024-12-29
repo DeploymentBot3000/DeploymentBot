@@ -1,4 +1,8 @@
-import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ActionRowBuilder, ModalBuilder, ModalSubmitFields, TextInputBuilder, TextInputStyle } from "discord.js";
+import { Duration } from "luxon";
+import * as emoji from 'node-emoji';
+import { DeploymentDetails } from "../utils/deployments.js";
+import { parseStartTime } from "../utils/time.js";
 
 export enum DeploymentFields {
     TITLE = 'title',
@@ -46,4 +50,60 @@ function _buildDeploymentModalInternal(modalTitle: string, customId: string, tit
         );
     }
     return new ModalBuilder().setTitle(modalTitle).setCustomId(customId).addComponents(rows);
+}
+
+export function getDeploymentModalValues(fields: ModalSubmitFields) {
+    const detailsRaw = getDeploymentModalValuesRaw(fields);
+    if (_hasEmoji(detailsRaw.title || '') || _hasEmoji(detailsRaw.difficulty || '') || _hasEmoji(detailsRaw.description || '')) {
+        return new Error('Emojis are not allowed in deployment fields');
+    }
+    const details: DeploymentDetails = {
+        title: detailsRaw.title,
+        difficulty: detailsRaw.difficulty,
+        description: detailsRaw.description,
+        startTime: null,
+        endTime: null,
+    };
+    if (detailsRaw.startTime) {
+        const startTime = parseStartTime(detailsRaw.startTime);
+        if (startTime instanceof Error) {
+            return startTime;
+        }
+        details.startTime = startTime;
+        details.endTime = startTime.plus(Duration.fromDurationLike({ hours: 2 }));
+    }
+    return details;
+}
+
+export function getDeploymentModalValuesRaw(fields: ModalSubmitFields) {
+    const details = {
+        title: null as string,
+        difficulty: null as string,
+        description: null as string,
+        startTime: null as string,
+    };
+    for (const field of fields.fields.values()) {
+        switch (field.customId) {
+            case DeploymentFields.TITLE:
+                details.title = field.value;
+                break;
+            case DeploymentFields.DIFFICULTY:
+                details.difficulty = field.value;
+                break;
+            case DeploymentFields.DESCRIPTION:
+                details.description = field.value;
+                break;
+            case DeploymentFields.START_TIME: {
+                details.startTime = field.value;
+                break;
+            }
+            default:
+                throw new Error(`Unknown field: ${field.customId}`);
+        }
+    }
+    return details;
+}
+
+function _hasEmoji(input: string): boolean {
+    return input != emoji.strip(emoji.emojify(input));
 }
