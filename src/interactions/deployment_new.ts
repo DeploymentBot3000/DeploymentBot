@@ -4,6 +4,7 @@ import {
     ComponentType,
     DiscordjsErrorCodes,
     GuildTextBasedChannel,
+    Message,
     ModalBuilder,
     ModalSubmitInteraction,
     Snowflake,
@@ -21,7 +22,7 @@ import LatestInput from "../tables/LatestInput.js";
 import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
 import { action, success } from "../utils/logger.js";
-import { parseStartTime } from "../utils/time.js";
+import { formatDiscordTime, parseStartTime } from "../utils/time.js";
 
 export const DeploymentNewButton = new Button({
     id: "newDeployment",
@@ -63,12 +64,16 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
         return;
     }
 
+    let msg: Message;
     try {
-        await DeploymentManager.get().create(interaction.user.id, channel, details);
+        msg = await DeploymentManager.get().create(interaction.user.id, channel, details);
     } catch (e: any) {
         await editReplyWithError(interaction, 'An error occurred while creating the deployment');
         throw e;
     }
+
+    const link = `https://discord.com/channels/${interaction.guild.id}/${channel.id}/${msg.id}`;
+    await interaction.user.send({ content: `You create a new deployment: ${details.title}.\nScheduled for: ${formatDiscordTime(details.startTime)} (${details.startTime.toISO()}).\n${link}` });
 
     await editReplyWithSuccess(interaction, 'Deployment created successfully');
     success(`New deployment "${details.title}" Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${interaction.member.nickname}(${interaction.member.displayName}/${interaction.user.username}/${interaction.user.id});`, "NewDeployment");
