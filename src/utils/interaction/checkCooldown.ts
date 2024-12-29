@@ -10,6 +10,10 @@ import { debug } from "../logger.js";
 export async function userIsOnCooldownWithReply(interaction: AnySelectMenuInteraction | ButtonInteraction, interactionItemId: string, cooldown: Duration): Promise<boolean> {
     const error = checkCooldown(interaction.user.id, interactionItemId, cooldown);
     if (error instanceof Error) {
+        if (interaction.isAnySelectMenu()) {
+            // Force update to reset the select menu.
+            await interaction.message.edit({});
+        }
         await interaction.reply({
             embeds: [buildErrorEmbed()
                 .setDescription(error.toString())], ephemeral: true

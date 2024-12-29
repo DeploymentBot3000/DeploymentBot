@@ -1,12 +1,12 @@
+import { AnySelectMenuInteraction, Colors, StringSelectMenuInteraction } from "discord.js";
+import { Duration } from "luxon";
 import SelectMenu from "../classes/SelectMenu.js";
+import config from "../config.js";
+import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
-import { buildErrorEmbed } from "../embeds/embed.js";
-import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
-import config from "../config.js";
-import { Duration } from "luxon";
-import { Colors } from "discord.js";
+import { editReplyWithError } from "../utils/interaction/replies.js";
 
 export default new SelectMenu({
     id: "signup",
@@ -14,42 +14,39 @@ export default new SelectMenu({
     permissions: [],
     requiredRoles: [],
     blacklistedRoles: [...config.blacklistedRoles],
-    callback: async function ({ interaction }): Promise<void> {
+    callback: async function ({ interaction }: { interaction: AnySelectMenuInteraction }): Promise<void> {
+        if (!interaction.isStringSelectMenu()) {
+            console.log(interaction);
+            throw new Error('Wrong interaction type');
+        }
+        await onSignupSelectMenuInteraction(interaction);
+    }
+});
 
+async function onSignupSelectMenuInteraction(interaction: StringSelectMenuInteraction) {
+    await interaction.deferReply({ ephemeral: true });
+
+    try {
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
-
         if (!deployment) {
-            const errorEmbed = buildErrorEmbed()
-                .setDescription("Deployment not found!");
-
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await editReplyWithError(interaction, "Deployment not found!");
             return;
         }
-
-        const updateEmbed = async () => {
-            const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
-            await interaction.update({ embeds: [embed] });
-            return;
-        };
 
         const newRole = interaction.values[0];
         const alreadySignedUp = await Signups.findOne({ where: { deploymentId: deployment.id, userId: interaction.user.id } });
         const alreadySignedUpBackup = await Backups.findOne({ where: { deploymentId: deployment.id, userId: interaction.user.id } });
 
-        if(alreadySignedUp) { // if already signed up logic
-            if(newRole == "backup") { // switching to backup
+        if (alreadySignedUp) { // if already signed up logic
+            if (newRole == "backup") { // switching to backup
                 if (deployment.user == interaction.user.id) { // error out if host tries to signup as a backup
-                    const errorEmbed = buildErrorEmbed()
-                        .setDescription("You cannot signup as a backup to your own deployment!");
-                    await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    await editReplyWithError(interaction, "You cannot signup as a backup to your own deployment!");
                     return;
                 }
 
                 const backupsCount = await Backups.count({ where: { deploymentId: deployment.id } });
                 if (backupsCount >= 4) { // errors out if backup slots are full
-                    const errorEmbed = buildErrorEmbed()
-                        .setDescription("Backup slots are full!");
-                    await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    await editReplyWithError(interaction, "Backup slots are full!");
                     return;
                 }
 
@@ -58,11 +55,9 @@ export default new SelectMenu({
                     deploymentId: deployment.id,
                     userId: interaction.user.id
                 });
-            } else if(alreadySignedUp?.role == newRole) { // checks if new role is the same as the old role
+            } else if (alreadySignedUp?.role == newRole) { // checks if new role is the same as the old role
                 if (deployment.user == interaction.user.id) { // errors out if host tries to leave own deployment
-                    const errorEmbed = buildErrorEmbed()
-                        .setDescription("You cannot abandon your own deployment!");
-                    await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    await editReplyWithError(interaction, "You cannot abandon your own deployment!");
                     return;
                 }
 
@@ -75,15 +70,13 @@ export default new SelectMenu({
                     role: interaction.values[0]
                 });
             }
-        } else if(alreadySignedUpBackup) { // if already a backup logic
-            if(newRole == "backup") await alreadySignedUpBackup.remove(); // removes player if they new role is same as old
+        } else if (alreadySignedUpBackup) { // if already a backup logic
+            if (newRole == "backup") await alreadySignedUpBackup.remove(); // removes player if they new role is same as old
             else { // tris to move backup diver to primary
-                const signupsCount = await Signups.count({where: {deploymentId: deployment.id}});
+                const signupsCount = await Signups.count({ where: { deploymentId: deployment.id } });
 
                 if (signupsCount >= 4) {
-                    const errorEmbed = buildErrorEmbed()
-                        .setDescription("Sign up slots are full!");
-                    await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    await editReplyWithError(interaction, "Sign up slots are full!");
                     return;
                 }
 
@@ -95,13 +88,11 @@ export default new SelectMenu({
                 });
             }
         } else { // default signup logic
-            if(newRole == "backup") {
+            if (newRole == "backup") {
                 const backupsCount = await Backups.count({ where: { deploymentId: deployment.id } });
 
                 if (backupsCount >= 4) {
-                    const errorEmbed = buildErrorEmbed()
-                        .setDescription("Backup slots are full!");
-                    await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    await editReplyWithError(interaction, "Backup slots are full!");
                     return;
                 }
 
@@ -110,12 +101,10 @@ export default new SelectMenu({
                     userId: interaction.user.id
                 });
             } else {
-                const signupsCount = await Signups.count({where: {deploymentId: deployment.id}});
+                const signupsCount = await Signups.count({ where: { deploymentId: deployment.id } });
 
                 if (signupsCount >= 4) {
-                    const errorEmbed = buildErrorEmbed()
-                        .setDescription("Sign up slots are full!");
-                    await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                    await editReplyWithError(interaction, "Sign up slots are full!");
                     return;
                 }
 
@@ -126,6 +115,13 @@ export default new SelectMenu({
                 });
             }
         }
-        return await updateEmbed();
+        const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
+        await interaction.message.edit({ embeds: [embed] });
+        await interaction.deleteReply();
+    } catch (e: any) {
+        // Force an update to reset the selected item.
+        await interaction.message.edit({});
+        await editReplyWithError(interaction, 'Interaction failed');
+        throw e;
     }
-})
+}
