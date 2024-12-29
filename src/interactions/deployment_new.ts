@@ -5,19 +5,17 @@ import {
     DiscordjsErrorCodes,
     GuildTextBasedChannel,
     Message,
-    ModalBuilder,
     ModalSubmitInteraction,
     Snowflake,
     StringSelectMenuBuilder,
-    StringSelectMenuInteraction,
-    TextInputBuilder,
-    TextInputStyle
+    StringSelectMenuInteraction
 } from "discord.js";
 import { Duration } from "luxon";
 import * as emoji from 'node-emoji';
 import Button from "../buttons/button.js";
 import Modal from "../classes/Modal.js";
 import config from "../config.js";
+import { buildNewDeploymentModal } from "../modals/deployments.js";
 import LatestInput from "../tables/LatestInput.js";
 import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
@@ -77,23 +75,6 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
 
     await editReplyWithSuccess(interaction, 'Deployment created successfully');
     success(`New deployment "${details.title}" Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${interaction.member.nickname}(${interaction.member.displayName}/${interaction.user.username}/${interaction.user.id});`, "NewDeployment");
-}
-
-function buildNewDeploymentModal(title: string, difficulty: string, description: string) {
-    return new ModalBuilder().setTitle("New Deployment").setCustomId("newDeployment").addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-            new TextInputBuilder().setCustomId("title").setLabel("Title").setPlaceholder("Deployment Title").setRequired(true).setStyle(TextInputStyle.Short).setValue(title || '').setMaxLength(50)
-        ),
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-            new TextInputBuilder().setCustomId("difficulty").setLabel("Difficulty").setPlaceholder("Deployment Difficulty").setRequired(true).setStyle(TextInputStyle.Short).setValue(difficulty || '').setMaxLength(15)
-        ),
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-            new TextInputBuilder().setCustomId("description").setLabel("Description").setPlaceholder("Deployment Description").setRequired(true).setStyle(TextInputStyle.Paragraph).setMaxLength(1000).setValue(description || '')
-        ),
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-            new TextInputBuilder().setCustomId("startTime").setLabel("Start Time").setPlaceholder("YYYY-MM-DD HH:MM UTC(+/-)X").setRequired(true).setStyle(TextInputStyle.Short).setMaxLength(50)
-        )
-    );
 }
 
 function hasEmoji(input: string): boolean {
