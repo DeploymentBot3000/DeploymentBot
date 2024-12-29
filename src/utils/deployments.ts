@@ -130,6 +130,7 @@ export class DeploymentManager {
             }
             throw e;
         }
+        return msg;
     }
 
     public async update(deploymentId: number, details: DeploymentDetails): Promise<Deployment> {
