@@ -4,12 +4,9 @@ import {
     Colors,
     ComponentType,
     DiscordjsErrorCodes,
-    ModalBuilder,
     ModalSubmitInteraction,
     StringSelectMenuBuilder,
-    StringSelectMenuInteraction,
-    TextInputBuilder,
-    TextInputStyle
+    StringSelectMenuInteraction
 } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import * as emoji from 'node-emoji';
@@ -17,6 +14,7 @@ import Button from "../buttons/button.js";
 import Modal from "../classes/Modal.js";
 import config from "../config.js";
 import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
+import { buildEditDeploymentModal, DeploymentFields } from "../modals/deployments.js";
 import Deployment from "../tables/Deployment.js";
 import { DeploymentManager } from "../utils/deployments.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
@@ -59,47 +57,14 @@ async function onDeploymentEditButtonPress(interaction: ButtonInteraction) {
     // Now that we finished all the validation and about to show a modal, delete the select option reply.
     await interaction.deleteReply();
 
-    const modal = _buildEditDeploymentModal(selectMenuInteraction, deployment);
+    const title = selectMenuInteraction.values.includes(DeploymentFields.TITLE) ? deployment.title : null;
+    const difficulty = selectMenuInteraction.values.includes(DeploymentFields.DIFFICULTY) ? deployment.difficulty : null;
+    const description = selectMenuInteraction.values.includes(DeploymentFields.DESCRIPTION) ? deployment.description : null;
+    // We do not store the original string the user used or the user time zone and displaying the time in UTC time isn't very helpful.
+    // Always show an empty field for start time.
+    const startTime = selectMenuInteraction.values.includes(DeploymentFields.START_TIME) ? '' : null;
+    const modal = buildEditDeploymentModal(deployment.id, title, difficulty, description, startTime);
     await selectMenuInteraction.showModal(modal);
-}
-
-function _buildEditDeploymentModal(selectMenuInteraction: StringSelectMenuInteraction, deployment: Deployment) {
-    const rows: ActionRowBuilder<TextInputBuilder>[] = [];
-    for (const choice of selectMenuInteraction.values) {
-        switch (choice) {
-            case "title":
-                rows.push(
-                    new ActionRowBuilder().addComponents(
-                        new TextInputBuilder().setCustomId("title").setLabel("Title").setPlaceholder("Deployment Title").setRequired(true).setStyle(TextInputStyle.Short).setMaxLength(50).setValue(deployment.title)
-                    ) as ActionRowBuilder<TextInputBuilder>
-                );
-                break;
-            case "difficulty":
-                rows.push(
-                    new ActionRowBuilder().addComponents(
-                        new TextInputBuilder().setCustomId("difficulty").setLabel("Difficulty").setPlaceholder("Deployment Difficulty").setRequired(true).setStyle(TextInputStyle.Short).setMaxLength(15).setValue(deployment.difficulty)
-                    ) as ActionRowBuilder<TextInputBuilder>
-                );
-                break;
-            case "description":
-                rows.push(
-                    new ActionRowBuilder().addComponents(
-                        new TextInputBuilder().setCustomId("description").setLabel("Description").setPlaceholder("Deployment Description").setRequired(true).setStyle(TextInputStyle.Paragraph).setMaxLength(1000).setValue(deployment.description)
-                    ) as ActionRowBuilder<TextInputBuilder>
-                );
-                break;
-            case "startTime":
-                const date = new Date(Number(deployment.startTime));
-                rows.push(
-                    new ActionRowBuilder().addComponents(
-                        new TextInputBuilder().setCustomId("startTime").setLabel("Start Time").setPlaceholder("YYYY-MM-DD HH UTC+2").setRequired(true).setStyle(TextInputStyle.Short).setMaxLength(50).setValue(`${date.getUTCFullYear()}-${date.getUTCMonth() + 1}-${date.getUTCDate()} ${date.getUTCHours()}:${date.getUTCMinutes()} UTC+0`)
-                    ) as ActionRowBuilder<TextInputBuilder>
-                );
-                break;
-        }
-    }
-
-    return new ModalBuilder().setTitle("Edit Deployment").setCustomId(`editDeployment-${deployment.id}`).addComponents(rows);
 }
 
 async function _checkCanEditDeployment(interaction: ButtonInteraction): Promise<Deployment | Error> {
@@ -131,10 +96,10 @@ async function _checkCanEditDeployment(interaction: ButtonInteraction): Promise<
 async function _selectFieldsToEdit(interaction: ButtonInteraction): Promise<StringSelectMenuInteraction | Error> {
     const selectmenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
         new StringSelectMenuBuilder().setCustomId("editDeployment").setPlaceholder("Select an option").setMaxValues(4).addOptions(
-            { label: "Title", value: "title", emoji: config.editEmoji },
-            { label: "Difficulty", value: "difficulty", emoji: config.editEmoji },
-            { label: "Description", value: "description", emoji: config.editEmoji },
-            { label: "Start Time", value: "startTime", emoji: config.editEmoji }
+            { label: "Title", value: DeploymentFields.TITLE, emoji: config.editEmoji },
+            { label: "Difficulty", value: DeploymentFields.DIFFICULTY, emoji: config.editEmoji },
+            { label: "Description", value: DeploymentFields.DESCRIPTION, emoji: config.editEmoji },
+            { label: "Start Time", value: DeploymentFields.START_TIME, emoji: config.editEmoji }
         )
     );
     await interaction.editReply({ content: "Select an option to edit", components: [selectmenu], embeds: [] });
