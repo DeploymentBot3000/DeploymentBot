@@ -19,9 +19,9 @@ import config from "../config.js";
 import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 import Deployment from "../tables/Deployment.js";
 import { DeploymentManager } from "../utils/deployments.js";
-import getStartTime from "../utils/getStartTime.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
 import { action } from "../utils/logger.js";
+import { parseStartTime } from "../utils/time.js";
 
 export const DeploymentEditButton = new Button({
     id: "editDeployment",
@@ -161,18 +161,6 @@ async function _selectFieldsToEdit(interaction: ButtonInteraction): Promise<Stri
 async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'cached'>) {
     await interaction.deferReply({ ephemeral: true });
 
-    const startTimeInput = async () => {
-        if (!_getFieldValue(interaction, "startTime")) {
-            return null;
-        }
-        const startTime = await getStartTime(interaction.fields.getTextInputValue("startTime"));
-        if (startTime instanceof Error) {
-            await editReplyWithError(interaction, startTime.message);
-            return null;
-        }
-        return startTime.toMillis();
-    }
-
     const title = _getFieldValue(interaction, "title");
     const difficulty = _getFieldValue(interaction, "difficulty");
     const description = _getFieldValue(interaction, "description");
@@ -180,7 +168,11 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
         await editReplyWithError(interaction, 'Emojis are not allowed in deployment fields');
         return;
     }
-    const startTime = await startTimeInput();
+    const startTime = _getStartTime(interaction);
+    if (startTime instanceof Error) {
+        await editReplyWithError(interaction, startTime.message);
+        return;
+    }
     const deploymentId = Number(interaction.customId.split("-")[1]);
 
     try {
@@ -188,8 +180,8 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
             title: title,
             difficulty: difficulty,
             description: description,
-            startTime: startTime ? DateTime.fromMillis(startTime) : null,
-            endTime: startTime ? DateTime.fromMillis(startTime).plus(Duration.fromDurationLike({ hours: 2 })) : null,
+            startTime: startTime ? startTime : null,
+            endTime: startTime ? startTime.plus(Duration.fromDurationLike({ hours: 2 })) : null,
         });
         const channel = interaction.guild.channels.cache.get(deployment.channel);
         if (!channel.isTextBased()) {
@@ -210,6 +202,14 @@ function _getFieldValue(interaction: ModalSubmitInteraction, customId: string) {
     } catch {
         return "";
     }
+}
+
+function _getStartTime(interaction: ModalSubmitInteraction) {
+    const startTime = _getFieldValue(interaction, "startTime");
+    if (!startTime) {
+        return null;
+    }
+    return parseStartTime(startTime);
 }
 
 function hasEmoji(input: string): boolean {

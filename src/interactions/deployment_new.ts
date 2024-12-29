@@ -19,9 +19,9 @@ import Modal from "../classes/Modal.js";
 import config from "../config.js";
 import LatestInput from "../tables/LatestInput.js";
 import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
-import getStartTime from "../utils/getStartTime.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
 import { action, success } from "../utils/logger.js";
+import { parseStartTime } from "../utils/time.js";
 
 export const DeploymentNewButton = new Button({
     id: "newDeployment",
@@ -103,7 +103,7 @@ async function _parseDeploymentInput(interaction: ModalSubmitInteraction): Promi
     if (hasEmoji(title) || hasEmoji(difficulty) || hasEmoji(description)) {
         return new Error("Emojis are not allowed in deployment fields");
     }
-    const startTime = await getStartTime(interaction.fields.getTextInputValue("startTime"));
+    const startTime = parseStartTime(interaction.fields.getTextInputValue("startTime"));
     if (startTime instanceof Error) {
         await storeLatestInput(interaction.user.id, title, difficulty, description);
         return startTime;
