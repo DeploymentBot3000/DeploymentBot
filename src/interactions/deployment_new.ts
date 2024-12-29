@@ -11,16 +11,15 @@ import {
     StringSelectMenuInteraction
 } from "discord.js";
 import { Duration } from "luxon";
-import * as emoji from 'node-emoji';
 import Button from "../buttons/button.js";
 import Modal from "../classes/Modal.js";
 import config from "../config.js";
-import { buildNewDeploymentModal } from "../modals/deployments.js";
+import { buildNewDeploymentModal, getDeploymentModalValues, getDeploymentModalValuesRaw } from "../modals/deployments.js";
 import LatestInput from "../tables/LatestInput.js";
-import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
+import { DeploymentManager } from "../utils/deployments.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
 import { action, success } from "../utils/logger.js";
-import { formatDiscordTime, parseStartTime } from "../utils/time.js";
+import { formatDiscordTime } from "../utils/time.js";
 
 export const DeploymentNewButton = new Button({
     id: "newDeployment",
@@ -50,8 +49,10 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
     action(`User ${interaction.user.tag} creating new deployment`, "NewDeployment");
     await interaction.deferReply({ ephemeral: true });
 
-    const details = await _parseDeploymentInput(interaction);
+    const details = getDeploymentModalValues(interaction.fields);
     if (details instanceof Error) {
+        const detailsRaw = getDeploymentModalValuesRaw(interaction.fields);
+        await storeLatestInput(interaction.user.id, detailsRaw.title, detailsRaw.difficulty, detailsRaw.description);
         await editReplyWithError(interaction, details.message);
         return;
     }
@@ -75,27 +76,6 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
 
     await editReplyWithSuccess(interaction, 'Deployment created successfully');
     success(`New deployment "${details.title}" Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${interaction.member.nickname}(${interaction.member.displayName}/${interaction.user.username}/${interaction.user.id});`, "NewDeployment");
-}
-
-function hasEmoji(input: string): boolean {
-    return input != emoji.strip(emoji.emojify(input));
-}
-
-async function _parseDeploymentInput(interaction: ModalSubmitInteraction): Promise<DeploymentDetails | Error> {
-    const title = interaction.fields.getTextInputValue("title");
-    const difficulty = interaction.fields.getTextInputValue("difficulty");
-    const description = interaction.fields.getTextInputValue("description");
-
-    if (hasEmoji(title) || hasEmoji(difficulty) || hasEmoji(description)) {
-        return new Error("Emojis are not allowed in deployment fields");
-    }
-    const startTime = parseStartTime(interaction.fields.getTextInputValue("startTime"));
-    if (startTime instanceof Error) {
-        await storeLatestInput(interaction.user.id, title, difficulty, description);
-        return startTime;
-    }
-    const endTime = startTime.plus(Duration.fromDurationLike({ hours: 2 }));
-    return { title, difficulty, description, startTime, endTime };
 }
 
 /**
