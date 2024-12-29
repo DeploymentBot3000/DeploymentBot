@@ -1,36 +1,26 @@
 import {
     ActionRowBuilder,
-    ButtonBuilder,
     ButtonInteraction,
-    ButtonStyle,
-    Colors,
     ComponentType,
     DiscordjsErrorCodes,
     GuildTextBasedChannel,
-    Message,
     ModalBuilder,
     ModalSubmitInteraction,
     Snowflake,
     StringSelectMenuBuilder,
     StringSelectMenuInteraction,
     TextInputBuilder,
-    TextInputStyle,
+    TextInputStyle
 } from "discord.js";
 import { Duration } from "luxon";
 import * as emoji from 'node-emoji';
-import { EntityManager } from "typeorm";
-import Button, { buildButton } from "../buttons/button.js";
+import Button from "../buttons/button.js";
 import Modal from "../classes/Modal.js";
 import config from "../config.js";
-import { dataSource } from "../data_source.js";
-import { buildDeploymentEmbed } from "../embeds/deployment.js";
-import Deployment from "../tables/Deployment.js";
 import LatestInput from "../tables/LatestInput.js";
-import Signups from "../tables/Signups.js";
-import { DeploymentDetails } from "../utils/deployments.js";
+import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
 import getStartTime from "../utils/getStartTime.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
-import { sendErrorToLogChannel } from "../utils/log_channel.js";
 import { action, success } from "../utils/logger.js";
 
 export const DeploymentNewButton = new Button({
@@ -67,58 +57,20 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
         return;
     }
 
-
     const channel = await _getSignupChannel(interaction);
     if (channel instanceof Error) {
         await editReplyWithError(interaction, channel.message);
         return;
     }
 
-    let msg: Message = null;
-
     try {
-        await dataSource.transaction(async (entityManager: EntityManager) => {
-            const deployment = entityManager.create(Deployment, {
-                channel: channel.id,
-                message: "",
-                user: interaction.user.id,
-                title: details.title,
-                difficulty: details.difficulty,
-                description: details.description,
-                startTime: details.startTime.toMillis(),
-                endTime: details.endTime.toMillis(),
-                started: false,
-                deleted: false,
-                edited: false,
-                noticeSent: false
-            });
-            await entityManager.save(deployment);
-
-            const signup = entityManager.create(Signups, {
-                deploymentId: deployment.id,
-                userId: interaction.user.id,
-                role: "Offense"
-            });
-            await entityManager.save(signup);
-
-            // Send the message as part of the transaction so we can save the message id to the deployment.
-            // If the transaction fails, the message is deleted in the catch block.
-            msg = await _sendDeploymentSignupMessage(channel, deployment, [signup]);
-
-            deployment.message = msg.id;
-            await entityManager.save(deployment);
-        });
+        await DeploymentManager.get().create(interaction.user.id, channel, details);
     } catch (e: any) {
         await editReplyWithError(interaction, 'An error occurred while creating the deployment');
-        if (msg) {
-            await sendErrorToLogChannel(new Error('Deleting signup message for partially created deployment'), interaction.client);
-            await msg.delete().catch((e: any) => sendErrorToLogChannel(e, interaction.client));
-        }
         throw e;
     }
 
     await editReplyWithSuccess(interaction, 'Deployment created successfully');
-
     success(`New deployment "${details.title}" Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${interaction.member.nickname}(${interaction.member.displayName}/${interaction.user.username}/${interaction.user.id});`, "NewDeployment");
 }
 
@@ -235,34 +187,4 @@ async function storeLatestInput(userId: Snowflake, title: string, difficulty: st
             description: description
         });
     }
-}
-
-async function _sendDeploymentSignupMessage(channel: GuildTextBasedChannel, deployment: Deployment, signups: Signups[]) {
-    const embed = buildDeploymentEmbed(deployment, signups, /*backups=*/[], Colors.Green, /*started=*/false);
-
-    const rows = [
-        new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-            new StringSelectMenuBuilder().setPlaceholder("Select a role to sign up...").setCustomId("signup").addOptions(
-                ...config.roles.map(role => ({
-                    label: role.name,
-                    value: role.name,
-                    emoji: role.emoji || undefined
-                })),
-                {
-                    label: "Backup",
-                    value: "backup",
-                    emoji: config.backupEmoji
-                }
-            )),
-        new ActionRowBuilder<ButtonBuilder>().addComponents(
-            buildButton("editDeployment"),
-            buildButton("deleteDeployment"),
-            new ButtonBuilder()
-                .setCustomId("leaveDeployment")
-                .setLabel("Leave")
-                .setStyle(ButtonStyle.Danger)
-        )
-    ];
-
-    return await channel.send({ content: `<@${deployment.user}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
 }
