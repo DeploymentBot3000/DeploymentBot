@@ -8,11 +8,9 @@ import QueueStatusMsg from "./tables/QueueStatusMsg.js";
 import Settings from "./tables/Settings.js";
 import Signups from "./tables/Signups.js";
 
-export const dataSource = new DataSource({
+export const dataSource = await new DataSource({
     ...config.database as DataSourceOptions,
     entities: Object.values([Backups, Deployment, LatestInput, Queue, QueueStatusMsg, Signups, Settings]),
     synchronize: config.synchronizeDatabase,
-    dropSchema: config.resetDatabase
-});
-
-await dataSource.initialize();
+    dropSchema: config.dropSchema,
+}).initialize();
