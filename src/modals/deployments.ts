@@ -11,8 +11,8 @@ export enum DeploymentFields {
     START_TIME = 'startTime',
 }
 
-export function buildNewDeploymentModal(title: string, difficulty: string, description: string) {
-    return _buildDeploymentModalInternal('New Deployment', 'newDeployment', title || '', difficulty || '', description || '', /*startTime=*/'');
+export function buildNewDeploymentModal(title: string, difficulty: string, description: string, startTime: string) {
+    return _buildDeploymentModalInternal('New Deployment', 'newDeployment', title || '', difficulty || '', description || '', startTime || '');
 }
 
 export function buildEditDeploymentModal(deploymentId: number, title: string, difficulty: string, description: string, startTime: string) {

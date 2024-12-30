@@ -1,13 +1,13 @@
-import secrets from "./config/secrets.js"
-import discord_server from "./config/discord_server.js"
 import { ButtonStyle } from "discord.js"
+import discord_server from "./config/discord_server.js"
+import secrets from "./config/secrets.js"
 
 export default {
     token: secrets.discord_app_token,
     prefix: "-",
     debugMode: true,
     registerCommands: false,
-    resetDatabase: false, // Clears out the database on every restart - only enable for the first time
+    dropSchema: false, // Clears out the database on every restart - only enable for the first time
     synchronizeDatabase: false,
     database: {
         type: "mysql",

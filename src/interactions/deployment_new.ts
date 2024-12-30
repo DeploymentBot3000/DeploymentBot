@@ -41,7 +41,7 @@ export const DeploymentNewModal = new Modal({
 
 async function onNewDeploymentButtonPress(interaction: ButtonInteraction) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
-    const modal = buildNewDeploymentModal(latestInput?.title, latestInput?.difficulty, latestInput?.description);
+    const modal = buildNewDeploymentModal(latestInput?.title, latestInput?.difficulty, latestInput?.description, latestInput?.startTime);
     await interaction.showModal(modal);
 }
 
@@ -52,7 +52,7 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
         const details = getDeploymentModalValues(interaction.fields);
         if (details instanceof Error) {
             const detailsRaw = getDeploymentModalValuesRaw(interaction.fields);
-            await storeLatestInput(interaction.user.id, detailsRaw.title, detailsRaw.difficulty, detailsRaw.description);
+            await storeLatestInput(interaction.user.id, detailsRaw.title, detailsRaw.difficulty, detailsRaw.description, detailsRaw.startTime);
             await editReplyWithError(interaction, details.message);
             return;
         }
@@ -140,20 +140,22 @@ async function _getSignupChannel(interaction: ModalSubmitInteraction): Promise<G
     return channel;
 }
 
-async function storeLatestInput(userId: Snowflake, title: string, difficulty: string, description: string) {
+async function storeLatestInput(userId: Snowflake, title: string, difficulty: string, description: string, startTime: string) {
     const latestInput = await LatestInput.findOne({ where: { userId: userId } });
 
     if (latestInput) {
         latestInput.title = title;
         latestInput.difficulty = difficulty;
         latestInput.description = description;
+        latestInput.startTime = startTime;
         await latestInput.save();
     } else {
         await LatestInput.insert({
             userId: userId,
             title: title,
             difficulty: difficulty,
-            description: description
+            description: description,
+            startTime: startTime,
         });
     }
 }

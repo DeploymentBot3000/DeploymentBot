@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export default class LatestInput extends BaseEntity {
@@ -16,4 +16,7 @@ export default class LatestInput extends BaseEntity {
 
     @Column({ type: 'text' })
     description: string;
+
+    @Column()
+    startTime: string;
 }
