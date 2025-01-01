@@ -1,11 +1,11 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Colors, EmbedBuilder, GuildTextBasedChannel, Message, Snowflake, StringSelectMenuBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Colors, EmbedBuilder, Guild, GuildMember, GuildTextBasedChannel, Message, Snowflake, StringSelectMenuBuilder, TextChannel } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import cron from 'node-cron';
 import { EntityManager, In, LessThanOrEqual } from "typeorm";
 import { buildButton } from "../buttons/button.js";
 import config from "../config.js";
 import { dataSource } from "../data_source.js";
-import { buildDeploymentEmbed, buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
+import { buildDeploymentEmbed } from "../embeds/deployment.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import LatestInput from "../tables/LatestInput.js";
@@ -13,12 +13,44 @@ import Signups from "../tables/Signups.js";
 import { sendErrorToLogChannel } from "./log_channel.js";
 import { formatDiscordTime } from "./time.js";
 
+export enum DeploymentRole {
+    UNSPECIFIED = 'UNSPECIFIED',
+    OFFENSE = 'Offense',
+    MECHANIZED_INFANTRY = 'Mechanized infantry',
+    SUPPORT = 'Support',
+    DEFENCE = 'Defence',
+    SCOUT = 'Scout',
+    BACKUP = 'Backup',
+}
+
+export function formatRoleEmoji(role: DeploymentRole) {
+    if (role == DeploymentRole.BACKUP) {
+        return config.backupEmoji;
+    }
+    const roleConfig = config.roles.find(r => r.name == DeploymentRole.OFFENSE);
+    if (roleConfig) {
+        return roleConfig.emoji;
+    }
+    return '❓';
+}
+
+export interface DeploymentMember {
+    guildMember: GuildMember,
+    role: DeploymentRole,
+}
+
 export interface DeploymentDetails {
+    id: number,
     title: string,
     difficulty: string,
     description: string,
+    channel: TextChannel,
+    message: Message<true>,
     startTime: DateTime,
     endTime: DateTime,
+    host: DeploymentMember,
+    signups: DeploymentMember[],
+    backups: DeploymentMember[],
 }
 
 export class DeploymentManager {
@@ -116,9 +148,11 @@ export class DeploymentManager {
                 });
                 await entityManager.save(signup);
 
+                details = await deploymentToDetails(this._client, deployment, [signup], /*backups=*/[]);
+
                 // Send the message as part of the transaction so we can save the message id to the deployment.
                 // If the transaction fails, the message is deleted in the catch block below.
-                msg = await _sendDeploymentSignupMessage(channel, deployment, [signup]);
+                msg = await _sendDeploymentSignupMessage(details);
 
                 deployment.message = msg.id;
                 await entityManager.save(deployment);
@@ -133,12 +167,12 @@ export class DeploymentManager {
         return msg;
     }
 
-    public async update(deploymentId: number, details: DeploymentDetails): Promise<Deployment> {
+    public async update(deploymentId: number, details: DeploymentDetails): Promise<DeploymentDetails> {
         return await dataSource.transaction(async (entityManager: EntityManager) => {
             const deployment = await entityManager.findOne(Deployment, { where: { id: deploymentId } });
             if (!deployment) {
                 throw new Error('Failed to find deployment');
-            }
+            }            
             if (details.title) {
                 deployment.title = details.title;
             }
@@ -156,7 +190,9 @@ export class DeploymentManager {
                 deployment.endTime = details.endTime.toMillis();
             }
             await entityManager.save(deployment);
-            return deployment;
+            const signups = await entityManager.find(Signups, { where: { deploymentId: deployment.id } });
+            const backups = await entityManager.find(Backups, { where: { deploymentId: deployment.id } });
+            return deploymentToDetails(this._client, deployment, signups, backups);
         });
     }
 
@@ -229,44 +265,30 @@ async function _startDeployments(client: Client, now: DateTime) {
     });
 
     for (const deployment of unstartedDeployments) {
-        const channel = await client.channels.fetch(deployment.channel).catch(() => null as null) as GuildTextBasedChannel;
-        const message = await channel.messages.fetch(deployment.message).catch(() => null as null);
-
-        if (!message) {
-            continue;
-        }
-
         try {
-            const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Red, /*started=*/true);
-            await message.edit({ content: "", embeds: [embed], components: [] });
+            const signups = Signups.find({ where: { deploymentId: deployment.id } });
+            const backups = Backups.find({ where: { deploymentId: deployment.id } });
+            const details = await deploymentToDetails(client, deployment, await signups, await backups);
+            if (!details.message) {
+                continue;
+            }
+
+            const embed = buildDeploymentEmbed(details, Colors.Red, /*started=*/true);
+            await details.message.edit({ content: "", embeds: [embed], components: [] });
 
             // Fetch all logging channels and send to each
             const loggingChannel = await client.channels.fetch(config.log_channel_id).catch(() => null as null) as GuildTextBasedChannel;
-            const signups = await Signups.find({ where: { deploymentId: deployment.id } });
-            const backups = await Backups.find({ where: { deploymentId: deployment.id } });
-
-            const signupsFormatted = signups.map(signup => {
-                if (signup.userId == deployment.user) return null;
-                const role = config.roles.find(role => role.name === signup.role);
-                const member = message.guild.members.cache.get(signup.userId);
-                return `${role.emoji} ${member?.nickname || member?.user.username || signup.userId}`;
-            }).filter(s => s).join("\n") || "- None -";
-
-            const backupsFormatted = backups.map(backup => {
-                const member = message.guild.members.cache.get(backup.userId);
-                return `${config.backupEmoji} ${member?.nickname || member?.user.username || backup.userId}`;
-            }).join("\n") || "- None -";
 
             const logEmbed = new EmbedBuilder()
                 .setColor("Yellow")
                 .setTitle("Deployment Started")
                 .addFields(
                     { name: "Title", value: deployment.title, inline: true },
-                    { name: "Host", value: message.guild.members.cache.get(deployment.user)?.nickname || deployment.user, inline: true },
+                    { name: "Host", value: formatHost(details.host), inline: true },
                     { name: "Difficulty", value: deployment.difficulty, inline: true },
                     { name: "Time", value: formatDiscordTime(DateTime.fromMillis(deployment.startTime)), inline: false },
-                    { name: "Players", value: signupsFormatted, inline: true },
-                    { name: "Backups", value: backupsFormatted, inline: true },
+                    { name: "Players", value: formatSignups(details.signups, details.host), inline: true },
+                    { name: "Backups", value: formatBackups(details.backups), inline: true },
                     { name: "Description", value: deployment.description || "No description provided" }
                 )
                 .setTimestamp();
@@ -302,12 +324,11 @@ async function _deleteOldDeployments(client: Client, now: DateTime) {
     }
 }
 
-async function _sendDeploymentSignupMessage(channel: GuildTextBasedChannel, deployment: Deployment, signups: Signups[]) {
-    const embed = buildDeploymentEmbed(deployment, signups, /*backups=*/[], Colors.Green, /*started=*/false);
-
+async function _sendDeploymentSignupMessage(deployment: DeploymentDetails) {
+    const embed = buildDeploymentEmbed(deployment, Colors.Green, /*started=*/false);
     const rows = _buildDeploymentSignupRows();
 
-    return await channel.send({ content: `<@${deployment.user}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
+    return await deployment.channel.send({ content: `<@${deployment.host.guildMember.id}> is looking for people to group up! ⬇️`, embeds: [embed], components: rows });
 }
 
 function _buildDeploymentSignupRows() {
@@ -336,3 +357,64 @@ function _buildDeploymentSignupRows() {
     ];
 }
 
+async function _getDeploymentMember(guild: Guild, signup: Signups | Backups): Promise<DeploymentMember> {
+    let role: DeploymentRole = DeploymentRole.UNSPECIFIED;
+    if (signup instanceof Backups) {
+        role = DeploymentRole.BACKUP;
+    } else if ((signup instanceof Signups) && Object.values(DeploymentRole).includes(signup.role as DeploymentRole)) {
+        role = signup.role as DeploymentRole;
+    }
+    return {
+        guildMember: await guild.members.fetch(signup.userId),
+        role: role,
+    };
+}
+
+function _getDeploymentHost(guild: Guild, hostId: Snowflake, signups: Signups[]) {
+    for (const signup of signups) {
+        if (signup.userId == hostId) {
+            return _getDeploymentMember(guild, signup);
+        }
+    }
+    throw new Error(`Can't find host in signup list`);
+}
+
+export async function deploymentToDetails(client: Client, deployment: Deployment, signups: Signups[], backups: Backups[]): Promise<DeploymentDetails> {
+    const channel = await client.channels.fetch(deployment.channel);
+    if (!(channel instanceof TextChannel)) {
+        throw new Error(`Invalid channel type: ${channel}`);
+    }
+
+    return {
+        id: deployment.id,
+        title: deployment.title,
+        difficulty: deployment.difficulty,
+        description: deployment.description,
+        channel: channel,
+        message: await channel.messages.fetch(deployment.message),
+        startTime: DateTime.fromMillis(Number(deployment.startTime)),
+        endTime: DateTime.fromMillis(Number(deployment.endTime)),
+        host: await _getDeploymentHost(channel.guild, deployment.user, signups),
+        signups: await Promise.all(signups.map(s => _getDeploymentMember(channel.guild, s))),
+        backups: await Promise.all(backups.map(b => _getDeploymentMember(channel.guild, b))),
+    }
+}
+
+function formatSignups(signups: DeploymentMember[], host: DeploymentMember) {
+    return signups
+        .filter(s => s.guildMember.user.id != host.guildMember.user.id)
+        .map(s => `${formatRoleEmoji(s.role)} <@${s.guildMember.user.id}>`)
+        .join("\n")
+        || "- None -";
+}
+
+function formatBackups(backups: DeploymentMember[]) {
+    return backups
+        .map(b => `${formatRoleEmoji(b.role)} <@${b.guildMember.user.id}>`)
+        .join("\n")
+        || "- None -";
+}
+
+function formatHost(host: DeploymentMember) {
+    return `<@${host.guildMember.user.id}>`;
+}

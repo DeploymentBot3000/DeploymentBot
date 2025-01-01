@@ -12,7 +12,7 @@ import { DateTime, Duration } from "luxon";
 import Button from "../buttons/button.js";
 import Modal from "../classes/Modal.js";
 import config from "../config.js";
-import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
+import { buildDeploymentEmbed } from "../embeds/deployment.js";
 import { buildEditDeploymentModal, DeploymentFields, getDeploymentModalValues } from "../modals/deployments.js";
 import Deployment from "../tables/Deployment.js";
 import { DeploymentManager } from "../utils/deployments.js";
@@ -125,23 +125,46 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
     action(`User ${interaction.user.tag} editing deployment`, "EditDeployment");
     await interaction.deferReply({ ephemeral: true });
     try {
-        const details = getDeploymentModalValues(interaction.fields);
+        let details = getDeploymentModalValues(interaction.fields);
         if (details instanceof Error) {
             await editReplyWithError(interaction, details.message);
             return;
         }
         const deploymentId = Number(interaction.customId.split("-")[1]);
 
-        const deployment = await DeploymentManager.get().update(deploymentId, details);
-        const channel = interaction.guild.channels.cache.get(deployment.channel);
-        if (!channel.isTextBased()) {
-            throw new Error(`Invalid channel type: ${channel.id}`);
-        }
-        const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
-        await channel.messages.cache.get(deployment.message).edit({ embeds: [embed] });
+        details = await DeploymentManager.get().update(deploymentId, details);
+        const embed = buildDeploymentEmbed(details, Colors.Green, /*started=*/false);
+        await details.message.edit({ embeds: [embed] });
+
         await editReplyWithSuccess(interaction, 'Deployment edited successfully');
     } catch (e: any) {
         await editReplyWithError(interaction, 'Failed to edit deployment');
         throw e;
     }
 }
+
+// async function _notifyEditDMs(client: Client, userIds: Snowflake[], title: string, oldStartTime: DateTime, newStartTime: DateTime, guildId: Snowflake, channelId: Snowflake, messageId: Snowflake) {
+//     await Promise.all(userIds.map(async userId => {
+//         // Catch individial message failures so we don't interrupt the other messages from being sent.
+//         try {
+//             const user = await client.users.fetch(userId);
+//             const embed = _buildDeploymentEditConfirmationEmbed(title, oldStartTime, newStartTime, guildId, channelId, messageId);
+//             await user.send({ embeds: [embed] });
+//         } catch (e) {
+//             sendErrorToLogChannel(e, client);
+//         }
+//     }));
+// }
+
+// function _buildDeploymentEditConfirmationEmbed(deploymentTitle: string, oldStartTime: DateTime, newStartTIme: DateTime, guildId: Snowflake, channelId: Snowflake, messageId: Snowflake) {
+//     const signupLink = `https://discord.com/channels/${guildId}/${channelId}/${messageId}`;
+//     return buildInfoEmbed()
+//         .setColor(Colors.Orange)
+//         .setTitle("Deployment Start Time changed!")
+//         .setDescription(`A deployment you are signed up for has changed it's start time.
+// Deployment Name: ${deploymentTitle}
+// Previous Start Time: ${formatDiscordTime(oldStartTime)}
+// New Start Time: ${formatDiscordTime(newStartTIme)} which is in: ${formatDiscordTime(newStartTIme, DiscordTimestampFormat.RELATIVE_TIME)}
+// Signup: ${signupLink}
+// `);
+// }

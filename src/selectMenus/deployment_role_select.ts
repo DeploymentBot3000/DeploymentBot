@@ -2,7 +2,7 @@ import { AnySelectMenuInteraction, Colors, StringSelectMenuInteraction } from "d
 import { Duration } from "luxon";
 import SelectMenu from "../classes/SelectMenu.js";
 import config from "../config.js";
-import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
+import { deprecated_buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
@@ -115,7 +115,7 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
                 });
             }
         }
-        const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
+        const embed = await deprecated_buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
         await interaction.message.edit({ embeds: [embed] });
         await interaction.deleteReply();
     } catch (e: any) {
