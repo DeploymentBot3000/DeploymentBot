@@ -1,10 +1,8 @@
-import { error, log } from "../utils/logger.js";
-import { GuildMember, ChatInputCommandInteraction } from "discord.js";
-import checkBlacklist from "../utils/interaction/checkBlacklist.js";
-import hasRequiredRoles from "../utils/interaction/hasRequiredRoles.js";
-import hasRequiredPermissions from "../utils/interaction/hasRequiredPermissions.js";
-import { getSlashCommand } from "../utils/slash_commands_registery.js";
+import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import { buildErrorEmbed } from "../embeds/embed.js";
+import { error, log } from "../utils/logger.js";
+import { checkBlacklist, hasRequiredPermissions, hasRequiredRoles } from "../utils/permissions.js";
+import { getSlashCommand } from "../utils/slash_commands_registery.js";
 
 export default {
 	callback: async function (interaction: ChatInputCommandInteraction) {
