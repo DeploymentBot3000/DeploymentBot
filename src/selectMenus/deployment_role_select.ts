@@ -11,9 +11,9 @@ import { editReplyWithError } from "../utils/interaction_replies.js";
 export default new SelectMenu({
     id: "signup",
     cooldown: Duration.fromDurationLike({ seconds: config.selectMenuCooldownSeconds }),
-    permissions: [],
-    requiredRoles: [],
-    blacklistedRoles: [...config.blacklistedRoles],
+    permissions: {
+        deniedRoles: config.deniedRoles,
+    },
     callback: async function ({ interaction }: { interaction: AnySelectMenuInteraction }): Promise<void> {
         if (!interaction.isStringSelectMenu()) {
             console.log(interaction);

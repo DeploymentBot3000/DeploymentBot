@@ -1,8 +1,5 @@
 import colors from "colors";
 import { ButtonInteraction } from "discord.js";
-import { log } from "../utils/logger.js";
-import { checkBlacklist, hasRequiredPermissions, hasRequiredRoles } from "../utils/permissions.js";
-
 import Button from "../buttons/button.js";
 import deleteDeployment from "../buttons/deployment_delete.js";
 import leaveDeployment from "../buttons/deployment_leave.js";
@@ -12,6 +9,9 @@ import leave from "../buttons/queue_leave.js";
 import { DeploymentEditButton } from "../interactions/deployment_edit.js";
 import { DeploymentNewButton } from "../interactions/deployment_new.js";
 import { userIsOnCooldownWithReply } from "../utils/cooldowns.js";
+import { replyWithError } from "../utils/interaction_replies.js";
+import { log } from "../utils/logger.js";
+import { checkPermissions } from "../utils/permissions.js";
 
 const _kButtons: Map<string, Button> = new Map();
 
@@ -34,9 +34,12 @@ export default {
 			throw new Error(`Button: ${interaction.customId} not found!`);
 		}
 
-		if (await checkBlacklist(interaction, button.blacklistedRoles)) { return; }
-		if (!await hasRequiredRoles(interaction, button.requiredRoles)) { return; }
-		if (!await hasRequiredPermissions(interaction, button.permissions)) { return; }
+		const e = await checkPermissions(interaction.member, button.permissions);
+		if (e) {
+			await replyWithError(interaction, e.message);
+			return;
+		}
+
 		if (await userIsOnCooldownWithReply(interaction, button.id, button.cooldown)) { return; }
 
 

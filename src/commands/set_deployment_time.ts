@@ -1,9 +1,9 @@
-import {ApplicationCommandOptionType} from "discord.js";
-import Command from "../classes/Command.js";
-import ms from "ms";
+import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { Duration } from "luxon";
-import { HotDropQueue } from "../utils/hot_drop_queue.js";
+import ms from "ms";
+import Command from "../classes/Command.js";
 import { buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
+import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
 function parseDeploymentTimeString(input: string) {
     const milis = ms(input);
@@ -24,9 +24,9 @@ function parseDeploymentTimeString(input: string) {
 export default new Command({
     name: "set-deployment-time",
     description: "Set the deployment time",
-    permissions: ["Administrator"],
-    requiredRoles: [],
-    blacklistedRoles: [],
+    permissions: {
+        requiredPermissions: [PermissionFlagsBits.Administrator]
+    },
     options: [
         {
             name: "time",
