@@ -11,7 +11,7 @@ import join from "../buttons/queue_join.js";
 import leave from "../buttons/queue_leave.js";
 import { DeploymentEditButton } from "../interactions/deployment_edit.js";
 import { DeploymentNewButton } from "../interactions/deployment_new.js";
-import { userIsOnCooldownWithReply } from "../utils/interaction/checkCooldown.js";
+import { userIsOnCooldownWithReply } from "../utils/cooldowns.js";
 
 const _kButtons: Map<string, Button> = new Map();
 
