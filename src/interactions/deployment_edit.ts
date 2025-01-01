@@ -26,9 +26,9 @@ import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 export const DeploymentEditButton = new Button({
     id: "editDeployment",
     cooldown: Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }),
-    permissions: [],
-    requiredRoles: [],
-    blacklistedRoles: [...config.blacklistedRoles],
+    permissions: {
+        deniedRoles: config.deniedRoles,
+    },
     callback: async function ({ interaction }) {
         await onDeploymentEditButtonPress(interaction);
     }

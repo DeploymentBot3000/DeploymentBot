@@ -3,9 +3,10 @@ import { AnySelectMenuInteraction } from "discord.js";
 import SelectMenu from "../classes/SelectMenu.js";
 import signup from "../selectMenus/deployment_role_select.js";
 import { userIsOnCooldownWithReply } from "../utils/cooldowns.js";
+import { replyWithError } from "../utils/interaction_replies.js";
 import { sendErrorToLogChannel } from "../utils/log_channel.js";
 import { error, log } from "../utils/logger.js";
-import { checkBlacklist, hasRequiredPermissions, hasRequiredRoles } from "../utils/permissions.js";
+import { checkPermissions } from "../utils/permissions.js";
 
 const _kSelectMenus: Map<string, SelectMenu> = new Map();
 
@@ -20,9 +21,12 @@ export default {
         const selectMenu = getSelectMenuById(interaction.customId) || getSelectMenuById(interaction.customId.split("-")[0]);
         if (!selectMenu) return;
 
-        if (await checkBlacklist(interaction, selectMenu.blacklistedRoles)) { return; }
-        if (!await hasRequiredRoles(interaction, selectMenu.requiredRoles)) { return; }
-        if (!await hasRequiredPermissions(interaction, selectMenu.permissions)) { return; }
+        const e = await checkPermissions(interaction.member, selectMenu.permissions);
+        if (e) {
+            await replyWithError(interaction, e.message);
+            return;
+        }
+
         if (await userIsOnCooldownWithReply(interaction, selectMenu.id, selectMenu.cooldown)) { return; }
 
         try {

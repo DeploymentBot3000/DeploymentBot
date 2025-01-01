@@ -1,18 +1,18 @@
+import { ActionRowBuilder, ButtonBuilder, PermissionFlagsBits, } from "discord.js";
+import { buildButton } from "../buttons/button.js";
 import Command from "../classes/Command.js";
 import { buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
-import { buildButton } from "../buttons/button.js";
-import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import buildQueuePanelEmbed from "../embeds/queue.js";
-import {ActionRowBuilder, ButtonBuilder,} from "discord.js";
-import {action, error, log, success} from "../utils/logger.js";
+import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
+import { action, error, log, success } from "../utils/logger.js";
 
 export default new Command({
     name: "queue-panel",
     description: "Send the queue panel",
-    permissions: ["ManageRoles"],
-    requiredRoles: [],
-    blacklistedRoles: [],
+    permissions: {
+        requiredPermissions: [PermissionFlagsBits.ManageRoles]
+    },
     options: [],
     callback: async function ({ interaction }) {
         action(`${interaction.user.tag} creating queue panel`, "QueuePanel");

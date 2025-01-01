@@ -1,7 +1,7 @@
-import { ApplicationCommandOption, AutocompleteInteraction, CacheType, ChatInputCommandInteraction, CommandInteractionOptionResolver, PermissionsString } from "discord.js";
+import { ApplicationCommandOption, AutocompleteInteraction, CacheType, ChatInputCommandInteraction, CommandInteractionOptionResolver } from "discord.js";
+import { PermissionsConfig } from "../utils/permissions.js";
 
 type OmittedCommandInteractionOptionResolver = Omit<CommandInteractionOptionResolver<CacheType>, "getMessage" | "getFocused">;
-export type requiredRolesType = { role: string, required: Boolean }[];
 
 /**
  * @class Slashcommand
@@ -17,17 +17,7 @@ export type requiredRolesType = { role: string, required: Boolean }[];
 export default class Command {
     public name: string;
     public description: string;
-    public permissions?: PermissionsString[];
-    /**
-     * The role required to run this command
-     * @type {requiredRolesType}
-     * @example [{ role: "1234567890", required: true }, { role: "0987654321", required: false }]
-     * @description The roles required to run the command.
-     * If required is true, the user must have the role to run the command.
-     * Otherwise the user can run the command with a higher role.
-     */
-    public requiredRoles?: requiredRolesType;
-    public blacklistedRoles?: string[];
+    public permissions: PermissionsConfig;
     public options: ApplicationCommandOption[];
     public callback: (params: {
         interaction: ChatInputCommandInteraction;
@@ -36,8 +26,8 @@ export default class Command {
     public autocomplete?: (params: {
         interaction: AutocompleteInteraction;
     }) => void;
-    public constructor({ name, description, permissions, requiredRoles, blacklistedRoles, options, callback, autocomplete }: {
-        name: string, description: string, permissions: PermissionsString[], requiredRoles: requiredRolesType, options: ApplicationCommandOption[], blacklistedRoles: string[], callback: (params: {
+    public constructor({ name, description, permissions, options, callback, autocomplete }: {
+        name: string, description: string, permissions: PermissionsConfig, options: ApplicationCommandOption[], callback: (params: {
             interaction: ChatInputCommandInteraction;
             options: OmittedCommandInteractionOptionResolver;
         }) => Promise<void>, autocomplete?: (params: {
@@ -47,8 +37,6 @@ export default class Command {
         this.name = name;
         this.description = description;
         this.permissions = permissions;
-        this.requiredRoles = requiredRoles;
-        this.blacklistedRoles = blacklistedRoles;
         this.options = options;
         this.callback = callback;
         this.autocomplete = autocomplete;
