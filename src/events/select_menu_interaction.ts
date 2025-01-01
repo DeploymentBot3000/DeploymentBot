@@ -2,7 +2,7 @@ import colors from "colors";
 import { AnySelectMenuInteraction } from "discord.js";
 import SelectMenu from "../classes/SelectMenu.js";
 import signup from "../selectMenus/deployment_role_select.js";
-import { userIsOnCooldownWithReply } from "../utils/interaction/checkCooldown.js";
+import { userIsOnCooldownWithReply } from "../utils/cooldowns.js";
 import { sendErrorToLogChannel } from "../utils/log_channel.js";
 import { error, log } from "../utils/logger.js";
 import { checkBlacklist, hasRequiredPermissions, hasRequiredRoles } from "../utils/permissions.js";

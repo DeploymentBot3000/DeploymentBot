@@ -18,7 +18,7 @@ import { buildInfoEmbed } from "../embeds/embed.js";
 import { buildEditDeploymentModal, DeploymentFields, getDeploymentModalValues } from "../modals/deployments.js";
 import Deployment from "../tables/Deployment.js";
 import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
-import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
+import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 import { sendErrorToLogChannel } from "../utils/log_channel.js";
 import { action } from "../utils/logger.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";

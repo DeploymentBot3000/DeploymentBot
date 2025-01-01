@@ -1,5 +1,5 @@
 import { AnySelectMenuInteraction, ButtonInteraction, ModalSubmitInteraction } from "discord.js";
-import { buildErrorEmbed, buildSuccessEmbed } from "../../embeds/embed.js";
+import { buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
 
 export async function replyWithError(interaction: ModalSubmitInteraction | ButtonInteraction | AnySelectMenuInteraction, message: string) {
     const embed = buildErrorEmbed().setTitle('Error').setDescription(message);

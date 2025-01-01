@@ -6,7 +6,7 @@ import { deprecated_buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
-import { editReplyWithError } from "../utils/interaction/replies.js";
+import { editReplyWithError } from "../utils/interaction_replies.js";
 
 export default new SelectMenu({
     id: "signup",

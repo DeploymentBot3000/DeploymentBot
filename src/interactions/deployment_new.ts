@@ -16,7 +16,7 @@ import config from "../config.js";
 import { buildNewDeploymentModal, getDeploymentModalValues, getDeploymentModalValuesRaw } from "../modals/deployments.js";
 import LatestInput from "../tables/LatestInput.js";
 import { DeploymentManager, DeploymentRole } from "../utils/deployments.js";
-import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
+import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 import { action } from "../utils/logger.js";
 import { formatDiscordTime } from "../utils/time.js";
 
