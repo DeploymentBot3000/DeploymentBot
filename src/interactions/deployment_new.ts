@@ -3,12 +3,11 @@ import {
     ButtonInteraction,
     ComponentType,
     DiscordjsErrorCodes,
-    GuildTextBasedChannel,
-    Message,
     ModalSubmitInteraction,
     Snowflake,
     StringSelectMenuBuilder,
-    StringSelectMenuInteraction
+    StringSelectMenuInteraction,
+    TextChannel
 } from "discord.js";
 import { Duration } from "luxon";
 import Button from "../buttons/button.js";
@@ -16,7 +15,7 @@ import Modal from "../classes/Modal.js";
 import config from "../config.js";
 import { buildNewDeploymentModal, getDeploymentModalValues, getDeploymentModalValuesRaw } from "../modals/deployments.js";
 import LatestInput from "../tables/LatestInput.js";
-import { DeploymentManager } from "../utils/deployments.js";
+import { DeploymentManager, DeploymentRole } from "../utils/deployments.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
 import { action } from "../utils/logger.js";
 import { formatDiscordTime } from "../utils/time.js";
@@ -49,30 +48,36 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
     action(`User ${interaction.user.tag} creating new deployment`, "NewDeployment");
     await interaction.deferReply({ ephemeral: true });
     try {
-        const details = getDeploymentModalValues(interaction.fields);
-        if (details instanceof Error) {
+        let deployment = getDeploymentModalValues(interaction.fields);
+        if (deployment instanceof Error) {
             const detailsRaw = getDeploymentModalValuesRaw(interaction.fields);
             await storeLatestInput(interaction.user.id, detailsRaw.title, detailsRaw.difficulty, detailsRaw.description, detailsRaw.startTime);
-            await editReplyWithError(interaction, details.message);
+            await editReplyWithError(interaction, deployment.message);
             return;
         }
+        deployment.host = {
+            guildMember: interaction.member,
+            role: DeploymentRole.OFFENSE,
+        };
 
-        const channel = await _getSignupChannel(interaction);
-        if (channel instanceof Error) {
-            await editReplyWithError(interaction, channel.message);
-            return;
+        {
+            const channel = await _getSignupChannel(interaction);
+            if (channel instanceof Error) {
+                await editReplyWithError(interaction, channel.message);
+                return;
+            }
+            deployment.channel = channel;
         }
 
-        let msg: Message;
         try {
-            msg = await DeploymentManager.get().create(interaction.user.id, channel, details);
+            deployment = await DeploymentManager.get().create(deployment);
         } catch (e: any) {
             await editReplyWithError(interaction, 'An error occurred while creating the deployment');
             throw e;
         }
 
-        const link = `https://discord.com/channels/${interaction.guild.id}/${channel.id}/${msg.id}`;
-        await interaction.user.send({ content: `You create a new deployment: ${details.title}.\nScheduled for: ${formatDiscordTime(details.startTime)} (${details.startTime.toISO()}).\n${link}` });
+        const link = `https://discord.com/channels/${interaction.guild.id}/${deployment.channel.id}/${deployment.message.id}`;
+        await interaction.user.send({ content: `You create a new deployment: ${deployment.title}.\nScheduled for: ${formatDiscordTime(deployment.startTime)} (${deployment.startTime.toISO()}).\n${link}` });
 
         await editReplyWithSuccess(interaction, 'Deployment created successfully');
     } catch (e: any) {
@@ -95,7 +100,7 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
  * 
  * The function also removes any previous input from the user and updates the interaction with a success message upon successful selection.
  */
-async function _getSignupChannel(interaction: ModalSubmitInteraction): Promise<GuildTextBasedChannel | Error> {
+async function _getSignupChannel(interaction: ModalSubmitInteraction): Promise<TextChannel | Error> {
     const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
         new StringSelectMenuBuilder().setPlaceholder("Select a channel").setCustomId("channel").addOptions(
             config.channels.map(channel => ({
@@ -130,11 +135,11 @@ async function _getSignupChannel(interaction: ModalSubmitInteraction): Promise<G
     }
 
     const channelId = selectMenuResponse.values[0].split("-")[0];
-    const channel = interaction.guild.channels.cache.get(channelId);
+    const channel = await interaction.guild.channels.fetch(channelId);
     if (!channel) {
         throw new Error(`Can't find channel with id: ${selectMenuResponse.values[0]}`);
     }
-    if (!channel.isTextBased()) {
+    if (!(channel instanceof TextChannel)) {
         throw new Error("Selected channel is not a text channel");
     }
     return channel;
