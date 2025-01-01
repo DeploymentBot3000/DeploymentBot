@@ -5,7 +5,7 @@ import { checkBlacklist, hasRequiredPermissions, hasRequiredRoles } from "../uti
 import { getSlashCommand } from "../utils/slash_commands_registery.js";
 
 export default {
-	callback: async function (interaction: ChatInputCommandInteraction) {
+	callback: async function (interaction: ChatInputCommandInteraction<'cached'>) {
 		const command = getSlashCommand(interaction.commandName);
 
 		if (await checkBlacklist(interaction, command.blacklistedRoles)) return;
@@ -13,8 +13,7 @@ export default {
 		if (!(await hasRequiredPermissions(interaction, command.permissions))) return;
 
 		const commandStr = `/${interaction.commandName} ${interaction.options.data.map(o => `${o.name}: ${o.value}`).join(', ')}`;
-		const nickname = interaction.member instanceof GuildMember ? interaction.member.nickname : interaction.member.nick;
-		const logStr = `${commandStr}; Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${nickname}(${interaction.user.displayName}/${interaction.user.username}/${interaction.user.id}); ID: ${interaction.id}`;
+		const logStr = `${commandStr}; Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${interaction.member.nickname}(${interaction.user.displayName}/${interaction.user.username}/${interaction.user.id}); ID: ${interaction.id}`;
 		try {
 			log(`Running: ${logStr}`, 'Command');
 			await command.callback({ interaction, options: interaction.options });

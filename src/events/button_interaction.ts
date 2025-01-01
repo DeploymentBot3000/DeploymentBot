@@ -28,7 +28,7 @@ function getButtonById(id: string): Button | undefined {
 }
 
 export default {
-	callback: async function (interaction: ButtonInteraction) {
+	callback: async function (interaction: ButtonInteraction<'cached'>) {
 		const button = getButtonById(interaction.customId) || getButtonById(interaction.customId.split("-")[0]);
 		if (!button) {
 			throw new Error(`Button: ${interaction.customId} not found!`);

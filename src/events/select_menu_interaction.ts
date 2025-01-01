@@ -16,7 +16,7 @@ function getSelectMenuById(id: string) {
 }
 
 export default {
-    callback: async function (interaction: AnySelectMenuInteraction) {
+    callback: async function (interaction: AnySelectMenuInteraction<'cached'>) {
         const selectMenu = getSelectMenuById(interaction.customId) || getSelectMenuById(interaction.customId.split("-")[0]);
         if (!selectMenu) return;
 
