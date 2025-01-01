@@ -1,12 +1,12 @@
 import { ApplicationCommandOptionType, AutocompleteInteraction, Colors, GuildMember } from "discord.js";
+import { Like } from "typeorm";
 import Command from "../classes/Command.js";
+import { deprecated_buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
+import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../embeds/embed.js";
+import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
-import Backups from "../tables/Backups.js";
-import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../embeds/embed.js";
-import {Like} from "typeorm";
-import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
-import {action, success, warn} from "../utils/logger.js";
+import { action, success, warn } from "../utils/logger.js";
 
 export default new Command({
     name: "remove",
@@ -142,7 +142,7 @@ export default new Command({
                 throw new Error("Channel not found or not text-based");
             }
             const message = await channel.messages.fetch(deployment.message);
-            const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
+            const embed = await deprecated_buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
 
             await message.edit({ embeds: [embed] });
         } catch (error) {

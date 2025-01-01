@@ -58,11 +58,17 @@ export function getDeploymentModalValues(fields: ModalSubmitFields) {
         return new Error('Emojis are not allowed in deployment fields');
     }
     const details: DeploymentDetails = {
+        id: null,
+        channel: null,
+        message: null,
         title: detailsRaw.title,
         difficulty: detailsRaw.difficulty,
         description: detailsRaw.description,
         startTime: null,
         endTime: null,
+        host: null,
+        signups: [],
+        backups: [],
     };
     if (detailsRaw.startTime) {
         const startTime = parseStartTime(detailsRaw.startTime);

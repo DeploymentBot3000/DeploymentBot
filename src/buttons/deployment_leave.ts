@@ -1,12 +1,12 @@
-import Button from "./button.js";
+import { Colors } from "discord.js";
+import { Duration } from "luxon";
+import config from "../config.js";
+import { deprecated_buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
+import { buildErrorEmbed } from "../embeds/embed.js";
+import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
-import Backups from "../tables/Backups.js";
-import config from "../config.js";
-import { buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
-import { Duration } from "luxon";
-import { buildErrorEmbed } from "../embeds/embed.js";
-import { Colors } from "discord.js";
+import Button from "./button.js";
 
 export default new Button({
     id: "leaveDeployment",
@@ -75,7 +75,7 @@ export default new Button({
                 return;
             }
 
-            const embed = await buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
+            const embed = await deprecated_buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
 
             // Add error handling for message edit
             try {
