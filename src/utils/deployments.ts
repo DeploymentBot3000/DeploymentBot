@@ -165,32 +165,43 @@ export class DeploymentManager {
         return details;
     }
 
-    public async update(deploymentId: number, details: DeploymentDetails): Promise<DeploymentDetails> {
+    public async update(deploymentId: number, details: DeploymentDetails): Promise<{ newDetails: DeploymentDetails, oldDetails: DeploymentDetails }> {
         return await dataSource.transaction(async (entityManager: EntityManager) => {
             const deployment = await entityManager.findOne(Deployment, { where: { id: deploymentId } });
             if (!deployment) {
                 throw new Error('Failed to find deployment');
-            }            
+            }
+            const signups = entityManager.find(Signups, { where: { deploymentId: deployment.id } });
+            const backups = entityManager.find(Backups, { where: { deploymentId: deployment.id } });
+            const oldDetails = await deploymentToDetails(this._client, deployment, await signups, await backups);
+            const newDetails: DeploymentDetails = { ...oldDetails };
+
             if (details.title) {
                 deployment.title = details.title;
+                newDetails.title = details.title;
             }
             if (details.difficulty) {
                 deployment.difficulty = details.difficulty;
+                newDetails.difficulty = details.difficulty;
             }
             if (details.description) {
                 deployment.description = details.description;
+                newDetails.description = details.description;
             }
             if (details.startTime) {
-                deployment.startTime = details.startTime.toMillis();
                 if (!details.endTime) {
                     throw new Error(`Missing end time on deployment: ${deployment}; details: ${details}`);
                 }
+                deployment.startTime = details.startTime.toMillis();
                 deployment.endTime = details.endTime.toMillis();
+                newDetails.startTime = details.startTime;
+                newDetails.endTime = details.endTime;
             }
             await entityManager.save(deployment);
-            const signups = await entityManager.find(Signups, { where: { deploymentId: deployment.id } });
-            const backups = await entityManager.find(Backups, { where: { deploymentId: deployment.id } });
-            return deploymentToDetails(this._client, deployment, signups, backups);
+            return {
+                oldDetails: oldDetails,
+                newDetails: newDetails,
+            };
         });
     }
 

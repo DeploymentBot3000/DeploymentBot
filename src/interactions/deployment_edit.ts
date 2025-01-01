@@ -6,18 +6,22 @@ import {
     DiscordjsErrorCodes,
     ModalSubmitInteraction,
     StringSelectMenuBuilder,
-    StringSelectMenuInteraction
+    StringSelectMenuInteraction,
+    User
 } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import Button from "../buttons/button.js";
 import Modal from "../classes/Modal.js";
 import config from "../config.js";
 import { buildDeploymentEmbed } from "../embeds/deployment.js";
+import { buildInfoEmbed } from "../embeds/embed.js";
 import { buildEditDeploymentModal, DeploymentFields, getDeploymentModalValues } from "../modals/deployments.js";
 import Deployment from "../tables/Deployment.js";
-import { DeploymentManager } from "../utils/deployments.js";
+import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction/replies.js";
+import { sendErrorToLogChannel } from "../utils/log_channel.js";
 import { action } from "../utils/logger.js";
+import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 
 export const DeploymentEditButton = new Button({
     id: "editDeployment",
@@ -125,16 +129,20 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
     action(`User ${interaction.user.tag} editing deployment`, "EditDeployment");
     await interaction.deferReply({ ephemeral: true });
     try {
-        let details = getDeploymentModalValues(interaction.fields);
+        const details = getDeploymentModalValues(interaction.fields);
         if (details instanceof Error) {
             await editReplyWithError(interaction, details.message);
             return;
         }
         const deploymentId = Number(interaction.customId.split("-")[1]);
 
-        details = await DeploymentManager.get().update(deploymentId, details);
-        const embed = buildDeploymentEmbed(details, Colors.Green, /*started=*/false);
-        await details.message.edit({ embeds: [embed] });
+        const { newDetails, oldDetails } = await DeploymentManager.get().update(deploymentId, details);
+        const embed = buildDeploymentEmbed(newDetails, Colors.Green, /*started=*/false);
+        await newDetails.message.edit({ embeds: [embed] });
+
+        if (newDetails.startTime.diff(oldDetails.startTime, 'minutes').minutes > 0) {
+            await _notifyStartTimeChange(oldDetails.signups.map(s => s.guildMember.user).concat(oldDetails.backups.map(b => b.guildMember.user)), oldDetails, newDetails);
+        }
 
         await editReplyWithSuccess(interaction, 'Deployment edited successfully');
     } catch (e: any) {
@@ -143,28 +151,27 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
     }
 }
 
-// async function _notifyEditDMs(client: Client, userIds: Snowflake[], title: string, oldStartTime: DateTime, newStartTime: DateTime, guildId: Snowflake, channelId: Snowflake, messageId: Snowflake) {
-//     await Promise.all(userIds.map(async userId => {
-//         // Catch individial message failures so we don't interrupt the other messages from being sent.
-//         try {
-//             const user = await client.users.fetch(userId);
-//             const embed = _buildDeploymentEditConfirmationEmbed(title, oldStartTime, newStartTime, guildId, channelId, messageId);
-//             await user.send({ embeds: [embed] });
-//         } catch (e) {
-//             sendErrorToLogChannel(e, client);
-//         }
-//     }));
-// }
+async function _notifyStartTimeChange(users: User[], oldDetails: DeploymentDetails, newDetails: DeploymentDetails) {
+    const embed = _buildStartTimeChangeNoticeEmbed(oldDetails, newDetails);
+    await Promise.all(users.map(async user => {
+        // Catch individial message failures so we don't interrupt the other messages from being sent.
+        try {
+            await user.send({ embeds: [embed] });
+        } catch (e) {
+            await sendErrorToLogChannel(e, user.client);
+        }
+    }));
+}
 
-// function _buildDeploymentEditConfirmationEmbed(deploymentTitle: string, oldStartTime: DateTime, newStartTIme: DateTime, guildId: Snowflake, channelId: Snowflake, messageId: Snowflake) {
-//     const signupLink = `https://discord.com/channels/${guildId}/${channelId}/${messageId}`;
-//     return buildInfoEmbed()
-//         .setColor(Colors.Orange)
-//         .setTitle("Deployment Start Time changed!")
-//         .setDescription(`A deployment you are signed up for has changed it's start time.
-// Deployment Name: ${deploymentTitle}
-// Previous Start Time: ${formatDiscordTime(oldStartTime)}
-// New Start Time: ${formatDiscordTime(newStartTIme)} which is in: ${formatDiscordTime(newStartTIme, DiscordTimestampFormat.RELATIVE_TIME)}
-// Signup: ${signupLink}
-// `);
-// }
+function _buildStartTimeChangeNoticeEmbed(oldDetails: DeploymentDetails, newDetails: DeploymentDetails) {
+    const signupLink = `https://discord.com/channels/${newDetails.channel.guild.id}/${newDetails.channel.id}/${newDetails.message.id}`;
+    return buildInfoEmbed()
+        .setColor(Colors.Orange)
+        .setTitle("Deployment Start Time changed!")
+        .setDescription(`A deployment you are signed up for has changed it's start time.
+Deployment Name: ${newDetails.title}
+Previous Start Time: ${formatDiscordTime(oldDetails.startTime)}
+New Start Time: ${formatDiscordTime(newDetails.startTime)} which is in: ${formatDiscordTime(newDetails.startTime, DiscordTimestampFormat.RELATIVE_TIME)}
+Signup: ${signupLink}
+`);
+}
