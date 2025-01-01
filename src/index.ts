@@ -12,6 +12,10 @@ import { log } from "./utils/logger.js";
 
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     try {
+        if (!interaction.inCachedGuild()) {
+            console.log(interaction);
+            throw new Error('Interaction not in a cached guild!');
+        }
         if (interaction.isAutocomplete()) {
             await autocompleteInteraction.callback(interaction);
         } else if (interaction.isChatInputCommand()) {
