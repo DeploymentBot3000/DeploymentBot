@@ -1,101 +1,42 @@
 import {
-    ButtonInteraction,
-    ChannelSelectMenuInteraction,
-    CommandInteraction,
-    MentionableSelectMenuInteraction,
-    ModalSubmitInteraction,
-    PermissionsBitField, PermissionsString,
-    RoleSelectMenuInteraction,
-    StringSelectMenuInteraction,
-    UserSelectMenuInteraction,
+    GuildMember,
+    PermissionResolvable,
+    Role,
+    Snowflake
 } from 'discord.js';
-import { requiredRolesType } from "../classes/Command.js";
-import { buildErrorEmbed } from "../embeds/embed.js";
 
-export async function hasRequiredPermissions(interaction: _ReplyableInteraction, permissions: PermissionsString[]): Promise<boolean> {
-    if (!permissions.length) return true;
-    if (!interaction.inCachedGuild()) {
-        const embed = buildErrorEmbed()
-            .setDescription(":x: **This command can only be used in a server!**");
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        return false;
-    }
-
-    const invalidPerms: PermissionsString[] = [];
-    const memberPerms: PermissionsBitField = interaction.member!.permissions as PermissionsBitField;
-    for (const perm of permissions) {
-        if (!memberPerms.has(perm)) invalidPerms.push(perm);
-    }
-    if (invalidPerms.length) {
-        const embed = buildErrorEmbed()
-            .setTitle("Insufficient Permissions!")
-            .setDescription(`You are missing the following permissions:\n${invalidPerms.map(p => `- ${p}`).join("\n")}`);
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        return false;
-    }
-    return true; // Return ture they have perms
+export interface PermissionsConfig {
+    deniedRoles?: Snowflake[];
+    requireRoles?: Snowflake[];
+    requiredPermissions?: PermissionResolvable[];
 }
 
-export async function hasRequiredRoles(interaction: _ReplyableInteraction, requiredRoles: requiredRolesType): Promise<boolean> {
-    if (!requiredRoles.length) return true;
-    if (!interaction.inCachedGuild()) {
-        const embed = buildErrorEmbed()
-            .setDescription(":x: **This command can only be used in a server!**");
-
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        return false;
-    }
-
-    for (const role of requiredRoles) {
-        const roleObj = interaction.guild!.roles.cache.find(r => r.id === role.role || r.name === role.role) || await interaction.guild!.roles.fetch(role.role).catch(() => { }) || null;
-        if (!roleObj) {
-            const embed = buildErrorEmbed()
-                .setTitle("Invalid Role!")
-                .setDescription(`:x: **The role \`${role.role}\` does not exist!**`);
-            await interaction.reply({ embeds: [embed], ephemeral: true });
-            return false;
-        }
-        if (role.required && !interaction.member.roles.cache.has(roleObj.id)) {
-            const embed = buildErrorEmbed()
-                .setTitle("Missing Server Role!")
-                .setDescription(`:x: **You don't have the required role ${roleObj.name}!**`);
-            await interaction.reply({ embeds: [embed], ephemeral: true });
-            return false;
-        }
-        if (!role.required && interaction.member.roles.highest.comparePositionTo(roleObj) < 0) {
-            const embed = buildErrorEmbed()
-                .setTitle("Missing Server Role!")
-                .setDescription(`:x: **You don't have the required role ${roleObj.name}!**`);
-            await interaction.reply({ embeds: [embed], ephemeral: true });
-            return false;
-        }
-    }
-    return true;
+export async function checkPermissions(member: GuildMember, permissions: PermissionsConfig): Promise<Error> {
+    const deniedRoles = permissions.deniedRoles ? Promise.all(permissions.deniedRoles.map(roleId => member.guild.roles.fetch(roleId))) : Promise.resolve([]);
+    const requireRoles = permissions.requireRoles ? Promise.all(permissions.requireRoles.map(roleId => member.guild.roles.fetch(roleId))) : Promise.resolve([]);
+    return _inDenyList(member, await deniedRoles) ?? _hasRequiredRoles(member, await requireRoles) ?? _hasRequiredPermissions(member, permissions.requiredPermissions ?? []);
 }
 
-export async function checkBlacklist(interaction: _ReplyableInteraction, blacklist: string[]): Promise<boolean> {
-    if (!blacklist.length) return false;
-    const member = await interaction.guild.members.fetch(interaction.user.id);
-    const blacklistedRoles = blacklist.filter(roleId => member.roles.cache.has(roleId));
-    if (!blacklistedRoles.length) return false; // return false is they are not on the blacklist
-    const blacklistedRolesNames = await Promise.all(blacklistedRoles.map(async (roleId) => {
-        const role = await interaction.guild.roles.fetch(roleId);
-        return role ? role.name : null;
-    }));
-    const description = `${blacklistedRolesNames.length >= 3 ? `${blacklistedRolesNames.slice(0, -1).join("'s , ")}'s, & ${blacklistedRolesNames[blacklistedRolesNames.length - 1]}` : `${blacklistedRolesNames.join("'s & ")}'s`} are not permitted to to use this interaction.`;
-    const errorEmbed = buildErrorEmbed()
-        .setTitle("Blacklisted Role!")
-        .setDescription(description);
-    await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-    return true; // Return true if they are on the blacklist
+function _hasRequiredPermissions(member: GuildMember, permissions: PermissionResolvable[]): Error {
+    const missingPermissions = permissions.filter(perm => !member.permissions.has(perm)).join(", ");
+    if (missingPermissions) {
+        return new Error(`Required permissions: ${missingPermissions}`);
+    }
+    return null;
 }
 
-type _ReplyableInteraction =
-    | CommandInteraction
-    | ButtonInteraction
-    | StringSelectMenuInteraction
-    | UserSelectMenuInteraction
-    | RoleSelectMenuInteraction
-    | ChannelSelectMenuInteraction
-    | MentionableSelectMenuInteraction
-    | ModalSubmitInteraction;
+function _hasRequiredRoles(member: GuildMember, roles: Role[]): Error {
+    const missingRoles = roles.filter(role => role.members.hasAny(member.id)).map(role => role.name).join(", ");
+    if (missingRoles) {
+        return new Error(`Missing roles: ${missingRoles}`);
+    }
+    return null;
+}
+
+function _inDenyList(member: GuildMember, roles: Role[]): Error {
+    const deniedRoles = roles.filter(role => role.members.hasAny(member.id)).map(role => role.name).join(", ");
+    if (deniedRoles) {
+        return new Error(`Denied roles: ${deniedRoles}`);
+    }
+    return null;
+}

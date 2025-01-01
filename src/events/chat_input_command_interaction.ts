@@ -1,16 +1,19 @@
-import { ChatInputCommandInteraction, GuildMember } from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
 import { buildErrorEmbed } from "../embeds/embed.js";
+import { replyWithError } from "../utils/interaction_replies.js";
 import { error, log } from "../utils/logger.js";
-import { checkBlacklist, hasRequiredPermissions, hasRequiredRoles } from "../utils/permissions.js";
+import { checkPermissions } from "../utils/permissions.js";
 import { getSlashCommand } from "../utils/slash_commands_registery.js";
 
 export default {
 	callback: async function (interaction: ChatInputCommandInteraction<'cached'>) {
 		const command = getSlashCommand(interaction.commandName);
 
-		if (await checkBlacklist(interaction, command.blacklistedRoles)) return;
-		if (!(await hasRequiredRoles(interaction, command.requiredRoles))) return;
-		if (!(await hasRequiredPermissions(interaction, command.permissions))) return;
+		const e = await checkPermissions(interaction.member, command.permissions);
+		if (e) {
+			await replyWithError(interaction, e.message);
+			return;
+		}
 
 		const commandStr = `/${interaction.commandName} ${interaction.options.data.map(o => `${o.name}: ${o.value}`).join(', ')}`;
 		const logStr = `${commandStr}; Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${interaction.member.nickname}(${interaction.user.displayName}/${interaction.user.username}/${interaction.user.id}); ID: ${interaction.id}`;

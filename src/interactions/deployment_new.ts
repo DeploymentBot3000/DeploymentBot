@@ -23,9 +23,10 @@ import { formatDiscordTime } from "../utils/time.js";
 export const DeploymentNewButton = new Button({
     id: "newDeployment",
     cooldown: Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }),
-    permissions: [],
-    requiredRoles: [{ role: config.hostRole, required: true }],
-    blacklistedRoles: [...config.blacklistedRoles],
+    permissions: {
+        requireRoles: [config.hostRole],
+        deniedRoles: config.deniedRoles,
+    },
     callback: async function ({ interaction }: { interaction: ButtonInteraction }) {
         await onNewDeploymentButtonPress(interaction);
     }

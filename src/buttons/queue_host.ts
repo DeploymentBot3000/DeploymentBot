@@ -1,15 +1,16 @@
-import Button from "./button.js";
-import { buildErrorEmbed } from "../embeds/embed.js";
-import config from "../config.js";
-import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { Duration } from "luxon";
+import config from "../config.js";
+import { buildErrorEmbed } from "../embeds/embed.js";
+import { HotDropQueue } from "../utils/hot_drop_queue.js";
+import Button from "./button.js";
 
 export default new Button({
     id: "host",
     cooldown: Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }),
-    permissions: [],
-    requiredRoles: [{ role: config.hostRole, required: true }],
-    blacklistedRoles: [...config.blacklistedRoles],
+    permissions: {
+        requireRoles: [config.hostRole],
+        deniedRoles: config.deniedRoles,
+    },
     callback: async function ({ interaction }) {
         await interaction.deferUpdate();
 

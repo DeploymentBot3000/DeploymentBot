@@ -1,11 +1,11 @@
-import Button from "./button.js";
-import Deployment from "../tables/Deployment.js";
-import { buildInfoEmbed, buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
-import config from "../config.js";
-import Signups from "../tables/Signups.js";
-import Backups from "../tables/Backups.js";
 import { DateTime, Duration } from "luxon";
+import config from "../config.js";
+import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../embeds/embed.js";
+import Backups from "../tables/Backups.js";
+import Deployment from "../tables/Deployment.js";
+import Signups from "../tables/Signups.js";
 import { sendEmbedToLogChannel, sendErrorToLogChannel } from "../utils/log_channel.js";
+import Button from "./button.js";
 
 function buildDeploymentDeletedConfirmationEmbed(deploymentTitle: string, timeToDeployment: Duration) {
     return buildInfoEmbed()
@@ -37,9 +37,9 @@ function buildDeploymentDeletedConfirmationEmbedForLog(deployment: Deployment, s
 export default new Button({
     id: "deleteDeployment",
     cooldown: Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }),
-    permissions: [],
-    requiredRoles: [],
-    blacklistedRoles: [...config.blacklistedRoles],
+    permissions: {
+        deniedRoles: config.deniedRoles,
+    },
     callback: async function ({ interaction }) {
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
 

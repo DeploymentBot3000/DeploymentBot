@@ -11,9 +11,9 @@ import Button from "./button.js";
 export default new Button({
     id: "leaveDeployment",
     cooldown: Duration.fromDurationLike({ seconds: 0 }),
-    permissions: [],
-    requiredRoles: [],
-    blacklistedRoles: [...config.blacklistedRoles],
+    permissions: {
+        deniedRoles: config.deniedRoles,
+    },
     callback: async function ({ interaction }) {
         try {
             // Fetch the member to ensure they still exist in the guild
