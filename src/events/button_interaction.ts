@@ -1,19 +1,17 @@
 import colors from "colors";
-import { log } from "../utils/logger.js";
 import { ButtonInteraction } from "discord.js";
-import checkBlacklist from "../utils/interaction/checkBlacklist.js";
-import hasRequiredPermissions from "../utils/interaction/hasRequiredPermissions.js";
-import hasRequiredRoles from "../utils/interaction/hasRequiredRoles.js";
+import { log } from "../utils/logger.js";
+import { checkBlacklist, hasRequiredPermissions, hasRequiredRoles } from "../utils/permissions.js";
 
+import Button from "../buttons/button.js";
 import deleteDeployment from "../buttons/deployment_delete.js";
-import { DeploymentEditButton } from "../interactions/deployment_edit.js";
+import leaveDeployment from "../buttons/deployment_leave.js";
 import host from "../buttons/queue_host.js";
 import join from "../buttons/queue_join.js";
 import leave from "../buttons/queue_leave.js";
-import leaveDeployment from "../buttons/deployment_leave.js";
-import Button from "../buttons/button.js";
-import { userIsOnCooldownWithReply } from "../utils/interaction/checkCooldown.js";
+import { DeploymentEditButton } from "../interactions/deployment_edit.js";
 import { DeploymentNewButton } from "../interactions/deployment_new.js";
+import { userIsOnCooldownWithReply } from "../utils/interaction/checkCooldown.js";
 
 const _kButtons: Map<string, Button> = new Map();
 

@@ -2,12 +2,10 @@ import colors from "colors";
 import { AnySelectMenuInteraction } from "discord.js";
 import SelectMenu from "../classes/SelectMenu.js";
 import signup from "../selectMenus/deployment_role_select.js";
-import checkBlacklist from "../utils/interaction/checkBlacklist.js";
 import { userIsOnCooldownWithReply } from "../utils/interaction/checkCooldown.js";
-import hasRequiredPermissions from "../utils/interaction/hasRequiredPermissions.js";
-import hasRequiredRoles from "../utils/interaction/hasRequiredRoles.js";
 import { sendErrorToLogChannel } from "../utils/log_channel.js";
 import { error, log } from "../utils/logger.js";
+import { checkBlacklist, hasRequiredPermissions, hasRequiredRoles } from "../utils/permissions.js";
 
 const _kSelectMenus: Map<string, SelectMenu> = new Map();
 
