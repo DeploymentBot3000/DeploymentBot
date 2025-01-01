@@ -120,15 +120,13 @@ export class DeploymentManager {
         console.log(`Cleared last input data!`);
     }
 
-    public async create(userId: Snowflake, channel: GuildTextBasedChannel, details: DeploymentDetails) {
-        let msg: Message = null;
-
+    public async create(details: DeploymentDetails): Promise<DeploymentDetails> {
         try {
             await dataSource.transaction(async (entityManager: EntityManager) => {
                 const deployment = entityManager.create(Deployment, {
-                    channel: channel.id,
+                    channel: details.channel.id,
                     message: "",
-                    user: userId,
+                    user: details.host.guildMember.user.id,
                     title: details.title,
                     difficulty: details.difficulty,
                     description: details.description,
@@ -137,14 +135,14 @@ export class DeploymentManager {
                     started: false,
                     deleted: false,
                     edited: false,
-                    noticeSent: false
+                    noticeSent: false,
                 });
                 await entityManager.save(deployment);
 
                 const signup = entityManager.create(Signups, {
                     deploymentId: deployment.id,
-                    userId: userId,
-                    role: "Offense"
+                    userId: details.host.guildMember.user.id,
+                    role: details.host.role,
                 });
                 await entityManager.save(signup);
 
@@ -152,19 +150,19 @@ export class DeploymentManager {
 
                 // Send the message as part of the transaction so we can save the message id to the deployment.
                 // If the transaction fails, the message is deleted in the catch block below.
-                msg = await _sendDeploymentSignupMessage(details);
+                details.message = await _sendDeploymentSignupMessage(details);
+                deployment.message = details.message.id;
 
-                deployment.message = msg.id;
                 await entityManager.save(deployment);
             });
         } catch (e: any) {
-            if (msg) {
+            if (details.message) {
                 await sendErrorToLogChannel(new Error('Deleting signup message for partially created deployment'), this._client);
-                await msg.delete().catch((e: any) => sendErrorToLogChannel(e, this._client));
+                await details.message.delete().catch((e: any) => sendErrorToLogChannel(e, this._client));
             }
             throw e;
         }
-        return msg;
+        return details;
     }
 
     public async update(deploymentId: number, details: DeploymentDetails): Promise<DeploymentDetails> {
