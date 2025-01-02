@@ -8,7 +8,7 @@ import join from "../buttons/queue_join.js";
 import leave from "../buttons/queue_leave.js";
 import { DeploymentEditButton } from "../interactions/deployment_edit.js";
 import { DeploymentNewButton } from "../interactions/deployment_new.js";
-import { userIsOnCooldownWithReply } from "../utils/cooldowns.js";
+import { checkCooldown } from "../utils/cooldowns.js";
 import { replyWithError } from "../utils/interaction_replies.js";
 import { log } from "../utils/logger.js";
 import { checkPermissions } from "../utils/permissions.js";
@@ -34,14 +34,17 @@ export default {
 			throw new Error(`Button: ${interaction.customId} not found!`);
 		}
 
-		const e = await checkPermissions(interaction.member, button.permissions);
+		let e = await checkPermissions(interaction.member, button.permissions);
 		if (e) {
 			await replyWithError(interaction, e.message);
 			return;
 		}
 
-		if (await userIsOnCooldownWithReply(interaction, button.id, button.cooldown)) { return; }
-
+		e = checkCooldown(interaction.user.id, button.id, button.cooldown);
+		if (e) {
+			await replyWithError(interaction, e.message);
+			return;
+		}
 
 		log(`${colors.cyan('[Button Clicked]')} ${colors.yellow(interaction.customId)} ${colors.blue('||')} ${colors.green('Author:')} ${colors.magenta(interaction.user.username)}`);
 		await button.callback({ interaction });

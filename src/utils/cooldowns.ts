@@ -1,27 +1,6 @@
-import { AnySelectMenuInteraction, ButtonInteraction, Snowflake } from "discord.js";
+import { Snowflake } from "discord.js";
 import { DateTime, Duration } from "luxon";
-import { buildErrorEmbed } from "../embeds/embed.js";
 import { debug } from "./logger.js";
-
-/**
- * Check if the user is on cooldown for the interaction and reply with an error if they are.
- * @returns true if the user is on cooldown, otherwise false.
- */
-export async function userIsOnCooldownWithReply(interaction: AnySelectMenuInteraction | ButtonInteraction, interactionItemId: string, cooldown: Duration): Promise<boolean> {
-    const error = checkCooldown(interaction.user.id, interactionItemId, cooldown);
-    if (error instanceof Error) {
-        if (interaction.isAnySelectMenu()) {
-            // Force update to reset the select menu.
-            await interaction.message.edit({});
-        }
-        await interaction.reply({
-            embeds: [buildErrorEmbed()
-                .setDescription(error.toString())], ephemeral: true
-        });
-        return true;
-    }
-    return false;
-}
 
 /**
  * A map of user IDs and interaction item IDs to the last time the user used the interaction.
@@ -31,7 +10,7 @@ const _kCooldowns: Map<string, DateTime> = new Map();
 /**
  * @returns An error if the user is on cooldown, otherwise null.
  */
-function checkCooldown(userId: Snowflake, interactionItemId: string, cooldown: Duration) {
+export function checkCooldown(userId: Snowflake, interactionItemId: string, cooldown: Duration): Error {
     const lastUsage = _kCooldowns.get(`${userId}-${interactionItemId}`);
     debug(`Cooldown Last usage: ${lastUsage}; ${userId}-${interactionItemId}`);
     const now = DateTime.now();
