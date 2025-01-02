@@ -2,7 +2,7 @@ import colors from "colors";
 import { AnySelectMenuInteraction } from "discord.js";
 import SelectMenu from "../classes/SelectMenu.js";
 import signup from "../selectMenus/deployment_role_select.js";
-import { userIsOnCooldownWithReply } from "../utils/cooldowns.js";
+import { checkCooldown } from "../utils/cooldowns.js";
 import { replyWithError } from "../utils/interaction_replies.js";
 import { sendErrorToLogChannel } from "../utils/log_channel.js";
 import { error, log } from "../utils/logger.js";
@@ -21,13 +21,19 @@ export default {
         const selectMenu = getSelectMenuById(interaction.customId) || getSelectMenuById(interaction.customId.split("-")[0]);
         if (!selectMenu) return;
 
-        const e = await checkPermissions(interaction.member, selectMenu.permissions);
+        let e = await checkPermissions(interaction.member, selectMenu.permissions);
         if (e) {
             await replyWithError(interaction, e.message);
             return;
         }
 
-        if (await userIsOnCooldownWithReply(interaction, selectMenu.id, selectMenu.cooldown)) { return; }
+        e = checkCooldown(interaction.user.id, selectMenu.id, selectMenu.cooldown);
+        if (e) {
+            // Force update to reset the select menu.
+            await interaction.message.edit({});
+            await replyWithError(interaction, e.message);
+            return;
+        }
 
         try {
             log(`[Select Menu Clicked] ${interaction.customId} ${colors.blue("||")} Author: ${interaction.user.username} ${colors.blue("||")} ID: ${interaction.user.id} ${colors.blue("||")} Server: ${interaction.guild?.name || "DM"}`);
