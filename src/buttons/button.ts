@@ -19,7 +19,7 @@ export function buildButton(name: keyof typeof config.buttons) {
     return button;
 }
 
-export default class Button {
+export class Button {
     public id: string;
     public cooldown?: Duration;
     public permissions: PermissionsConfig;
@@ -36,4 +36,4 @@ export default class Button {
         this.permissions = permissions;
         this.callback = callback;
     }
-}
+};

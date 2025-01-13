@@ -10,7 +10,7 @@ import {
     User
 } from "discord.js";
 import { DateTime, Duration } from "luxon";
-import Button from "../buttons/button.js";
+import { Button } from "../buttons/button.js";
 import Modal from "../classes/Modal.js";
 import config from "../config.js";
 import { buildDeploymentEmbed } from "../embeds/deployment.js";
