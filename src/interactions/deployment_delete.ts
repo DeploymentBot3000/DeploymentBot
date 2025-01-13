@@ -1,40 +1,13 @@
 import { DateTime, Duration } from "luxon";
+import { Button } from "../buttons/button.js";
 import config from "../config.js";
 import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../embeds/embed.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import { sendEmbedToLogChannel, sendErrorToLogChannel } from "../utils/log_channel.js";
-import Button from "./button.js";
 
-function buildDeploymentDeletedConfirmationEmbed(deploymentTitle: string, timeToDeployment: Duration) {
-    return buildInfoEmbed()
-        .setColor('#FFA500')  // Orange
-        .setTitle("Deployment Deleted!")
-        .setDescription(`A deployment you were signed up for has been deleted!\nDeployment Name: ${deploymentTitle}\n Scheduled to start in: ${timeToDeployment.toHuman()}`);
-}
-
-function getRoleEmoji(roleName: string) {
-    return config.roles.find(role => role.name === roleName).emoji;
-}
-
-function buildDeploymentDeletedConfirmationEmbedForLog(deployment: Deployment, signups: Signups[], backups: Backups[]) {
-    const hostRoleEmoji = getRoleEmoji(signups.filter(player => player.userId == deployment.user).at(0).role);
-    const description = `Title: ${deployment.title}\n`
-        + `Channel: <#${deployment.channel}>\n`
-        + `Start Time: ${DateTime.fromMillis(Number(deployment.startTime)).toISO()}\n`
-        + `Host: ${hostRoleEmoji} <@${deployment.user}>\n`
-        + `Fireteam: ${signups.filter(player => player.userId != deployment.user).map(player => `${getRoleEmoji(player.role)} <@${player.userId}>`).join(', ') || '` - `'}\n`
-        + `Backups: ${backups.map(player => `${config.backupEmoji} <@${player.userId}>`).join(', ') || '` - `'}`;
-
-    return buildInfoEmbed()
-        .setColor('#FFA500')  // Orange
-        .setTitle("Deployment Deleted!")
-        .setDescription(description);
-}
-
-
-export default new Button({
+export const DeploymentDeleteButton = new Button({
     id: "deleteDeployment",
     cooldown: Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }),
     permissions: {
@@ -70,7 +43,7 @@ export default new Button({
                 // Catch individial message failures so we don't interrupt the other messages from being sent.
                 try {
                     const user = await client.users.fetch(player.userId);
-                    const embed = buildDeploymentDeletedConfirmationEmbed(deployment.title, timeToDeployment);
+                    const embed = _buildDeploymentDeletedConfirmationEmbed(deployment.title, timeToDeployment);
                     await user.send({ embeds: [embed] });
                 } catch (e) {
                     sendErrorToLogChannel(e, client);
@@ -78,7 +51,7 @@ export default new Button({
 
             }));
 
-            const embed = buildDeploymentDeletedConfirmationEmbedForLog(deployment, signups, backups);
+            const embed = _buildDeploymentDeletedConfirmationEmbedForLog(deployment, signups, backups);
             sendEmbedToLogChannel(embed, client);
         } catch (e) {
             sendErrorToLogChannel(e, client);
@@ -94,4 +67,30 @@ export default new Button({
 
         await interaction.message.delete();
     }
-})
+});
+
+function _buildDeploymentDeletedConfirmationEmbed(deploymentTitle: string, timeToDeployment: Duration) {
+    return buildInfoEmbed()
+        .setColor('#FFA500')  // Orange
+        .setTitle("Deployment Deleted!")
+        .setDescription(`A deployment you were signed up for has been deleted!\nDeployment Name: ${deploymentTitle}\n Scheduled to start in: ${timeToDeployment.toHuman()}`);
+}
+
+function _getRoleEmoji(roleName: string) {
+    return config.roles.find(role => role.name === roleName).emoji;
+}
+
+function _buildDeploymentDeletedConfirmationEmbedForLog(deployment: Deployment, signups: Signups[], backups: Backups[]) {
+    const hostRoleEmoji = _getRoleEmoji(signups.filter(player => player.userId == deployment.user).at(0).role);
+    const description = `Title: ${deployment.title}\n`
+        + `Channel: <#${deployment.channel}>\n`
+        + `Start Time: ${DateTime.fromMillis(Number(deployment.startTime)).toISO()}\n`
+        + `Host: ${hostRoleEmoji} <@${deployment.user}>\n`
+        + `Fireteam: ${signups.filter(player => player.userId != deployment.user).map(player => `${_getRoleEmoji(player.role)} <@${player.userId}>`).join(', ') || '` - `'}\n`
+        + `Backups: ${backups.map(player => `${config.backupEmoji} <@${player.userId}>`).join(', ') || '` - `'}`;
+
+    return buildInfoEmbed()
+        .setColor('#FFA500')  // Orange
+        .setTitle("Deployment Deleted!")
+        .setDescription(description);
+}

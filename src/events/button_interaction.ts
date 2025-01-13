@@ -1,13 +1,13 @@
 import colors from "colors";
 import { ButtonInteraction } from "discord.js";
-import Button from "../buttons/button.js";
-import deleteDeployment from "../buttons/deployment_delete.js";
-import leaveDeployment from "../buttons/deployment_leave.js";
-import host from "../buttons/queue_host.js";
-import join from "../buttons/queue_join.js";
-import leave from "../buttons/queue_leave.js";
+import { Button } from "../buttons/button.js";
+import { DeploymentDeleteButton } from "../interactions/deployment_delete.js";
 import { DeploymentEditButton } from "../interactions/deployment_edit.js";
+import { DeploymentLeaveButton } from "../interactions/deployment_leave.js";
 import { DeploymentNewButton } from "../interactions/deployment_new.js";
+import { QueueHostButton } from "../interactions/queue_host.js";
+import { QueueJoinButton } from "../interactions/queue_join.js";
+import { QueueLeaveButton } from "../interactions/queue_leave.js";
 import { checkCooldown } from "../utils/cooldowns.js";
 import { replyWithError } from "../utils/interaction_replies.js";
 import { log } from "../utils/logger.js";
@@ -15,12 +15,12 @@ import { checkPermissions } from "../utils/permissions.js";
 
 const _kButtons: Map<string, Button> = new Map();
 
-_kButtons.set(deleteDeployment.id, deleteDeployment);
+_kButtons.set(DeploymentDeleteButton.id, DeploymentDeleteButton);
 _kButtons.set(DeploymentEditButton.id, DeploymentEditButton);
-_kButtons.set(host.id, host);
-_kButtons.set(join.id, join);
-_kButtons.set(leave.id, leave);
-_kButtons.set(leaveDeployment.id, leaveDeployment);
+_kButtons.set(QueueHostButton.id, QueueHostButton);
+_kButtons.set(QueueJoinButton.id, QueueJoinButton);
+_kButtons.set(QueueLeaveButton.id, QueueLeaveButton);
+_kButtons.set(DeploymentLeaveButton.id, DeploymentLeaveButton);
 _kButtons.set(DeploymentNewButton.id, DeploymentNewButton);
 
 function getButtonById(id: string): Button | undefined {

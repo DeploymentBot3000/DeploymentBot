@@ -1,14 +1,14 @@
 import { Colors } from "discord.js";
 import { Duration } from "luxon";
+import { Button } from "../buttons/button.js";
 import config from "../config.js";
 import { deprecated_buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 import { buildErrorEmbed } from "../embeds/embed.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
-import Button from "./button.js";
 
-export default new Button({
+export const DeploymentLeaveButton = new Button({
     id: "leaveDeployment",
     cooldown: Duration.fromDurationLike({ seconds: 0 }),
     permissions: {
@@ -95,4 +95,4 @@ export default new Button({
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true }).catch(() => { });
         }
     }
-}) 
+});
