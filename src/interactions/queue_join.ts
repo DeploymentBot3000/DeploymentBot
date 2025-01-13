@@ -1,10 +1,10 @@
 import { Duration } from "luxon";
+import { Button } from "../buttons/button.js";
 import config from "../config.js";
 import { buildErrorEmbed } from "../embeds/embed.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
-import Button from "./button.js";
 
-export default new Button({
+export const QueueJoinButton = new Button({
     id: "join",
     cooldown: Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }),
     permissions: {
@@ -24,4 +24,4 @@ export default new Button({
             content: 'You joined the Hot Drop Queue'
         });
     }
-})
+});
