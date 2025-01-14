@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Colors, EmbedBuilder, Guild, GuildMember, GuildTextBasedChannel, Message, Snowflake, StringSelectMenuBuilder, TextChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Colors, EmbedBuilder, Guild, GuildMember, GuildTextBasedChannel, Message, PermissionFlagsBits, Snowflake, StringSelectMenuBuilder, TextChannel, User } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import cron from 'node-cron';
 import { EntityManager, In, LessThanOrEqual } from "typeorm";
@@ -202,6 +202,51 @@ export class DeploymentManager {
                 oldDetails: oldDetails,
                 newDetails: newDetails,
             };
+        });
+    }
+
+    public async remove(member: GuildMember, targetUser: User, deploymentTitle: string): Promise<DeploymentDetails | Error> {
+        return await dataSource.transaction(async (entityManager: EntityManager) => {
+            const deployment = await entityManager.findOne(Deployment, {
+                where: {
+                    title: deploymentTitle,
+                    deleted: false,
+                    started: false
+                }
+            });
+            if (!deployment) {
+                return new Error(`Can't find deployment with title: ${deploymentTitle}; Or the deployment is deleted/started`);
+            }
+
+            // Check if user is admin or deployment host
+            const isAdmin = member.permissions.has(PermissionFlagsBits.Administrator);
+            const isHost = deployment.user === member.id;
+
+            if (!isAdmin && !isHost) {
+                return new Error('Only host or admin can remove players');
+            }
+
+            // Prevent removing self
+            if (targetUser.id === member.id) {
+                return new Error('You cannot remove yourself from the deployment');
+            }
+
+            // Find and remove user from signups or backups
+            let signups = await entityManager.find(Signups, { where: { deploymentId: deployment.id } });
+            let backups = await entityManager.find(Backups, { where: { deploymentId: deployment.id } });
+
+            const signup = _spliceItem(signups, s => s.userId == targetUser.id);
+            if (signup) {
+                await entityManager.remove(signup);
+            } else {
+                const backup = _spliceItem(backups, b => b.userId == targetUser.id);
+                if (backup) {
+                    await entityManager.remove(backup);
+                } else {
+                    return new Error('User is not signed up for this deployment');
+                }
+            }
+            return await deploymentToDetails(this._client, deployment, signups, backups);
         });
     }
 
@@ -426,4 +471,12 @@ function formatBackups(backups: DeploymentMember[]) {
 
 function formatHost(host: DeploymentMember) {
     return `<@${host.guildMember.user.id}>`;
+}
+
+function _spliceItem<T>(array: T[], predicate: (item: T) => boolean): T | undefined {
+    const index = array.findIndex(predicate);
+    if (index !== -1) {
+        return array.splice(index, 1)[0];
+    }
+    return undefined;
 }
