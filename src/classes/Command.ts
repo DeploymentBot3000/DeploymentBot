@@ -20,7 +20,7 @@ export default class Command {
     public permissions: PermissionsConfig;
     public options: ApplicationCommandOption[];
     public callback: (params: {
-        interaction: ChatInputCommandInteraction;
+        interaction: ChatInputCommandInteraction<'cached'>;
         options: OmittedCommandInteractionOptionResolver
     }) => Promise<void>;
     public autocomplete?: (params: {
@@ -28,7 +28,7 @@ export default class Command {
     }) => void;
     public constructor({ name, description, permissions, options, callback, autocomplete }: {
         name: string, description: string, permissions: PermissionsConfig, options: ApplicationCommandOption[], callback: (params: {
-            interaction: ChatInputCommandInteraction;
+            interaction: ChatInputCommandInteraction<'cached'>;
             options: OmittedCommandInteractionOptionResolver;
         }) => Promise<void>, autocomplete?: (params: {
             interaction: AutocompleteInteraction;

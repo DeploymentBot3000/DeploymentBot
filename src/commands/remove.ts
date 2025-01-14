@@ -1,13 +1,14 @@
-import { ApplicationCommandOptionType, AutocompleteInteraction, Colors, GuildMember, PermissionFlagsBits } from "discord.js";
+import { ApplicationCommandOptionType, AutocompleteInteraction, ChatInputCommandInteraction, Colors, GuildMember, PermissionFlagsBits, User } from "discord.js";
 import { Like } from "typeorm";
 import Command from "../classes/Command.js";
 import discord_server from "../config/discord_server.js";
-import { deprecated_buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
-import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../embeds/embed.js";
-import Backups from "../tables/Backups.js";
+import { buildDeploymentEmbed } from "../embeds/deployment.js";
+import { buildInfoEmbed } from "../embeds/embed.js";
 import Deployment from "../tables/Deployment.js";
-import Signups from "../tables/Signups.js";
-import { action, success, warn } from "../utils/logger.js";
+import { DeploymentManager } from "../utils/deployments.js";
+import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
+import { sendErrorToLogChannel } from "../utils/log_channel.js";
+import { action, success } from "../utils/logger.js";
 
 export default new Command({
     name: "remove",
@@ -55,114 +56,47 @@ export default new Command({
             }))
         );
     },
-    callback: async function ({ interaction }) {
-        const member = interaction.member as GuildMember;
+    callback: async function ({ interaction }: { interaction: ChatInputCommandInteraction<'cached'> }) {
         const targetUser = interaction.options.getUser("user");
         const deploymentTitle = interaction.options.getString("deployment");
-
+        const reason = interaction.options.getString("reason") || "No reason provided";
         action(`${interaction.user.tag} attempting to remove ${targetUser.tag} from deployment "${deploymentTitle}"`, "Remove");
 
-        // Find the deployment
-        const deployment = await Deployment.findOne({ 
-            where: { 
-                title: deploymentTitle,
-                deleted: false,
-                started: false
-            } 
-        });
-
-        if (!deployment) {
-            warn(`Attempted removal from non-existent deployment "${deploymentTitle}"`, "Remove");
-            return;
-        }
-
-        // Check if user is admin or deployment host
-        const isAdmin = member.permissions.has("Administrator");
-        const isHost = deployment.user === interaction.user.id;
-
-        if (!isAdmin && !isHost) {
-            warn(`${interaction.user.tag} attempted unauthorized removal from deployment`, "Remove");
-            return;
-        }
-
-        // Prevent removing self
-        if (targetUser.id === interaction.user.id) {
-            await interaction.reply({ 
-                embeds: [buildErrorEmbed()
-                    .setDescription("You cannot remove yourself from the deployment")], 
-                ephemeral: true 
-            });
-            return;
-        }
-
-        // Find and remove user from signups or backups
-        const signup = await Signups.findOne({ 
-            where: { 
-                deploymentId: deployment.id, 
-                userId: targetUser.id 
-            } 
-        });
-        const backup = await Backups.findOne({ 
-            where: { 
-                deploymentId: deployment.id, 
-                userId: targetUser.id 
-            } 
-        });
-
-        if (!signup && !backup) {
-            await interaction.reply({ 
-                embeds: [buildErrorEmbed()
-                    .setDescription("User is not signed up for this deployment")], 
-                ephemeral: true 
-            });
-            return;
-        }
-
-        // Remove from database
-        if (signup) await signup.remove();
-        if (backup) await backup.remove();
-
-        const reason = interaction.options.getString("reason") || "No reason provided";
-
-        // Send DM to removed user
+        await interaction.deferReply({ ephemeral: true });
         try {
-            await targetUser.send({
-                embeds: [buildInfoEmbed()
-                    .setTitle("Deployment Removal")
-                    .setDescription(`You have been removed from the deployment: **${deployment.title}**\n**By:** <@${interaction.user.id}>\n**Reason:** ${reason}`)
-                ]
-            });
-        } catch (error) {
-            console.error("Failed to send DM to removed user:", error);
-        }
-
-        // Update deployment message
-        try {
-            const channel = await interaction.client.channels.fetch(deployment.channel);
-            if (!channel?.isTextBased()) {
-                console.error("Channel not found or not text-based:", deployment.channel);
-                throw new Error("Channel not found or not text-based");
+            const error = await _removePlayerFromDeployment(interaction.member, targetUser, deploymentTitle, reason);
+            if (error instanceof Error) {
+                await editReplyWithError(interaction, error.message);
+                return;
             }
-            const message = await channel.messages.fetch(deployment.message);
-            const embed = await deprecated_buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
-
-            await message.edit({ embeds: [embed] });
-        } catch (error) {
-            console.error("Failed to update deployment message:", error);
-            await interaction.reply({ 
-                embeds: [buildErrorEmbed()
-                    .setDescription("Successfully removed user but failed to update deployment message")], 
-                ephemeral: true 
-            });
-            return;
+        } catch (e: any) {
+            await editReplyWithError(interaction, 'An error occured while removing the player');
+            throw e;
         }
-
+        await editReplyWithSuccess(interaction, 'Succesfuly removed player');
         success(`${targetUser.tag} removed from deployment "${deploymentTitle}" by ${interaction.user.tag}`, "Remove");
-
-        await interaction.reply({ 
-            embeds: [buildSuccessEmbed()
-                .setDescription(`Successfully removed <@${targetUser.id}> from the deployment\nReason: ${reason}`)], 
-            ephemeral: true 
-        });
     }
-}); 
+});
+
+async function _removePlayerFromDeployment(member: GuildMember, targetUser: User, deploymentTitle: string, reason: string): Promise<Error> {
+    const newDetails = await DeploymentManager.get().remove(member, targetUser, deploymentTitle);
+    if (newDetails instanceof Error) {
+        return newDetails;
+    }
+
+    const embed = buildDeploymentEmbed(newDetails, Colors.Green, /*started=*/false);
+    await newDetails.message.edit({ embeds: [embed] });
+
+    // Send DM to removed user
+    try {
+        await targetUser.send({
+            embeds: [buildInfoEmbed()
+                .setTitle("Deployment Removal")
+                .setDescription(`You have been removed from deployment: **${deploymentTitle}**\n**By:** <@${member.id}>\n**Reason:** ${reason}`)
+            ]
+        });
+    } catch (e) {
+        await sendErrorToLogChannel(e, member.client);
+    }
+    return null;
+}
