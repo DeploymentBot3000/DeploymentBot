@@ -24,11 +24,11 @@ export class Button {
     public cooldown?: Duration;
     public permissions: PermissionsConfig;
     public callback: (params: {
-        interaction: ButtonInteraction;
+        interaction: ButtonInteraction<'cached'>;
     }) => Promise<void>;
     public constructor({ id, cooldown, permissions, callback }: {
         id: string; cooldown: Duration; permissions: PermissionsConfig; callback: (params: {
-            interaction: ButtonInteraction;
+            interaction: ButtonInteraction<'cached'>;
         }) => Promise<void>;
     }) {
         this.id = id;

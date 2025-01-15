@@ -1,3 +1,4 @@
+import { ButtonInteraction, PermissionFlagsBits } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import { Button } from "../buttons/button.js";
 import config from "../config.js";
@@ -13,7 +14,7 @@ export const DeploymentDeleteButton = new Button({
     permissions: {
         deniedRoles: config.deniedRoles,
     },
-    callback: async function ({ interaction }) {
+    callback: async function ({ interaction }: { interaction: ButtonInteraction<'cached'> }) {
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
 
         if (!deployment) {
@@ -24,7 +25,8 @@ export const DeploymentDeleteButton = new Button({
             return;
         }
 
-        if (deployment.user !== interaction.user.id) {
+        const isAdmin = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
+        if (!(isAdmin || deployment.user == interaction.user.id)) {
             const errorEmbed = buildErrorEmbed()
                 .setDescription("You do not have permission to delete this deployment");
 
