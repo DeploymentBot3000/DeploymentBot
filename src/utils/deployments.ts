@@ -340,7 +340,7 @@ async function _startDeployments(client: Client, now: DateTime) {
                     { name: "Title", value: deployment.title, inline: true },
                     { name: "Host", value: formatHost(details.host), inline: true },
                     { name: "Difficulty", value: deployment.difficulty, inline: true },
-                    { name: "Time", value: formatDiscordTime(DateTime.fromMillis(deployment.startTime)), inline: false },
+                    { name: "Time", value: formatDiscordTime(DateTime.fromMillis(Number(deployment.startTime))), inline: false },
                     { name: "Players", value: formatSignups(details.signups, details.host), inline: true },
                     { name: "Backups", value: formatBackups(details.backups), inline: true },
                     { name: "Description", value: deployment.description || "No description provided" }
