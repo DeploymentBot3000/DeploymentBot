@@ -1,5 +1,5 @@
 import { DateTime, Duration } from "luxon";
-import config from "../config.js";
+import { config } from "../config.js";
 
 const _kDateInputErrorDescription: string = `# Invalid start time format\n
 Please use on of the following formats:\n

@@ -1,10 +1,10 @@
 import { GuildMember, GuildTextBasedChannel, VoiceChannel } from "discord.js";
+import { config } from "../config.js";
 import { client } from "../custom_client.js";
-import Queue from "../tables/Queue.js";
-import config from "../config.js";
-import { logHotDropStarted } from "./queueLogger.js";
-import { debug, success } from "./logger.js";
 import { buildSuccessEmbed } from "../embeds/embed.js";
+import Queue from "../tables/Queue.js";
+import { debug, success } from "./logger.js";
+import { logHotDropStarted } from "./queueLogger.js";
 import { VoiceChannelManager } from "./voice_channels.js";
 
 // Add this function to generate a random 4-digit number

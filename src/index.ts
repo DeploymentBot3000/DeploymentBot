@@ -1,5 +1,5 @@
 import { Events, Interaction } from "discord.js";
-import config from "./config.js";
+import { config } from "./config.js";
 import { client } from "./custom_client.js";
 import autocompleteInteraction from "./events/auto_complete_Interaction.js";
 import buttonInteraction from "./events/button_interaction.js";
