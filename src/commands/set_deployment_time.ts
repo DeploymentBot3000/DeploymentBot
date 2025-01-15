@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
+import { ApplicationCommandOptionType } from "discord.js";
 import { Duration } from "luxon";
 import ms from "ms";
 import Command from "../classes/Command.js";
@@ -25,7 +25,7 @@ export default new Command({
     name: "set-deployment-time",
     description: "Set the deployment time",
     permissions: {
-        requiredPermissions: [PermissionFlagsBits.Administrator]
+        requiredPermissions: ["Administrator"]
     },
     options: [
         {
