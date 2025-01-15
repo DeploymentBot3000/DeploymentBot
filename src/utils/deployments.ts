@@ -157,6 +157,8 @@ export class DeploymentManager {
                 await entityManager.save(deployment);
             });
         } catch (e: any) {
+            console.log(e);
+            console.log(details.message);
             if (details.message) {
                 await sendErrorToLogChannel(new Error('Deleting signup message for partially created deployment'), this._client);
                 await details.message.delete().catch((e: any) => sendErrorToLogChannel(e, this._client));
