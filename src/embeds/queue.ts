@@ -154,7 +154,7 @@ export default async function buildQueuePanelEmbed(notEnoughPlayers: boolean = f
             },
             {
                 name: ' ',
-                value: "⚠️**┃**Failing to attend an assigned Hot Drop will result in **3 Sanction points**.",
+                value: "⚠️**┃**Failing to attend an assigned Hot Drop will result in a **strike**.",
             },
             ...fields,
             {
