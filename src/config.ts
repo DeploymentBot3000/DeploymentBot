@@ -20,7 +20,7 @@ export default {
     },
     guildId: discord_server.guild_id,
 
-    hostRole: discord_server.roles.host_role_id,
+    hostRoles: discord_server.roles.host_role_ids,
     deniedRoles: discord_server.roles.denied_role_ids,
     
     departureChannel: discord_server.channels.departure_channel_id,
