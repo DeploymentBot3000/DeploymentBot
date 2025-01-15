@@ -26,6 +26,9 @@ function _hasRequiredPermissions(member: GuildMember, permissions: PermissionRes
 }
 
 function _hasRequiredRole(member: GuildMember, roles: Role[]): Error {
+    if (!roles.length) {
+        return null;
+    }
     const hasRoles = roles.filter(role => role.members.hasAny(member.id));
     if (!hasRoles.length) {
         const missingRoles = roles.map(role => role.name).join(", ");
