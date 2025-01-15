@@ -1,16 +1,16 @@
-import { DateTime, Duration } from "luxon";
-import { startQueuedGameImpl } from "./startQueuedGame.js";
-import { sendErrorToLogChannel } from "./log_channel.js";
 import { Client, GuildTextBasedChannel } from "discord.js";
-import QueueStatusMsg from "../tables/QueueStatusMsg.js";
-import buildQueuePanelEmbed from "../embeds/queue.js";
-import { log } from "./logger.js";
-import { getDeploymentTimeSetting, setDeploymentTimeSetting } from "./settings.js";
-import config from "../config.js";
-import Queue from "../tables/Queue.js";
-import { logQueueAction } from "./queueLogger.js";
-import { dataSource } from "../data_source.js";
+import { DateTime, Duration } from "luxon";
 import { EntityManager } from "typeorm";
+import { config } from "../config.js";
+import { dataSource } from "../data_source.js";
+import buildQueuePanelEmbed from "../embeds/queue.js";
+import Queue from "../tables/Queue.js";
+import QueueStatusMsg from "../tables/QueueStatusMsg.js";
+import { sendErrorToLogChannel } from "./log_channel.js";
+import { log } from "./logger.js";
+import { logQueueAction } from "./queueLogger.js";
+import { getDeploymentTimeSetting, setDeploymentTimeSetting } from "./settings.js";
+import { startQueuedGameImpl } from "./startQueuedGame.js";
 
 async function _updateHotDropEmbed(client: Client, notEnoughPlayers: boolean, nextDeploymentTime: DateTime, deploymentCreated: boolean) {
     log("Updating Hot Drop Embed", 'Queue System');

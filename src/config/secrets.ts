@@ -5,4 +5,5 @@ export default {
     db_username: null,
     db_password: null,
     db_name: null,
+    env: "dev",
 }

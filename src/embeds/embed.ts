@@ -1,5 +1,5 @@
 import { ColorResolvable, EmbedBuilder } from "discord.js";
-import config from "../config.js";
+import { config } from "../config.js";
 
 interface EmbedConfigOptions {
     title?: string;

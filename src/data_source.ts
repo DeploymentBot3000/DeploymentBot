@@ -1,5 +1,5 @@
 import { DataSource, DataSourceOptions } from "typeorm";
-import config from "./config.js";
+import { config } from "./config.js";
 import Backups from "./tables/Backups.js";
 import Deployment from "./tables/Deployment.js";
 import LatestInput from "./tables/LatestInput.js";

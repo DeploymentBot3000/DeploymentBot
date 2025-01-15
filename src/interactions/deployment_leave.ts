@@ -1,7 +1,7 @@
 import { Colors } from "discord.js";
 import { Duration } from "luxon";
 import { Button } from "../buttons/button.js";
-import config from "../config.js";
+import { config } from "../config.js";
 import { deprecated_buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 import { buildErrorEmbed } from "../embeds/embed.js";
 import Backups from "../tables/Backups.js";

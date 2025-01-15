@@ -12,7 +12,7 @@ import {
 import { Duration } from "luxon";
 import { Button } from "../buttons/button.js";
 import Modal from "../classes/Modal.js";
-import config from "../config.js";
+import { config } from "../config.js";
 import { buildNewDeploymentModal, getDeploymentModalValues, getDeploymentModalValuesRaw } from "../modals/deployments.js";
 import LatestInput from "../tables/LatestInput.js";
 import { DeploymentManager, DeploymentRole } from "../utils/deployments.js";

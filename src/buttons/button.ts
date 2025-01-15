@@ -1,6 +1,7 @@
 import { ButtonBuilder, ButtonInteraction } from "discord.js";
 import { Duration } from "luxon";
-import config from "../config.js";
+
+import { config } from "../config.js";
 import { PermissionsConfig } from "../utils/permissions.js";
 
 

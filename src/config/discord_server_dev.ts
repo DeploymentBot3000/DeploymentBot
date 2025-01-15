@@ -1,4 +1,4 @@
-export default {
+export const discord_server_config_dev = {
     guild_id: "1312898325074153543",
     roles: {
         host_role_ids: ["1312955795989860542"],
@@ -16,20 +16,10 @@ export default {
             emoji: "🏴‍☠️",
             channel: "1313167910671351808"
         },
-        {
-            name: "EU — Ready to fight across the European front!",
-            emoji: "🇪🇺",
-            channel: "1313167678332211220"
-        },
-        {
-            name: "NA — North American chaos incoming!",
-            emoji: "🇺🇸",
-            channel: "1313167659759570974"
-        }
     ],
     hotdrop_vc_category_prefix: "Hot Drops VC",
     hotdrop_vc_category_max_channels: 3,
     strike_vc_category_prefix: "Strikes VC",
     strike_vc_category_max_channels: 3,
     clear_vc_channels_every_minutes: 5,
-}
+};

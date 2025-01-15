@@ -1,16 +1,16 @@
-import config from "../config.js";
-import colors from "colors";
-import { error, log, success } from "../utils/logger.js";
 import { REST } from '@discordjs/rest';
+import colors from "colors";
 import { Routes } from 'discord-api-types/v10';
 import { Client, Colors } from 'discord.js';
-import { sendEmbedToLogChannel } from "../utils/log_channel.js";
-import { getAllSlashCommands } from "../utils/slash_commands_registery.js";
-import { HotDropQueue } from "../utils/hot_drop_queue.js";
-import { setWakingUpActivity, startActivityInterval } from "../utils/bot_activity.js";
+import { config } from '../config.js';
 import { buildSuccessEmbed } from "../embeds/embed.js";
-import { VoiceChannelManager } from "../utils/voice_channels.js";
+import { setWakingUpActivity, startActivityInterval } from "../utils/bot_activity.js";
 import { DeploymentManager } from "../utils/deployments.js";
+import { HotDropQueue } from "../utils/hot_drop_queue.js";
+import { sendEmbedToLogChannel } from "../utils/log_channel.js";
+import { error, log, success } from "../utils/logger.js";
+import { getAllSlashCommands } from "../utils/slash_commands_registery.js";
+import { VoiceChannelManager } from "../utils/voice_channels.js";
 
 export async function discordClientReadyCallback(client: Client) {
 	try {

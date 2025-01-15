@@ -3,8 +3,7 @@ import { DateTime, Duration } from "luxon";
 import cron from 'node-cron';
 import { EntityManager, In, LessThanOrEqual } from "typeorm";
 import { buildButton } from "../buttons/button.js";
-import config from "../config.js";
-import discord_server_config from "../config/discord_server.js";
+import { config } from "../config.js";
 import { dataSource } from "../data_source.js";
 import { buildDeploymentEmbed } from "../embeds/deployment.js";
 import Backups from "../tables/Backups.js";
@@ -384,7 +383,7 @@ async function _sendDeploymentSignupMessage(deployment: DeploymentDetails) {
     const embed = buildDeploymentEmbed(deployment, Colors.Green, /*started=*/false);
     const rows = _buildDeploymentSignupRows();
 
-    return await deployment.channel.send({ content: `<@${deployment.host.guildMember.id}> is looking for people to group up! ⬇️. <@&${discord_server_config.roles.lfg_role_id}>`, embeds: [embed], components: rows });
+    return await deployment.channel.send({ content: `<@${deployment.host.guildMember.id}> is looking for people to group up! ⬇️. <@&${config.discord_server.roles.lfg_role_id}>`, embeds: [embed], components: rows });
 }
 
 function _buildDeploymentSignupRows() {
