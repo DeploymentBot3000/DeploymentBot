@@ -264,8 +264,7 @@ async function _sendDeploymentNotices(client: Client, now: DateTime) {
     });
 
     for (const deployment of deploymentsNoNotice) {
-        _sendDepartureMessage(client, deployment);
-
+        await _sendDepartureMessage(client, deployment);
     }
 }
 
