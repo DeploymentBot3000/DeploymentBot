@@ -31,7 +31,7 @@ export function buildDeploymentEmbed(details: DeploymentDetails, color: ColorRes
                 name: "Deployment Details:",
                 value: `📅 ${formatDiscordTime(details.startTime, DiscordTimestampFormat.SHORT_DATE)} - [Calendar](${googleCalendarLink})\n
 🕒 ${formatDiscordTime(details.startTime, DiscordTimestampFormat.SHORT_TIME)} - ${formatDiscordTime(details.endTime, DiscordTimestampFormat.SHORT_TIME)}\n
-🪖 ${details.difficulty}`
+❗ ${details.difficulty}`
             },
             {
                 name: "Description:",
