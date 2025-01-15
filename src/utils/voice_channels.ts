@@ -1,9 +1,8 @@
 import { CategoryChannel, CategoryChildChannel, ChannelType, Client, Collection, Guild, PermissionsBitField, Snowflake } from "discord.js";
-import discord_server_config from "../config/discord_server.js";
 import { DateTime, Duration } from "luxon";
-import config from "../config.js";
-import { debug } from "./logger.js";
+import { config } from "../config.js";
 import { sendErrorToLogChannel } from "./log_channel.js";
+import { debug } from "./logger.js";
 
 export class VoiceChannelManager {
     public static async init(client: Client) {
@@ -13,7 +12,7 @@ export class VoiceChannelManager {
         VoiceChannelManager._instance = new VoiceChannelManager(client);
 
         await VoiceChannelManager._instance._clearEmptyVoiceChannels();
-        setInterval(VoiceChannelManager._instance._clearEmptyVoiceChannels.bind(VoiceChannelManager._instance), Duration.fromDurationLike({ 'minutes': discord_server_config.clear_vc_channels_every_minutes }).toMillis()).unref();
+        setInterval(VoiceChannelManager._instance._clearEmptyVoiceChannels.bind(VoiceChannelManager._instance), Duration.fromDurationLike({ 'minutes': config.discord_server.clear_vc_channels_every_minutes }).toMillis()).unref();
     }
 
     public static get(): VoiceChannelManager {
@@ -56,11 +55,11 @@ export class VoiceChannelManager {
     }
 
     private async _clearEmptyVoiceChannels() {
-        const clearVcChannelsInterval = Duration.fromDurationLike({ 'minutes': discord_server_config.clear_vc_channels_every_minutes });
+        const clearVcChannelsInterval = Duration.fromDurationLike({ 'minutes': config.discord_server.clear_vc_channels_every_minutes });
         const deleteChannelAfterVacantFor = clearVcChannelsInterval.minus({ 'seconds': 30 });
         debug("Clearing empty voice channels");
         const guild = this._client.guilds.cache.get(config.guildId);
-        for (const prefix of [discord_server_config.strike_vc_category_prefix, discord_server_config.hotdrop_vc_category_prefix]) {
+        for (const prefix of [config.discord_server.strike_vc_category_prefix, config.discord_server.hotdrop_vc_category_prefix]) {
             for (const vcCategory of _findAllVcCategories(guild, prefix).values()) {
                 for (const channel of vcCategory.children.cache.values()) {
                     await this._removeOldVoiceChannel(this._client, channel, deleteChannelAfterVacantFor);
@@ -90,8 +89,8 @@ export class VoiceChannelManager {
 }
 
 function _findNextAvailableVoiceCategory(guild: Guild, strikeMode: boolean): CategoryChannel {
-    const vcCategoryPrefix = strikeMode ? discord_server_config.strike_vc_category_prefix : discord_server_config.hotdrop_vc_category_prefix;
-    const maxChannels = strikeMode ? discord_server_config.strike_vc_category_max_channels : discord_server_config.hotdrop_vc_category_max_channels;
+    const vcCategoryPrefix = strikeMode ? config.discord_server.strike_vc_category_prefix : config.discord_server.hotdrop_vc_category_prefix;
+    const maxChannels = strikeMode ? config.discord_server.strike_vc_category_max_channels : config.discord_server.hotdrop_vc_category_max_channels;
     let channels = _findAllVcCategories(guild, vcCategoryPrefix)
         .filter(channel => channel.children.cache.size < maxChannels);
     if (!channels.size) {

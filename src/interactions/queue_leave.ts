@@ -1,6 +1,6 @@
 import { Duration } from "luxon";
 import { Button } from "../buttons/button.js";
-import config from "../config.js";
+import { config } from "../config.js";
 import { buildErrorEmbed } from "../embeds/embed.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 

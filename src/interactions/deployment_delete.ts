@@ -1,7 +1,7 @@
 import { ButtonInteraction, PermissionFlagsBits } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import { Button } from "../buttons/button.js";
-import config from "../config.js";
+import { config } from "../config.js";
 import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../embeds/embed.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";

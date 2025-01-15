@@ -1,5 +1,5 @@
 import colors from "colors";
-import config from "../config.js";
+import { config } from "../config.js";
 
 export function log(text: string, context?: string) {
 	const date = new Date().toTimeString().split(/ +/)[0];

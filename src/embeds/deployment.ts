@@ -1,5 +1,5 @@
 import { ColorResolvable, EmbedBuilder } from "discord.js";
-import config from "../config.js";
+import { config } from "../config.js";
 import { client } from "../custom_client.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";

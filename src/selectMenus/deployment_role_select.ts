@@ -1,7 +1,7 @@
 import { AnySelectMenuInteraction, Colors, StringSelectMenuInteraction } from "discord.js";
 import { Duration } from "luxon";
 import SelectMenu from "../classes/SelectMenu.js";
-import config from "../config.js";
+import { config } from "../config.js";
 import { deprecated_buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
