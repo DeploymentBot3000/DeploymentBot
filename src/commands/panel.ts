@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, PermissionFlagsBits } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder } from "discord.js";
 import { buildButton } from "../buttons/button.js";
 import Command from "../classes/Command.js";
 import { buildPanelEmbed } from "../embeds/deployment.js";
@@ -8,7 +8,7 @@ export default new Command({
     name: "panel",
     description: "Send the deployment panel",
     permissions: {
-        requiredPermissions: [PermissionFlagsBits.Administrator]
+        requiredPermissions: ["Administrator"]
     },
     options: [],
     callback: async function ({ interaction }) {

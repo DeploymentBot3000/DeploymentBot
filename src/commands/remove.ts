@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, AutocompleteInteraction, ChatInputCommandInteraction, Colors, GuildMember, PermissionFlagsBits, User } from "discord.js";
+import { ApplicationCommandOptionType, AutocompleteInteraction, ChatInputCommandInteraction, Colors, GuildMember, User } from "discord.js";
 import { Like } from "typeorm";
 import Command from "../classes/Command.js";
 import { buildDeploymentEmbed } from "../embeds/deployment.js";
@@ -13,7 +13,7 @@ export default new Command({
     name: "remove",
     description: "Remove a user from a deployment",
     permissions: {
-        requiredPermissions: [PermissionFlagsBits.SendMessages],
+        requiredPermissions: ["SendMessages"],
     },
     options: [
         {

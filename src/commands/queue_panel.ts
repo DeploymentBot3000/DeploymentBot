@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, PermissionFlagsBits, } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder } from "discord.js";
 import { buildButton } from "../buttons/button.js";
 import Command from "../classes/Command.js";
 import { buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
@@ -11,7 +11,7 @@ export default new Command({
     name: "queue-panel",
     description: "Send the queue panel",
     permissions: {
-        requiredPermissions: [PermissionFlagsBits.ManageRoles]
+        requiredPermissions: ["ManageRoles"]
     },
     options: [],
     callback: async function ({ interaction }) {
