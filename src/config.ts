@@ -58,22 +58,6 @@ export default {
             name: "Offense",
             emoji: "⚔️"
         },
-        {
-            name: "Mechanized infantry",
-            emoji: "🚜"
-        },
-        {
-            name: "Support",
-            emoji: "🏹"
-        },
-        {
-            name: "Defence",
-            emoji: "🛡️"
-        },
-        {
-            name: "Scout",
-            emoji: "🪖"
-        }
     ],
     embeds: {
         presets: {
