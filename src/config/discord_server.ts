@@ -3,7 +3,6 @@ export default {
     roles: {
         host_role_ids: ["1312955795989860542"],
         denied_role_ids: ["1312956640227496079"],
-        verified_role_id: "1312957075214696458",
     },
     channels: {
         departure_channel_id: "1312957214377512961",
