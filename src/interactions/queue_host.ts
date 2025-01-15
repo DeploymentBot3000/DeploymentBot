@@ -8,7 +8,7 @@ export const QueueHostButton = new Button({
     id: "host",
     cooldown: Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }),
     permissions: {
-        requireRoles: [config.hostRole],
+        requireRoles: config.hostRoles,
         deniedRoles: config.deniedRoles,
     },
     callback: async function ({ interaction }) {
