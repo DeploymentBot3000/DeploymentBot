@@ -24,7 +24,7 @@ export const DeploymentNewButton = new Button({
     id: "newDeployment",
     cooldown: Duration.fromDurationLike({ seconds: config.buttonCooldownSeconds }),
     permissions: {
-        requireRoles: [config.hostRole],
+        requireRoles: config.hostRoles,
         deniedRoles: config.deniedRoles,
     },
     callback: async function ({ interaction }: { interaction: ButtonInteraction }) {
