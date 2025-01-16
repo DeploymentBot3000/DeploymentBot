@@ -12,7 +12,7 @@ import { logQueueAction } from "./queueLogger.js";
 import { getDeploymentTimeSetting, setDeploymentTimeSetting } from "./settings.js";
 import { startQueuedGameImpl } from "./startQueuedGame.js";
 
-async function _updateHotDropEmbed(client: Client, notEnoughPlayers: boolean, nextDeploymentTime: DateTime, deploymentCreated: boolean) {
+async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime) {
     log("Updating Hot Drop Embed", 'Queue System');
 
     const queueMessages = await QueueStatusMsg.find();
@@ -36,7 +36,7 @@ async function _updateHotDropEmbed(client: Client, notEnoughPlayers: boolean, ne
             .then((member: GuildMember) => member.displayName)
             .catch(() => 'Unknown User');
     }));
-    const embed = buildQueuePanelEmbed(notEnoughPlayers, nextDeploymentTime.toMillis(), deploymentCreated, hosts, players);
+    const embed = buildQueuePanelEmbed(nextDeploymentTime.toMillis(), hosts, players);
 
     await message.edit({ embeds: [embed] });
     log(`Hot Drop Embed updated: ${message.id}`, 'Queue System');
@@ -94,12 +94,12 @@ export class HotDropQueue {
     }
 
     private async updateMessage() {
-        return _updateHotDropEmbed(this._client, !this._deploymentCreated, this._nextGame, this._deploymentCreated);
+        return _updateHotDropEmbed(this._client, this._nextGame);
     }
 
     private async _startNewGames() {
         try {
-            this._deploymentCreated = await startQueuedGameImpl(this.strikeModeEnabled);
+            await startQueuedGameImpl(this.strikeModeEnabled);
         } catch (e: any) {
             await sendErrorToLogChannel(e, this._client);
         }
@@ -239,5 +239,4 @@ export class HotDropQueue {
     private _deploymentInterval: Duration;
     private _strikeModeEnabled: boolean = false;
     private _nextGame: DateTime;
-    private _deploymentCreated: boolean = false;
 }
