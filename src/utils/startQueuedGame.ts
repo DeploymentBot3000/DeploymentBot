@@ -20,7 +20,7 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
 
     const groups: { host: Queue, players: Queue[] }[] = [];
     hosts.forEach((host) => {
-        const assignedPlayers: Queue[] = [];
+        let assignedPlayers: Queue[] = [];
         if (strikeMode) {
             for (let i = 0; i < kMaxAssignedPlayers; i++) {
                 if (players.length > 0) {
@@ -29,12 +29,13 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
                 }
             }
         } else {
-            assignedPlayers.push(...players.splice(0, kMaxAssignedPlayers));
+            assignedPlayers = players.splice(0, kMaxAssignedPlayers);
         }
 
         // Include the group if we have a host and enough assigned players.
         // If we don't, the assigned players will be scheduled on the next round if we have another host.
         if (1 + assignedPlayers.length >= config.min_players) {
+            debug(`Creating hot drop; Host: ${host.user}; players: ${assignedPlayers.map(p => p.user).join(', ')}; min_players: ${config.min_players}`);
             groups.push({
                 host: host,
                 players: assignedPlayers
@@ -47,13 +48,6 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
     }
 
     for (const group of groups) {
-        const debugObj = {
-            hostId: group.host.user,
-            playerCount: group.players.length,
-            players: group.players.map(p => p.user)
-        };
-        debug(`Checking group: ${JSON.stringify(debugObj)}`, 'Queue System');
-
         const host = group.host;
         const selectedPlayers: Queue[] = group.players;
 
