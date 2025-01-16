@@ -15,11 +15,7 @@ import { formatDiscordTime } from "./time.js";
 
 export enum DeploymentRole {
     UNSPECIFIED = 'UNSPECIFIED',
-    OFFENSE = 'Offense',
-    MECHANIZED_INFANTRY = 'Mechanized infantry',
-    SUPPORT = 'Support',
-    DEFENCE = 'Defence',
-    SCOUT = 'Scout',
+    FIRETEAM = 'Fireteam',
     BACKUP = 'Backup',
 }
 
@@ -27,7 +23,7 @@ export function formatRoleEmoji(role: DeploymentRole) {
     if (role == DeploymentRole.BACKUP) {
         return config.backupEmoji;
     }
-    const roleConfig = config.roles.find(r => r.name == DeploymentRole.OFFENSE);
+    const roleConfig = config.roles.find(r => r.name == DeploymentRole.FIRETEAM);
     if (roleConfig) {
         return roleConfig.emoji;
     }
