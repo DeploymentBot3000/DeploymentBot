@@ -26,8 +26,6 @@ export const config_dev = {
     departureChannel: discord_server_config_dev.channels.departure_channel_id,
     log_channel_id: discord_server_config_dev.channels.log_channel_id,
 
-    channels: discord_server_config_dev.deployment_channels,
-
     // Min players required for a hot drop (including the host)
     min_players: 1,
     // Max players required for a hot drop (including the host)

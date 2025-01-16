@@ -17,13 +17,7 @@ export const discord_server_config_prod = {
         log_channel_id: "1328895830333198336",
         error_log_channel_id: "1328895942643945594",
     },
-    deployment_channels: [
-        {
-            name: "World - For those who just want to serve anywhere, anytime.",
-            emoji: "🏴‍☠️",
-            channel: "1328890224985641021"
-        },
-    ],
+    deployment_channel: "1328890224985641021",
     hotdrop_vc_category_prefix: "Active Deployments",
     hotdrop_vc_category_max_channels: 50,
     strike_vc_category_prefix: "Active Deployments",
