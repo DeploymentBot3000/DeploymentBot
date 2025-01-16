@@ -71,7 +71,6 @@ export async function startQueuedGameImpl(strikeMode: boolean): Promise<void> {
         }));
 
         const vcChannelName = !strikeMode ? `🔊| HOTDROP ${randomCode} ${hostDisplayName}` : `🔊| ${hostDisplayName}'s Strike Group!`;
-        debug(`Creating voice channel: ${vcChannelName}`);
         const vc = await VoiceChannelManager.get().create(departureChannel.guild, strikeMode, vcChannelName, host.user, selectedPlayers.map(p => p.user));
 
         // Create base embed for players

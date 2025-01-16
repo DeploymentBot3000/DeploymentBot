@@ -24,7 +24,7 @@ export class VoiceChannelManager {
 
     public async create(guild: Guild, strikeMode: boolean, vcChannelName: string, hostId: Snowflake, _selectedPlayers: Snowflake[]) {
         const vcCategory = _findNextAvailableVoiceCategory(guild, strikeMode);
-        return await guild.channels.create({
+        const channel = await guild.channels.create({
             name: vcChannelName,
             type: ChannelType.GuildVoice,
             parent: vcCategory,
@@ -48,6 +48,8 @@ export class VoiceChannelManager {
                 },
             ]
         });
+        debug(`Created voice channel: ${channel.name} with id: ${channel.id}`);
+        return channel;
     }
 
     private static _instance: VoiceChannelManager;
@@ -82,6 +84,8 @@ export class VoiceChannelManager {
             } else {
                 debug(`Voice channel: ${channel.name} with id: ${channel.id} was last seen empty on ${lastSeenEmpty.toISO()}, not old enough to delete`);
             }
+        } else {
+            debug(`Voice channel: ${channel.name} with id: ${channel.id} has ${channel.members.size} members`);
         }
     }
 
