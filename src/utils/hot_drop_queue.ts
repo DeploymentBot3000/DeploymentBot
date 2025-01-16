@@ -52,14 +52,15 @@ export class HotDropQueue {
         await _updateHotDropEmbed(this._client, this._nextGame, this._strikeModeEnabled);
     }
 
-    public async toggleStrikeMode() {
+    public async toggleStrikeMode(): Promise<boolean> {
         this._strikeModeEnabled = !this._strikeModeEnabled;
         await _updateHotDropEmbed(this._client, this._nextGame, this._strikeModeEnabled);
+        return this._strikeModeEnabled;
     }
 
     private async _startNewGames() {
         try {
-            await startQueuedGameImpl(this.strikeModeEnabled);
+            await startQueuedGameImpl(this._strikeModeEnabled);
         } catch (e: any) {
             await sendErrorToLogChannel(e, this._client);
         }
@@ -187,9 +188,6 @@ export class HotDropQueue {
         return null;
     }
 
-    public get strikeModeEnabled() {
-        return this._strikeModeEnabled;
-    }
     public get nextGame() {
         return this._nextGame;
     }
