@@ -10,10 +10,10 @@ export default new Command({
     },
     options: [],
     callback: async ({ interaction }) => {
-        HotDropQueue.getHotDropQueue().toggleStrikeMode();
+        const strikeModeEnabled = await HotDropQueue.getHotDropQueue().toggleStrikeMode();
         const successEmbed = buildSuccessEmbed()
             .setTitle("Strike Mode Toggle")
-            .setDescription(`Strike mode ${HotDropQueue.getHotDropQueue().strikeModeEnabled ? "enabled" : "disabled"}!`);
+            .setDescription(`Strike mode ${strikeModeEnabled ? "enabled" : "disabled"}!`);
         await interaction.reply({ embeds: [successEmbed], ephemeral: true });
     }}
 );
