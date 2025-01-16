@@ -55,7 +55,7 @@ export const config_prod = {
     editEmoji: "🔧",
     roles: [
         {
-            name: "Offense",
+            name: "Fireteam",
             emoji: "⚔️"
         },
     ],
