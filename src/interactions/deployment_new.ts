@@ -16,6 +16,7 @@ import { config } from "../config.js";
 import { buildNewDeploymentModal, getDeploymentModalValues, getDeploymentModalValuesRaw } from "../modals/deployments.js";
 import LatestInput from "../tables/LatestInput.js";
 import { DeploymentManager, DeploymentRole } from "../utils/deployments.js";
+import { sendDmToUser } from "../utils/dm.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 import { action } from "../utils/logger.js";
 import { formatDiscordTime } from "../utils/time.js";
@@ -78,7 +79,7 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
         }
 
         const link = `https://discord.com/channels/${interaction.guild.id}/${deployment.channel.id}/${deployment.message.id}`;
-        await interaction.user.send({ content: `You create a new deployment: ${deployment.title}.\nScheduled for: ${formatDiscordTime(deployment.startTime)} (${deployment.startTime.toISO()}).\n${link}` });
+        await sendDmToUser(interaction.user, { content: `You create a new deployment: ${deployment.title}.\nScheduled for: ${formatDiscordTime(deployment.startTime)} (${deployment.startTime.toISO()}).\n${link}` });
 
         await editReplyWithSuccess(interaction, 'Deployment created successfully');
     } catch (e: any) {

@@ -6,6 +6,7 @@ import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../embeds/em
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
+import { sendDmToUser } from "../utils/dm.js";
 import { sendEmbedToLogChannel, sendErrorToLogChannel } from "../utils/log_channel.js";
 
 export const DeploymentDeleteButton = new Button({
@@ -42,15 +43,9 @@ export const DeploymentDeleteButton = new Button({
             const timeToDeployment = deploymentTime.diff(DateTime.now(), 'minutes').shiftTo('days', 'hours', 'minutes');
 
             await Promise.all((signups as (Signups | Backups)[]).concat(backups).map(async player => {
-                // Catch individial message failures so we don't interrupt the other messages from being sent.
-                try {
-                    const user = await client.users.fetch(player.userId);
-                    const embed = _buildDeploymentDeletedConfirmationEmbed(deployment.title, timeToDeployment);
-                    await user.send({ embeds: [embed] });
-                } catch (e) {
-                    sendErrorToLogChannel(e, client);
-                }
-
+                const user = await client.users.fetch(player.userId);
+                const embed = _buildDeploymentDeletedConfirmationEmbed(deployment.title, timeToDeployment);
+                await sendDmToUser(user, { embeds: [embed] });
             }));
 
             const embed = _buildDeploymentDeletedConfirmationEmbedForLog(deployment, signups, backups);
