@@ -29,6 +29,7 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
     try {
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
         if (!deployment) {
+            await interaction.message.edit({});
             await editReplyWithError(interaction, "Deployment not found!");
             return;
         }
@@ -40,12 +41,14 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
         if (alreadySignedUp) { // if already signed up logic
             if (newRole == "backup") { // switching to backup
                 if (deployment.user == interaction.user.id) { // error out if host tries to signup as a backup
+                    await interaction.message.edit({});
                     await editReplyWithError(interaction, "You cannot signup as a backup to your own deployment!");
                     return;
                 }
 
                 const backupsCount = await Backups.count({ where: { deploymentId: deployment.id } });
                 if (backupsCount >= 4) { // errors out if backup slots are full
+                    await interaction.message.edit({});
                     await editReplyWithError(interaction, "Backup slots are full!");
                     return;
                 }
@@ -57,6 +60,7 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
                 });
             } else if (alreadySignedUp?.role == newRole) { // checks if new role is the same as the old role
                 if (deployment.user == interaction.user.id) { // errors out if host tries to leave own deployment
+                    await interaction.message.edit({});
                     await editReplyWithError(interaction, "You cannot abandon your own deployment!");
                     return;
                 }
@@ -76,6 +80,7 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
                 const signupsCount = await Signups.count({ where: { deploymentId: deployment.id } });
 
                 if (signupsCount >= 4) {
+                    await interaction.message.edit({});
                     await editReplyWithError(interaction, "Sign up slots are full!");
                     return;
                 }
@@ -92,6 +97,7 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
                 const backupsCount = await Backups.count({ where: { deploymentId: deployment.id } });
 
                 if (backupsCount >= 4) {
+                    await interaction.message.edit({});
                     await editReplyWithError(interaction, "Backup slots are full!");
                     return;
                 }
@@ -104,6 +110,7 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
                 const signupsCount = await Signups.count({ where: { deploymentId: deployment.id } });
 
                 if (signupsCount >= 4) {
+                    await interaction.message.edit({});
                     await editReplyWithError(interaction, "Sign up slots are full!");
                     return;
                 }
