@@ -49,12 +49,12 @@ export class HotDropQueue {
             this._startNewGames();
         }, this._deploymentInterval.toMillis()).unref();
 
-        await _updateHotDropEmbed(this._client, this._nextGame);
+        await _updateHotDropEmbed(this._client, this._nextGame, this._strikeModeEnabled);
     }
 
     public async toggleStrikeMode() {
         this._strikeModeEnabled = !this._strikeModeEnabled;
-        await _updateHotDropEmbed(this._client, this._nextGame);
+        await _updateHotDropEmbed(this._client, this._nextGame, this._strikeModeEnabled);
     }
 
     private async _startNewGames() {
@@ -69,7 +69,7 @@ export class HotDropQueue {
 
     public async clear() {
         await Queue.clear();
-        await _updateHotDropEmbed(this._client, this._nextGame);
+        await _updateHotDropEmbed(this._client, this._nextGame, this._strikeModeEnabled);
     }
 
     public async joinAsHost(userId: string): Promise<Error> {
@@ -107,7 +107,7 @@ export class HotDropQueue {
             type: 'host',
             userId: userId
         });
-        await _updateHotDropEmbed(this._client, this._nextGame);
+        await _updateHotDropEmbed(this._client, this._nextGame, this._strikeModeEnabled);
         return null;
     }
 
@@ -146,7 +146,7 @@ export class HotDropQueue {
             type: 'join',
             userId: userId
         });
-        await _updateHotDropEmbed(this._client, this._nextGame);
+        await _updateHotDropEmbed(this._client, this._nextGame, this._strikeModeEnabled);
         return null;
     }
 
@@ -183,7 +183,7 @@ export class HotDropQueue {
             queueBefore: transactionResult.beforeCount,
             queueAfter: transactionResult.afterCount,
         });
-        await _updateHotDropEmbed(this._client, this._nextGame);
+        await _updateHotDropEmbed(this._client, this._nextGame, this._strikeModeEnabled);
         return null;
     }
 
@@ -201,7 +201,7 @@ export class HotDropQueue {
     private _nextGame: DateTime;
 }
 
-async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime) {
+async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime, strikeModeEnabled: boolean) {
     log("Updating Hot Drop Embed", 'Queue System');
 
     const queueMessages = await QueueStatusMsg.find();
@@ -225,7 +225,7 @@ async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime)
             .then((member: GuildMember) => member.displayName)
             .catch(() => 'Unknown User');
     }));
-    const embed = buildQueuePanelEmbed(nextDeploymentTime.toMillis(), hosts, players);
+    const embed = buildQueuePanelEmbed(nextDeploymentTime.toMillis(), hosts, players, strikeModeEnabled);
 
     await message.edit({ embeds: [embed] });
     log(`Hot Drop Embed updated: ${message.id}`, 'Queue System');
