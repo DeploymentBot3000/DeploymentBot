@@ -1,6 +1,5 @@
-import { APIEmbedField, EmbedBuilder, GuildMember, GuildTextBasedChannel, VoiceChannel } from "discord.js";
+import { APIEmbedField, EmbedBuilder, VoiceChannel } from "discord.js";
 import { DateTime } from "luxon";
-import Queue from "../tables/Queue.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 
@@ -110,10 +109,7 @@ export function buildHotDropStartedEmbed(options: QueueDeploymentEmbedOptions) {
     });
 }
 
-export default async function buildQueuePanelEmbed(notEnoughPlayers: boolean = false, nextDeploymentTime: number, deploymentCreated: boolean = false, channel: GuildTextBasedChannel): Promise<EmbedBuilder> {
-    const currentQueue = await Queue.find();
-    const fields: APIEmbedField[] = await getFields(channel, currentQueue);
-
+export default function buildQueuePanelEmbed(notEnoughPlayers: boolean = false, nextDeploymentTime: number, deploymentCreated: boolean = false, hosts: string[], players: string[]): EmbedBuilder {
     let content = null;
     if (notEnoughPlayers) {
         content = `❌**┃Not enough players.** Next deployment starting ${formatDiscordTime(DateTime.fromMillis(nextDeploymentTime), DiscordTimestampFormat.RELATIVE_TIME)}`;
@@ -156,7 +152,7 @@ export default async function buildQueuePanelEmbed(notEnoughPlayers: boolean = f
                 name: ' ',
                 value: "⚠️**┃**Failing to attend an assigned Hot Drop will result in a **strike**.",
             },
-            ...fields,
+            ..._buildHostsAndPlayersEmbedFields(hosts, players),
             {
                 name: "Next game:",
                 value: `📅**┃**${formatDiscordTime(DateTime.fromMillis(nextDeploymentTime), DiscordTimestampFormat.SHORT_DATE)}\n
@@ -167,72 +163,38 @@ export default async function buildQueuePanelEmbed(notEnoughPlayers: boolean = f
     return embed;
 }
 
-export async function getFields(channel: GuildTextBasedChannel, currentQueue: Queue[]): Promise<APIEmbedField[]> {
-    const currentHosts = currentQueue.filter(q => q.isHost);
-    const currentPlayers = currentQueue.filter(q => !q.isHost);
+function _buildHostsAndPlayersEmbedFields(hosts: string[], players: string[]): APIEmbedField[] {
+    const currentHostsNamesStr = hosts.join('\n');
+    const currentPlayersNamesStr = players.join('\n');
 
-    if (HotDropQueue.getHotDropQueue().strikeModeEnabled)
+    // This is the hard limit on discord field value length.
+    const MAX_FIELD_VALUE_LENGTH = 1024;
+
+    // Limit list to length 20, otherwise the list gets really long and hard to look at.
+    // Especially when in strike mode.
+    if (hosts.length <= 20 && currentHostsNamesStr.length <= MAX_FIELD_VALUE_LENGTH && players.length <= 20 && currentPlayersNamesStr.length <= MAX_FIELD_VALUE_LENGTH) {
+        return [
+            {
+                name: `**Hosts:**`,
+                value: currentHostsNamesStr || '` - `',
+                inline: true,
+            }, {
+                name: `**Participants:**`,
+                value: currentPlayersNamesStr || '` - `',
+                inline: true,
+            }
+        ];
+    } else {
         return [
             {
                 name: '**Hosts:**',
-                value: `Total: ${currentHosts.length}`,
-                inline: true
-            },
-            {
+                value: `Total: ${hosts.length}`,
+                inline: true,
+            }, {
                 name: '**Participants:**',
-                value: `Total: ${currentPlayers.length}`,
-                inline: true
+                value: `Total: ${players.length}`,
+                inline: true,
             }
         ];
-
-    const currentHostsNames = await Promise.all(currentHosts.map(async host => {
-        const member = await channel.guild.members.fetch(host.user).catch(() => null as GuildMember);
-        return member ? member.displayName : 'Unknown User';
-    }));
-
-    const currentPlayersNames = await Promise.all(currentPlayers.map(async player => {
-        const member = await channel.guild.members.fetch(player.user).catch(() => null as GuildMember);
-        return member ? member.displayName : 'Unknown User';
-    }));
-
-    let rows: string[][] = [["` - `", "` - `"]];
-    [currentHostsNames, currentPlayersNames].forEach((type, index) => {
-        let currentField = '';
-        let row = 0;
-
-        type.forEach((user) => {
-            const text = `${user}\n`;
-
-            if (currentField.length + text.length <= 1000) {
-                currentField += text;
-            } else {
-                if (rows[row] == undefined) rows.push(['', '']);
-                rows[row][index] = currentField;
-                currentField = text;
-                row++;
-            }
-        });
-        if (rows[row] == undefined) rows.push(['', '']);
-        if (currentField) rows[row][index] = currentField;
-    });
-
-    const fields: APIEmbedField[] = [];
-    rows.forEach((row, index) => {
-        fields.push({
-            name: row[0] ? `**Hosts:**` : ' ',
-            value: row[0] || ' ',
-            inline: true
-        });
-        fields.push({
-            name: row[1] ? '**Participants:**' : ' ',
-            value: row[1] || ' ',
-            inline: true
-        });
-        if (!fields[index]) return;
-        fields.push({
-            name: ' ',
-            value: ' ',
-        });
-    })
-    return fields;
+    }
 }
