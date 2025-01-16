@@ -58,7 +58,7 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
         }
         deployment.host = {
             guildMember: interaction.member,
-            role: DeploymentRole.OFFENSE,
+            role: DeploymentRole.FIRETEAM,
         };
 
         {
