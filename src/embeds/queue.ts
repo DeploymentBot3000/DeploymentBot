@@ -1,5 +1,6 @@
 import { APIEmbedField, EmbedBuilder, VoiceChannel } from "discord.js";
 import { DateTime } from "luxon";
+import { config } from "../config.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 
@@ -109,12 +110,10 @@ export function buildHotDropStartedEmbed(options: QueueDeploymentEmbedOptions) {
     });
 }
 
-export default function buildQueuePanelEmbed(notEnoughPlayers: boolean = false, nextDeploymentTime: number, deploymentCreated: boolean = false, hosts: string[], players: string[]): EmbedBuilder {
-    let content = null;
-    if (notEnoughPlayers) {
-        content = `❌**┃Not enough players.** Next deployment starting ${formatDiscordTime(DateTime.fromMillis(nextDeploymentTime), DiscordTimestampFormat.RELATIVE_TIME)}`;
-    } else if (deploymentCreated) {
-        content = `✅**┃Successfully created a deployment.** Next deployment starting ${formatDiscordTime(DateTime.fromMillis(nextDeploymentTime), DiscordTimestampFormat.RELATIVE_TIME)}`;
+export default function buildQueuePanelEmbed(nextDeploymentTime: number, hosts: string[], players: string[]): EmbedBuilder {
+    let content = `❌ Not enough players ┃ Next deployment starting ${formatDiscordTime(DateTime.fromMillis(nextDeploymentTime), DiscordTimestampFormat.RELATIVE_TIME)}`;
+    if (hosts.length && 1 + players.length >= config.min_players) {
+        content = `✅ ┃ Next deployment starting ${formatDiscordTime(DateTime.fromMillis(nextDeploymentTime), DiscordTimestampFormat.RELATIVE_TIME)}`;
     }
 
     const embed = new EmbedBuilder()
