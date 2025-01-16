@@ -29,7 +29,7 @@ export const config_prod = {
     channels: discord_server_config_prod.deployment_channels,
 
     // Min players required for a hot drop (including the host)
-    min_players: 4,
+    min_players: 3,
     // Max players required for a hot drop (including the host)
     max_players: 4,
 
