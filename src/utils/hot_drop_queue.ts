@@ -1,4 +1,4 @@
-import { Client, GuildTextBasedChannel } from "discord.js";
+import { Client, GuildMember, GuildTextBasedChannel } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import { EntityManager } from "typeorm";
 import { config } from "../config.js";
@@ -25,7 +25,18 @@ async function _updateHotDropEmbed(client: Client, notEnoughPlayers: boolean, ne
 
     log(`Next deployment time: ${nextDeploymentTime.toISO()}`, 'Queue System');
 
-    const embed = await buildQueuePanelEmbed(notEnoughPlayers, nextDeploymentTime.toMillis(), deploymentCreated, channel);
+    const currentQueue = await Queue.find();
+    const hosts = await Promise.all(currentQueue.filter(q => q.isHost).map(async host => {
+        return await channel.guild.members.fetch(host.user)
+            .then((member: GuildMember) => member.displayName)
+            .catch(() => 'Unknown User');
+    }));
+    const players = await Promise.all(currentQueue.filter(q => !q.isHost).map(async player => {
+        return await channel.guild.members.fetch(player.user)
+            .then((member: GuildMember) => member.displayName)
+            .catch(() => 'Unknown User');
+    }));
+    const embed = buildQueuePanelEmbed(notEnoughPlayers, nextDeploymentTime.toMillis(), deploymentCreated, hosts, players);
 
     await message.edit({ embeds: [embed] });
     log(`Hot Drop Embed updated: ${message.id}`, 'Queue System');
