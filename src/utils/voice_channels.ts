@@ -22,7 +22,7 @@ export class VoiceChannelManager {
         return VoiceChannelManager._instance;
     }
 
-    public async create(guild: Guild, strikeMode: boolean, vcChannelName: string, hostId: Snowflake, selectedPlayers: Snowflake[]) {
+    public async create(guild: Guild, strikeMode: boolean, vcChannelName: string, hostId: Snowflake, _selectedPlayers: Snowflake[]) {
         const vcCategory = _findNextAvailableVoiceCategory(guild, strikeMode);
         return await guild.channels.create({
             name: vcChannelName,
@@ -31,19 +31,21 @@ export class VoiceChannelManager {
             userLimit: 4,
             permissionOverwrites: [
                 {
+                    id: guild.roles.everyone.id,
+                    deny: [PermissionsBitField.Flags.ViewChannel],
+                },
+                {
+                    id: config.discord_server.roles.verified_role_id,
+                    allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.Connect],
+                },
+                {
                     id: this._client.user.id,
                     allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.ManageChannels, PermissionsBitField.Flags.MoveMembers, PermissionsBitField.Flags.CreateInstantInvite]
                 },
                 {
                     id: hostId,
-                    allow: [PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak, PermissionsBitField.Flags.Stream, PermissionsBitField.Flags.MoveMembers, PermissionsBitField.Flags.CreateInstantInvite]
+                    allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak, PermissionsBitField.Flags.Stream, PermissionsBitField.Flags.MoveMembers, PermissionsBitField.Flags.CreateInstantInvite]
                 },
-                ...selectedPlayers.map(id => {
-                    return {
-                        id: id,
-                        allow: [PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak, PermissionsBitField.Flags.Stream]
-                    }
-                })
             ]
         });
     }

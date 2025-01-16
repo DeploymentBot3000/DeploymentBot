@@ -10,6 +10,7 @@ export const discord_server_config_prod = {
         ],
         denied_role_ids: [] as string[],
         lfg_role_id: "1311119756019109888",
+        verified_role_id: "1310055322945192096",
     },
     channels: {
         departure_channel_id: "1310318744538447902",
