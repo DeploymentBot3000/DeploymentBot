@@ -19,6 +19,9 @@ export const client = new Client({
         // Required to receive responses to vc channel creation and to find vc categories in the channel cache.
         GatewayIntentBits.Guilds,
 
+        // Required for the bot to know how many members are in a voice channel.
+        GatewayIntentBits.GuildVoiceStates,
+
         // Privileged Gateway Intents
         // Privileged Gateway Intents must also be enabled in the discord app bot config:
         // https://discord.com/developers/applications/1312896264475508839/bot
