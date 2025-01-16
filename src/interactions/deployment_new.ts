@@ -1,12 +1,7 @@
 import {
-    ActionRowBuilder,
     ButtonInteraction,
-    ComponentType,
-    DiscordjsErrorCodes,
     ModalSubmitInteraction,
     Snowflake,
-    StringSelectMenuBuilder,
-    StringSelectMenuInteraction,
     TextChannel
 } from "discord.js";
 import { Duration } from "luxon";
@@ -63,10 +58,12 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
         };
 
         {
-            const channel = await _getSignupChannel(interaction);
-            if (channel instanceof Error) {
-                await editReplyWithError(interaction, channel.message);
-                return;
+            const channel = await interaction.guild.channels.fetch(config.discord_server.deployment_channel);
+            if (!channel) {
+                throw new Error(`Can't find signup channel with id: ${config.discord_server.deployment_channel}`);
+            }
+            if (!(channel instanceof TextChannel)) {
+                throw new Error("Selected channel is not a text channel");
             }
             deployment.channel = channel;
         }
@@ -86,65 +83,6 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
         await editReplyWithError(interaction, 'Failed to create deployment');
         throw e;
     }
-}
-
-/**
- * Handles the interaction for selecting a channel from a dropdown menu.
- * 
- * @param interaction - The interaction object from the modal submission.
- * @returns A promise that resolves to the selected text-based channel where the deployment signup should be posted or an error if the selection fails.
- * 
- * @throws Will throw an error if the selected channel is not found or is not a text-based channel.
- * 
- * @remarks
- * This function presents the user with a dropdown menu to select a channel. It waits for the user to make a selection,
- * and then validates the selected channel. If the selection times out or the selected channel is invalid, it returns an error.
- * 
- * The function also removes any previous input from the user and updates the interaction with a success message upon successful selection.
- */
-async function _getSignupChannel(interaction: ModalSubmitInteraction): Promise<TextChannel | Error> {
-    const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-        new StringSelectMenuBuilder().setPlaceholder("Select a channel").setCustomId("channel").addOptions(
-            config.channels.map(channel => ({
-                label: channel.name,
-                value: `${channel.channel}-${Math.random() * 1000}`,
-                emoji: channel.emoji
-            })))
-    );
-
-    await interaction.editReply({
-        content: `Helldivers, it's time to pick your battlefield. Select your region below to ensure you're dropped into the right chaos with the least lag (because lag's the real enemy here). Select the appropriate region to join your battalion's ranks!\n\n<@${interaction.user.id}>`,
-        components: [row]
-    });
-
-    const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
-    if (latestInput) {
-        await latestInput.remove();
-    }
-
-    let selectMenuResponse: StringSelectMenuInteraction;
-    try {
-        selectMenuResponse = await interaction.channel.awaitMessageComponent({
-            componentType: ComponentType.StringSelect,
-            time: Duration.fromDurationLike({ minutes: 1 }).toMillis(),
-            filter: i => i.user.id === interaction.user.id && i.customId === "channel",
-        });
-    } catch (e: any) {
-        if (e.code == DiscordjsErrorCodes.InteractionCollectorError && e.message.includes('time')) {
-            return new Error("Channel selection timed out");
-        }
-        throw e;
-    }
-
-    const channelId = selectMenuResponse.values[0].split("-")[0];
-    const channel = await interaction.guild.channels.fetch(channelId);
-    if (!channel) {
-        throw new Error(`Can't find channel with id: ${selectMenuResponse.values[0]}`);
-    }
-    if (!(channel instanceof TextChannel)) {
-        throw new Error("Selected channel is not a text channel");
-    }
-    return channel;
 }
 
 async function storeLatestInput(userId: Snowflake, title: string, difficulty: string, description: string, startTime: string) {
