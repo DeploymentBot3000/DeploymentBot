@@ -24,7 +24,7 @@ export default new Command({
         }
 
         try {
-            const embed = await buildQueuePanelEmbed(true, HotDropQueue.getHotDropQueue().nextGame.toMillis(), false, interaction.channel);
+            const embed = buildQueuePanelEmbed(/*notEnoughPlayers=*/true, HotDropQueue.getHotDropQueue().nextGame.toMillis(), /*deploymentCreated=*/false, /*hosts=*/[], /*players=*/[]);
 
             const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
                 buildButton("host"),
