@@ -2,6 +2,7 @@ import { Duration } from "luxon";
 import { Button } from "../buttons/button.js";
 import { config } from "../config.js";
 import { buildErrorEmbed } from "../embeds/embed.js";
+import { sendDmToUser } from "../utils/dm.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
 export const QueueJoinButton = new Button({
@@ -20,7 +21,7 @@ export const QueueJoinButton = new Button({
             return;
         }
 
-        await interaction.user.send({
+        await sendDmToUser(interaction.user, {
             content: 'You joined the Hot Drop Queue'
         });
     }

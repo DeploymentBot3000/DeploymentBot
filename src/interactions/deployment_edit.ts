@@ -18,8 +18,8 @@ import { buildInfoEmbed } from "../embeds/embed.js";
 import { buildEditDeploymentModal, DeploymentFields, getDeploymentModalValues } from "../modals/deployments.js";
 import Deployment from "../tables/Deployment.js";
 import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
+import { sendDmToUser } from "../utils/dm.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
-import { sendErrorToLogChannel } from "../utils/log_channel.js";
 import { action } from "../utils/logger.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 
@@ -154,12 +154,7 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
 async function _notifyStartTimeChange(users: User[], oldDetails: DeploymentDetails, newDetails: DeploymentDetails) {
     const embed = _buildStartTimeChangeNoticeEmbed(oldDetails, newDetails);
     await Promise.all(users.map(async user => {
-        // Catch individial message failures so we don't interrupt the other messages from being sent.
-        try {
-            await user.send({ embeds: [embed] });
-        } catch (e) {
-            await sendErrorToLogChannel(e, user.client);
-        }
+        await sendDmToUser(user, { embeds: [embed] });
     }));
 }
 
