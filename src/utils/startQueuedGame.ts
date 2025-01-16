@@ -3,6 +3,7 @@ import { config } from "../config.js";
 import { client } from "../custom_client.js";
 import { buildSuccessEmbed } from "../embeds/embed.js";
 import Queue from "../tables/Queue.js";
+import { sendDmToUser } from "./dm.js";
 import { debug, success } from "./logger.js";
 import { logHotDropStarted } from "./queueLogger.js";
 import { VoiceChannelManager } from "./voice_channels.js";
@@ -105,13 +106,11 @@ export async function startQueuedGameImpl(strikeMode: boolean) {
         await Promise.all([
             ...selectedPlayers.map(player => 
                 client.users.fetch(player.user)
-                    .then(user => user.send({ embeds: [playerEmbed] })
-                    .catch(() => console.log(`Failed to DM player ${player.user}`)))
+                    .then(user => sendDmToUser(user, { embeds: [playerEmbed] }))
             ),
             // Send DM to host with their specific embed
             client.users.fetch(host.user)
-                .then(user => user.send({ embeds: [hostEmbed] })
-                .catch(() => console.log(`Failed to DM host ${host.user}`)))
+                .then(user => sendDmToUser(user, { embeds: [hostEmbed] })),
         ]);
 
         const defaultContent = _hotDropDepartureNotice(randomCode, hostDisplayName, vc, host, signupsFormatted);

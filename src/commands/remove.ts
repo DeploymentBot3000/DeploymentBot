@@ -5,8 +5,8 @@ import { buildDeploymentEmbed } from "../embeds/deployment.js";
 import { buildInfoEmbed } from "../embeds/embed.js";
 import Deployment from "../tables/Deployment.js";
 import { DeploymentManager } from "../utils/deployments.js";
+import { sendDmToUser } from "../utils/dm.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
-import { sendErrorToLogChannel } from "../utils/log_channel.js";
 import { action, success } from "../utils/logger.js";
 
 export default new Command({
@@ -86,15 +86,11 @@ async function _removePlayerFromDeployment(member: GuildMember, targetUser: User
     await newDetails.message.edit({ embeds: [embed] });
 
     // Send DM to removed user
-    try {
-        await targetUser.send({
-            embeds: [buildInfoEmbed()
-                .setTitle("Deployment Removal")
-                .setDescription(`You have been removed from deployment: **${deploymentTitle}**\n**By:** <@${member.id}>\n**Reason:** ${reason}`)
-            ]
-        });
-    } catch (e) {
-        await sendErrorToLogChannel(e, member.client);
-    }
+    await sendDmToUser(targetUser, {
+        embeds: [buildInfoEmbed()
+            .setTitle("Deployment Removal")
+            .setDescription(`You have been removed from deployment: **${deploymentTitle}**\n**By:** <@${member.id}>\n**Reason:** ${reason}`)
+        ]
+    });
     return null;
 }
