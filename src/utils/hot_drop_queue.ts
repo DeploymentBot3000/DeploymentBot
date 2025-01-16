@@ -12,38 +12,6 @@ import { logQueueAction } from "./queueLogger.js";
 import { getDeploymentTimeSetting, setDeploymentTimeSetting } from "./settings.js";
 import { startQueuedGameImpl } from "./startQueuedGame.js";
 
-async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime) {
-    log("Updating Hot Drop Embed", 'Queue System');
-
-    const queueMessages = await QueueStatusMsg.find();
-    if (queueMessages.length == 0) {
-        return null;
-    }
-    const queueMessage = queueMessages[0];
-    const channel = await client.channels.fetch(queueMessage.channel) as GuildTextBasedChannel;
-    const message = await channel.messages.fetch(queueMessage.message);
-
-    log(`Next deployment time: ${nextDeploymentTime.toISO()}`, 'Queue System');
-
-    const currentQueue = await Queue.find();
-    const hosts = await Promise.all(currentQueue.filter(q => q.isHost).map(async host => {
-        return await channel.guild.members.fetch(host.user)
-            .then((member: GuildMember) => member.displayName)
-            .catch(() => 'Unknown User');
-    }));
-    const players = await Promise.all(currentQueue.filter(q => !q.isHost).map(async player => {
-        return await channel.guild.members.fetch(player.user)
-            .then((member: GuildMember) => member.displayName)
-            .catch(() => 'Unknown User');
-    }));
-    const embed = buildQueuePanelEmbed(nextDeploymentTime.toMillis(), hosts, players);
-
-    await message.edit({ embeds: [embed] });
-    log(`Hot Drop Embed updated: ${message.id}`, 'Queue System');
-    return message;
-}
-
-
 export class HotDropQueue {
     public static async initHotDropQueue(client: Client) {
         if (HotDropQueue._kHotDropQueue != null) {
@@ -81,20 +49,12 @@ export class HotDropQueue {
             this._startNewGames();
         }, this._deploymentInterval.toMillis()).unref();
 
-        try {
-            await this.updateMessage();
-        } catch (e: any) {
-            await sendErrorToLogChannel(e, this._client);
-        }
+        await _updateHotDropEmbed(this._client, this._nextGame);
     }
 
     public async toggleStrikeMode() {
         this._strikeModeEnabled = !this._strikeModeEnabled;
-        await this.updateMessage();
-    }
-
-    private async updateMessage() {
-        return _updateHotDropEmbed(this._client, this._nextGame);
+        await _updateHotDropEmbed(this._client, this._nextGame);
     }
 
     private async _startNewGames() {
@@ -109,7 +69,7 @@ export class HotDropQueue {
 
     public async clear() {
         await Queue.clear();
-        await this.updateMessage();
+        await _updateHotDropEmbed(this._client, this._nextGame);
     }
 
     public async joinAsHost(userId: string): Promise<Error> {
@@ -147,7 +107,7 @@ export class HotDropQueue {
             type: 'host',
             userId: userId
         });
-        await this.updateMessage();
+        await _updateHotDropEmbed(this._client, this._nextGame);
         return null;
     }
 
@@ -186,7 +146,7 @@ export class HotDropQueue {
             type: 'join',
             userId: userId
         });
-        await this.updateMessage();
+        await _updateHotDropEmbed(this._client, this._nextGame);
         return null;
     }
 
@@ -223,7 +183,7 @@ export class HotDropQueue {
             queueBefore: transactionResult.beforeCount,
             queueAfter: transactionResult.afterCount,
         });
-        await this.updateMessage();
+        await _updateHotDropEmbed(this._client, this._nextGame);
         return null;
     }
 
@@ -239,4 +199,35 @@ export class HotDropQueue {
     private _deploymentInterval: Duration;
     private _strikeModeEnabled: boolean = false;
     private _nextGame: DateTime;
+}
+
+async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime) {
+    log("Updating Hot Drop Embed", 'Queue System');
+
+    const queueMessages = await QueueStatusMsg.find();
+    if (queueMessages.length == 0) {
+        return null;
+    }
+    const queueMessage = queueMessages[0];
+    const channel = await client.channels.fetch(queueMessage.channel) as GuildTextBasedChannel;
+    const message = await channel.messages.fetch(queueMessage.message);
+
+    log(`Next deployment time: ${nextDeploymentTime.toISO()}`, 'Queue System');
+
+    const currentQueue = await Queue.find();
+    const hosts = await Promise.all(currentQueue.filter(q => q.isHost).map(async host => {
+        return await channel.guild.members.fetch(host.user)
+            .then((member: GuildMember) => member.displayName)
+            .catch(() => 'Unknown User');
+    }));
+    const players = await Promise.all(currentQueue.filter(q => !q.isHost).map(async player => {
+        return await channel.guild.members.fetch(player.user)
+            .then((member: GuildMember) => member.displayName)
+            .catch(() => 'Unknown User');
+    }));
+    const embed = buildQueuePanelEmbed(nextDeploymentTime.toMillis(), hosts, players);
+
+    await message.edit({ embeds: [embed] });
+    log(`Hot Drop Embed updated: ${message.id}`, 'Queue System');
+    return message;
 }
