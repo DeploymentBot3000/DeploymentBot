@@ -18,9 +18,9 @@ export const discord_server_config_prod = {
         error_log_channel_id: "1328895942643945594",
     },
     deployment_channel: "1328890224985641021",
-    hotdrop_vc_category_prefix: "Active Deployments",
+    hotdrop_vc_category_prefix: "Active Hot Drops",
     hotdrop_vc_category_max_channels: 50,
-    strike_vc_category_prefix: "Active Deployments",
+    strike_vc_category_prefix: "Active Hot Drops",
     strike_vc_category_max_channels: 50,
     clear_vc_channels_every_minutes: 10,
 };
