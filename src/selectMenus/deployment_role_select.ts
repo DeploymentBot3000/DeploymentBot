@@ -126,6 +126,7 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
         await interaction.message.edit({ embeds: [embed] });
         await interaction.deleteReply();
     } catch (e: any) {
+        console.log(e);
         // Force an update to reset the selected item.
         await interaction.message.edit({});
         await editReplyWithError(interaction, 'Interaction failed');
