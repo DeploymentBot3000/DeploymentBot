@@ -6,6 +6,7 @@ import { deprecated_buildDeploymentEmbedFromDb } from "../embeds/deployment.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
+import { DeploymentRole, parseRole } from "../utils/deployments.js";
 import { editReplyWithError } from "../utils/interaction_replies.js";
 
 export default new SelectMenu({
@@ -34,12 +35,12 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
             return;
         }
 
-        const newRole = interaction.values[0];
+        const newRole = parseRole(interaction.values[0]);
         const alreadySignedUp = await Signups.findOne({ where: { deploymentId: deployment.id, userId: interaction.user.id } });
         const alreadySignedUpBackup = await Backups.findOne({ where: { deploymentId: deployment.id, userId: interaction.user.id } });
 
         if (alreadySignedUp) { // if already signed up logic
-            if (newRole == "backup") { // switching to backup
+            if (newRole == DeploymentRole.BACKUP) { // switching to backup
                 if (deployment.user == interaction.user.id) { // error out if host tries to signup as a backup
                     await interaction.message.edit({});
                     await editReplyWithError(interaction, "You cannot signup as a backup to your own deployment!");
@@ -71,11 +72,11 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
                     userId: interaction.user.id,
                     deploymentId: deployment.id
                 }, {
-                    role: interaction.values[0]
+                    role: newRole
                 });
             }
         } else if (alreadySignedUpBackup) { // if already a backup logic
-            if (newRole == "backup") await alreadySignedUpBackup.remove(); // removes player if they new role is same as old
+            if (newRole == DeploymentRole.BACKUP) await alreadySignedUpBackup.remove(); // removes player if they new role is same as old
             else { // tris to move backup diver to primary
                 const signupsCount = await Signups.count({ where: { deploymentId: deployment.id } });
 
@@ -89,11 +90,11 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
                 await Signups.insert({
                     deploymentId: deployment.id,
                     userId: interaction.user.id,
-                    role: interaction.values[0]
+                    role: newRole
                 });
             }
         } else { // default signup logic
-            if (newRole == "backup") {
+            if (newRole == DeploymentRole.BACKUP) {
                 const backupsCount = await Backups.count({ where: { deploymentId: deployment.id } });
 
                 if (backupsCount >= 4) {
@@ -118,7 +119,7 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
                 await Signups.insert({
                     deploymentId: deployment.id,
                     userId: interaction.user.id,
-                    role: interaction.values[0]
+                    role: newRole
                 });
             }
         }

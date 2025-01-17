@@ -6,6 +6,7 @@ import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../embeds/em
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
+import { formatRoleEmoji, parseRole } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { sendEmbedToLogChannel, sendErrorToLogChannel } from "../utils/log_channel.js";
 
@@ -73,17 +74,13 @@ function _buildDeploymentDeletedConfirmationEmbed(deploymentTitle: string, timeT
         .setDescription(`A deployment you were signed up for has been deleted!\nDeployment Name: ${deploymentTitle}\n Scheduled to start in: ${timeToDeployment.toHuman()}`);
 }
 
-function _getRoleEmoji(roleName: string) {
-    return config.roles.find(role => role.name === roleName).emoji;
-}
-
 function _buildDeploymentDeletedConfirmationEmbedForLog(deployment: Deployment, signups: Signups[], backups: Backups[]) {
-    const hostRoleEmoji = _getRoleEmoji(signups.filter(player => player.userId == deployment.user).at(0).role);
+    const hostRoleEmoji = formatRoleEmoji(parseRole(signups.filter(player => player.userId == deployment.user).at(0).role));
     const description = `Title: ${deployment.title}\n`
         + `Channel: <#${deployment.channel}>\n`
         + `Start Time: ${DateTime.fromMillis(Number(deployment.startTime)).toISO()}\n`
         + `Host: ${hostRoleEmoji} <@${deployment.user}>\n`
-        + `Fireteam: ${signups.filter(player => player.userId != deployment.user).map(player => `${_getRoleEmoji(player.role)} <@${player.userId}>`).join(', ') || '` - `'}\n`
+        + `Fireteam: ${signups.filter(player => player.userId != deployment.user).map(player => `${formatRoleEmoji(parseRole(player.role))} <@${player.userId}>`).join(', ') || '` - `'}\n`
         + `Backups: ${backups.map(player => `${config.backupEmoji} <@${player.userId}>`).join(', ') || '` - `'}`;
 
     return buildInfoEmbed()
