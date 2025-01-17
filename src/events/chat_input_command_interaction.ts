@@ -16,13 +16,12 @@ export default {
 		}
 
 		const commandStr = `/${interaction.commandName} ${interaction.options.data.map(o => `${o.name}: ${o.value}`).join(', ')}`;
-		const logStr = `${commandStr}; Guild: ${interaction.guild.name}(${interaction.guild.id}); User: ${interaction.member.nickname}(${interaction.user.displayName}/${interaction.user.username}/${interaction.user.id}); ID: ${interaction.id}`;
 		try {
-			log(`Running: ${logStr}`, 'Command');
+			log(`Running: ${commandStr}`, 'Command');
 			await command.callback({ interaction, options: interaction.options });
-			log(`Done: ${logStr}`, 'Command');
+			log(`Done: ${commandStr}`, 'Command');
 		} catch (e) {
-			error(`Failed: ${logStr}`, 'Command');
+			error(`Failed: ${commandStr}`, 'Command');
 			error(e);
 
 			const embed = buildErrorEmbed()

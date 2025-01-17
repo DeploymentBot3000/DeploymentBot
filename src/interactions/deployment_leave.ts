@@ -7,6 +7,7 @@ import { buildErrorEmbed } from "../embeds/embed.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
+import { success } from "../utils/logger.js";
 
 export const DeploymentLeaveButton = new Button({
     id: "leaveDeployment",
@@ -88,6 +89,7 @@ export const DeploymentLeaveButton = new Button({
             }
 
             await interaction.update({});
+            success(`User: ${interaction.member.displayName} left deployment: ${deployment.title}; ID: ${deployment.id}; Message: ${deployment.message}`);
         } catch (error) {
             console.error('Error in leaveDeployment button:', error);
             const errorEmbed = buildErrorEmbed()

@@ -20,7 +20,7 @@ import Deployment from "../tables/Deployment.js";
 import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
-import { action } from "../utils/logger.js";
+import { success } from "../utils/logger.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 
 export const DeploymentEditButton = new Button({
@@ -42,7 +42,6 @@ export const DeploymentEditModal = new Modal({
 });
 
 async function onDeploymentEditButtonPress(interaction: ButtonInteraction) {
-    action(`User ${interaction.user.tag} attempting to edit deployment`, "EditDeployment");
     await interaction.deferReply({ ephemeral: true });
 
     const deployment = await _checkCanEditDeployment(interaction);
@@ -126,7 +125,6 @@ async function _selectFieldsToEdit(interaction: ButtonInteraction): Promise<Stri
 }
 
 async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'cached'>) {
-    action(`User ${interaction.user.tag} editing deployment`, "EditDeployment");
     await interaction.deferReply({ ephemeral: true });
     try {
         const details = getDeploymentModalValues(interaction.fields);
@@ -145,6 +143,7 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
         }
 
         await editReplyWithSuccess(interaction, 'Deployment edited successfully');
+        success(`User: ${interaction.member.displayName} edited deployment: ${newDetails.title}; ID: ${newDetails.id}; Message: ${newDetails.message.id}`);
     } catch (e: any) {
         await editReplyWithError(interaction, 'Failed to edit deployment');
         throw e;

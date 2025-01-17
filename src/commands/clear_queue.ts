@@ -12,7 +12,7 @@ export default new Command({
     options: [],
     callback: async function ({ interaction }) {
         action(`${interaction.user.tag} clearing queue`, "QueueClear");
-        
+
         await HotDropQueue.getHotDropQueue().clear();
         success(`Queue cleared by ${interaction.user.tag}`, "QueueClear");
 

@@ -7,7 +7,9 @@ import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
 import { DeploymentRole, parseRole } from "../utils/deployments.js";
+import { formatMemberForLog } from "../utils/interaction_format.js";
 import { editReplyWithError } from "../utils/interaction_replies.js";
+import { success } from "../utils/logger.js";
 
 export default new SelectMenu({
     id: "signup",
@@ -15,7 +17,7 @@ export default new SelectMenu({
     permissions: {
         deniedRoles: config.deniedRoles,
     },
-    callback: async function ({ interaction }: { interaction: AnySelectMenuInteraction }): Promise<void> {
+    callback: async function ({ interaction }: { interaction: AnySelectMenuInteraction<'cached'> }): Promise<void> {
         if (!interaction.isStringSelectMenu()) {
             console.log(interaction);
             throw new Error('Wrong interaction type');
@@ -24,7 +26,7 @@ export default new SelectMenu({
     }
 });
 
-async function onSignupSelectMenuInteraction(interaction: StringSelectMenuInteraction) {
+async function onSignupSelectMenuInteraction(interaction: StringSelectMenuInteraction<'cached'>) {
     await interaction.deferReply({ ephemeral: true });
 
     try {
@@ -126,6 +128,7 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
         const embed = await deprecated_buildDeploymentEmbedFromDb(deployment, Colors.Green, /*started=*/false);
         await interaction.message.edit({ embeds: [embed] });
         await interaction.deleteReply();
+        success(`User: ${formatMemberForLog(interaction.member)} joined Deployment: ${deployment.title}  as ${newRole}; Message: ${deployment.message}; ID: ${deployment.id}`);
     } catch (e: any) {
         console.log(e);
         // Force an update to reset the selected item.

@@ -4,6 +4,8 @@ import { config } from "../config.js";
 import { buildErrorEmbed } from "../embeds/embed.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
+import { formatMemberForLog } from "../utils/interaction_format.js";
+import { success } from "../utils/logger.js";
 
 export const QueueLeaveButton = new Button({
     id: "leave",
@@ -33,5 +35,7 @@ export const QueueLeaveButton = new Button({
         await sendDmToUser(interaction.user, {
             content: 'You left the Hot Drop Queue'
         });
+
+        success(`User: ${formatMemberForLog(interaction.member)} left the hot drop queue`);
     }
 });
