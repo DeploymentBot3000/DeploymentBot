@@ -1,3 +1,5 @@
+import { MAX_FIELD_VALUE_LENGTH } from "../discord_constants.js";
+
 function formatToGoogleCalendarDate(timestamp: number): string {
     timestamp = Number(timestamp);
     if (typeof timestamp !== 'number' || isNaN(timestamp)) throw new Error(`Invalid timestamp: ${timestamp}`);
@@ -8,7 +10,9 @@ function formatToGoogleCalendarDate(timestamp: number): string {
 
 export default function getGoogleCalendarLink(title: string, description: string, startDate: number, endDate: number) {
     const uriTitle = encodeURIComponent(title);
-    const details = encodeURIComponent(description);
+    // Limit the google description since we need to fit a bunch more details into the same field.
+    // 500 is arbitrary here, we probably can fit more.
+    const details = encodeURIComponent(description.slice(0, MAX_FIELD_VALUE_LENGTH - 500));
     const uriLocation = encodeURIComponent("505th Deployments Channel");
     const formattedStart = formatToGoogleCalendarDate(startDate);
     const formattedEnd = formatToGoogleCalendarDate(endDate);
