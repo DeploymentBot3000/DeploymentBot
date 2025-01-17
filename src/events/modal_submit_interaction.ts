@@ -25,6 +25,7 @@ export default {
 
         try {
             log(`[Modal Submitted] ${interaction.id} ${colors.blue("||")} Author: ${interaction.user.username} ${colors.blue("||")} ID: ${interaction.user.id} ${colors.blue("||")} Server: ${interaction.guild?.name || "DM"}`);
+            await modal.callback({ interaction });
         } catch (e) {
             error(`[Modal Error] ${interaction.id} ${colors.blue("||")} Author: ${interaction.user.username} ${colors.blue("||")} ID: ${interaction.user.id} ${colors.blue("||")} Server: ${interaction.guild?.name || "DM"} ${colors.red("||")} ${e}`)
             error(e);
@@ -35,7 +36,5 @@ export default {
             await interaction.reply({ embeds: [embed], ephemeral: true });
             return;
         }
-
-        await modal.callback({ interaction });
     },
 }
