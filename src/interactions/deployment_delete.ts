@@ -49,9 +49,9 @@ export const DeploymentDeleteButton = new Button({
             }));
 
             const embed = _buildDeploymentDeletedConfirmationEmbedForLog(deployment, signups, backups);
-            sendEmbedToLogChannel(embed, client);
+            await sendEmbedToLogChannel(embed, client);
         } catch (e) {
-            sendErrorToLogChannel(e, client);
+            await sendErrorToLogChannel(e, client);
         }
 
 
