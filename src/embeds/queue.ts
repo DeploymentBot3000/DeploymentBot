@@ -1,6 +1,7 @@
 import { APIEmbedField, EmbedBuilder, VoiceChannel } from "discord.js";
 import { DateTime } from "luxon";
 import { config } from "../config.js";
+import { MAX_FIELD_VALUE_LENGTH } from "../discord_constants.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 
 export type QueueEventEmbedOptions = {
@@ -164,9 +165,6 @@ export default function buildQueuePanelEmbed(nextDeploymentTime: number, hosts: 
 function _buildHostsAndPlayersEmbedFields(hosts: string[], players: string[]): APIEmbedField[] {
     const currentHostsNamesStr = hosts.join('\n');
     const currentPlayersNamesStr = players.join('\n');
-
-    // This is the hard limit on discord field value length.
-    const MAX_FIELD_VALUE_LENGTH = 1024;
 
     // Limit list to length 20, otherwise the list gets really long and hard to look at.
     // Especially when in strike mode.
