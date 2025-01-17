@@ -4,7 +4,7 @@ import { client } from "../custom_client.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
-import { DeploymentDetails, deploymentToDetails } from "../utils/deployments.js";
+import { DeploymentDetails, deploymentToDetails, formatRoleEmoji } from "../utils/deployments.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 import { buildEmbed } from "./embed.js";
@@ -40,8 +40,7 @@ export function buildDeploymentEmbed(details: DeploymentDetails, color: ColorRes
             {
                 name: "Signups:",
                 value: details.signups.map(signup => {
-                    const role = config.roles.find(role => role.name === signup.role);
-                    return `${role.emoji} <@${signup.guildMember.user.id}>`;
+                    return `${formatRoleEmoji(signup.role)} <@${signup.guildMember.user.id}>`;
                 }).join("\n") || "` - `",
                 inline: true
             },

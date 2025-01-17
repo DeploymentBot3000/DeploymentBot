@@ -23,11 +23,25 @@ export function formatRoleEmoji(role: DeploymentRole) {
     if (role == DeploymentRole.BACKUP) {
         return config.backupEmoji;
     }
-    const roleConfig = config.roles.find(r => r.name == DeploymentRole.FIRETEAM);
-    if (roleConfig) {
+    const roleConfig = config.roles.find(r => r.name == role);
+    if (roleConfig && roleConfig.emoji && roleConfig.emoji.length) {
         return roleConfig.emoji;
     }
     return '❓';
+}
+
+export function parseRole(role: string): DeploymentRole {
+    // Fix for backwards compatability with deprecated offense role
+    if (role.toLowerCase() == 'offense') {
+        return DeploymentRole.FIRETEAM;
+    }
+
+    for (const roleName of Object.values(DeploymentRole)) {
+        if (roleName.toLowerCase() == role.toLowerCase()) {
+            return roleName;
+        }
+    }
+    return DeploymentRole.UNSPECIFIED;
 }
 
 export interface DeploymentMember {
@@ -277,8 +291,7 @@ async function _sendDepartureMessage(client: Client, deployment: Deployment) {
 
 function _departureMessage(deployment: Deployment, signups: Signups[], backups: Backups[]) {
     const signupsFormatted = signups.filter(s => s.userId != deployment.user).map(signup => {
-        const role = config.roles.find(role => role.name === signup.role);
-        return `${role.emoji} <@${signup.userId}>`;
+        return `${formatRoleEmoji(parseRole(signup.role))} <@${signup.userId}>`;
     }).join(",") || "` - `";
 
     const backupsFormatted = backups.map(backup => `${config.backupEmoji} <@${backup.userId}>`).join(",") || "` - `";
@@ -388,11 +401,11 @@ function _buildDeploymentSignupRows() {
                 ...config.roles.map(role => ({
                     label: role.name,
                     value: role.name,
-                    emoji: role.emoji || undefined
+                    emoji: role.emoji || undefined,
                 })),
                 {
-                    label: "Backup",
-                    value: "backup",
+                    label: DeploymentRole.BACKUP,
+                    value: DeploymentRole.BACKUP,
                     emoji: config.backupEmoji
                 }
             )),
