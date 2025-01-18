@@ -7,7 +7,7 @@ import buildQueuePanelEmbed from "../embeds/queue.js";
 import Queue from "../tables/Queue.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import { sendErrorToLogChannel } from "./log_channel.js";
-import { log } from "./logger.js";
+import { verbose } from "./logger.js";
 import { logQueueAction } from "./queueLogger.js";
 import { getDeploymentTimeSetting, setDeploymentTimeSetting } from "./settings.js";
 import { startQueuedGameImpl } from "./startQueuedGame.js";
@@ -200,7 +200,7 @@ export class HotDropQueue {
 }
 
 async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime, strikeModeEnabled: boolean) {
-    log("Updating Hot Drop Embed", 'Queue System');
+    verbose("Updating Hot Drop Embed", 'Queue System');
 
     const queueMessages = await QueueStatusMsg.find();
     if (queueMessages.length == 0) {
@@ -210,7 +210,7 @@ async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime,
     const channel = await client.channels.fetch(queueMessage.channel) as GuildTextBasedChannel;
     const message = await channel.messages.fetch(queueMessage.message);
 
-    log(`Next deployment time: ${nextDeploymentTime.toISO()}`, 'Queue System');
+    verbose(`Next deployment time: ${nextDeploymentTime.toISO()}`, 'Queue System');
 
     const currentQueue = await Queue.find();
     const hosts = await Promise.all(currentQueue.filter(q => q.isHost).map(async host => {
@@ -226,6 +226,6 @@ async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime,
     const embed = buildQueuePanelEmbed(nextDeploymentTime.toMillis(), hosts, players, strikeModeEnabled);
 
     await message.edit({ embeds: [embed] });
-    log(`Hot Drop Embed updated: ${message.id}`, 'Queue System');
+    verbose(`Hot Drop Embed updated: ${message.id}`, 'Queue System');
     return message;
 }

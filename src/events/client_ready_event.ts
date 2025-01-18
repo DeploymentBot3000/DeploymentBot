@@ -8,13 +8,13 @@ import { setWakingUpActivity, startActivityInterval } from "../utils/bot_activit
 import { DeploymentManager } from "../utils/deployments.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { sendEmbedToLogChannel } from "../utils/log_channel.js";
-import { error, log, success } from "../utils/logger.js";
+import { error, info, success } from "../utils/logger.js";
 import { getAllSlashCommands } from "../utils/slash_commands_registery.js";
 import { VoiceChannelManager } from "../utils/voice_channels.js";
 
 export async function discordClientReadyCallback(client: Client) {
 	try {
-		log(`Logged in as ${colors.red(client.user!.tag)}`, 'Startup');
+		success(`Logged in as ${colors.red(client.user!.tag)}`, 'Startup');
 
 		setWakingUpActivity(client);
 
@@ -22,7 +22,7 @@ export async function discordClientReadyCallback(client: Client) {
 
 		if (config.registerCommands) {
 			const commands = getAllSlashCommands();
-			log(`Registering shash commands: ${commands.map(cmd => cmd.name).join(', ')} for guild: ${config.guildId}`, 'Startup');
+			info(`Registering shash commands: ${commands.map(cmd => cmd.name).join(', ')} for guild: ${config.guildId}`, 'Startup');
 			await rest.put(Routes.applicationGuildCommands(client.user.id, config.guildId), { body: commands });
 			success(`Successfully registered ${commands.length} shash commands for guild: ${config.guildId}`, 'Startup');
 		}

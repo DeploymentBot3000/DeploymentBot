@@ -11,6 +11,7 @@ import Deployment from "../tables/Deployment.js";
 import LatestInput from "../tables/LatestInput.js";
 import Signups from "../tables/Signups.js";
 import { sendErrorToLogChannel } from "./log_channel.js";
+import { verbose } from "./logger.js";
 import { formatDiscordTime } from "./time.js";
 
 export enum DeploymentRole {
@@ -124,10 +125,11 @@ export class DeploymentManager {
         await Backups.delete({ id: In(backupsToDelete) });
         await LatestInput.clear();
 
-        console.log("Database Purge:");
-        console.log(`Cleared ${signupsToDelete.length} invalid signups!`);
-        console.log(`Cleared ${backupsToDelete.length} invalid backups!`);
-        console.log(`Cleared last input data!`);
+        verbose("Performing database cleanup...");
+        verbose(`Cleared ${signupsToDelete.length} invalid signups!`);
+        verbose(`Cleared ${backupsToDelete.length} invalid backups!`);
+        verbose(`Cleared last input data!`);
+        verbose("Database cleanup complete!");
     }
 
     public async create(details: DeploymentDetails): Promise<DeploymentDetails> {

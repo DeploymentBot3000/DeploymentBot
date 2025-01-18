@@ -1,50 +1,58 @@
 import colors from "colors";
-import { config } from "../config.js";
+import { DateTime } from "luxon";
 
-export function log(text: string, context?: string) {
-	const date = new Date().toTimeString().split(/ +/)[0];
-	const contextStr = context ? colors.blue(`[${context}]`) : '';
-	console.log(colors.green(`[${date}]${contextStr}: ${text}`));
-}
+export enum LogLevel {
+	FATAL,
+	ERROR,
+	WARNING,
+	INFO,
+	VERBOSE,
+	DEBUG,
+};
 
-export function success(text: string, context?: string) {
-	const date = new Date().toTimeString().split(/ +/)[0];
-	const contextStr = context ? colors.blue(`[${context}]`) : '';
-	console.log(colors.green(`[${date}]${contextStr}: ${text}`));
-}
+class Logger {
+	level = LogLevel.INFO;
 
-export function warn(text: string, context?: string) {
-	const date = new Date().toTimeString().split(/ +/)[0];
-	const contextStr = context ? colors.blue(`[${context}]`) : '';
-	console.log(colors.yellow(`[${date}]${contextStr}: ${text}`));
-}
-
-export function error(text: String | Error, context?: string) {
-	const date = new Date().toTimeString().split(/ +/)[0];
-	const contextStr = context ? colors.blue(`[${context}]`) : '';
-	
-	if (config.debugMode) {
-		if (text instanceof Error) {
-			console.log(colors.red(`[${date}]${contextStr}: Error: ${text.message}`));
-			console.error(colors.red(text.stack));
-		} else {
-			console.log(colors.red(`[${date}]${contextStr}: ${text}`));
+	log(level: LogLevel, payload: any, context?: string) {
+		if (level <= this.level) {
+			const color = _logLevelColor(level);
+			console.log(DateTime.now().toISO(), color(LogLevel[level].padEnd(this._padLength, ' ')), context ? ` [${context}]` : '', payload);
 		}
-	} else {
-		console.log(colors.red(`[${date}]${contextStr}: ${text}`));
+		if (level == LogLevel.FATAL) {
+			process.exit(1);
+		}
+	}
+
+	private _padLength = Math.max(...Object.keys(LogLevel).map(l => l.length));
+};
+
+function _logLevelColor(level: LogLevel) {
+	switch (level) {
+		case LogLevel.FATAL: return colors.red;
+		case LogLevel.ERROR: return colors.red;
+		case LogLevel.WARNING: return colors.yellow;
+		case LogLevel.INFO: return colors.reset;
+		case LogLevel.VERBOSE: return colors.reset;
+		case LogLevel.DEBUG: return colors.gray;
 	}
 }
 
-export function debug(text: string, context?: string) {
-	if (config.debugMode) {
-		const date = new Date().toTimeString().split(/ +/)[0];
-		const contextStr = context ? colors.blue(`[${context}]`) : '';
-		console.log(colors.gray(`[${date}]${contextStr}: ${text}`));
-	}
+export const logger = new Logger();
+
+export const fatal = logger.log.bind(logger, LogLevel.FATAL);
+export const error = logger.log.bind(logger, LogLevel.ERROR);
+export const warn = logger.log.bind(logger, LogLevel.WARNING);
+export const info = logger.log.bind(logger, LogLevel.INFO);
+export const verbose = logger.log.bind(logger, LogLevel.VERBOSE);
+
+export function debug(payload: any, context?: string) {
+	logger.log(LogLevel.DEBUG, colors.gray(payload), context ? colors.gray(context) : undefined);
 }
 
-export function action(text: string, context?: string) {
-	const date = new Date().toTimeString().split(/ +/)[0];
-	const contextStr = context ? colors.blue(`[${context}]`) : '';
-	console.log(colors.magenta(`[${date}]${contextStr}: ${text}`));
+export function success(payload: any, context?: string) {
+	logger.log(LogLevel.INFO, payload, colors.green(context ? `SUCCESS:${context}` : 'SUCCESS'));
+}
+
+export function action(payload: any, context?: string) {
+	logger.log(LogLevel.INFO, payload, colors.blue(context ? `ACTION:${context}` : 'ACTION'));
 }
