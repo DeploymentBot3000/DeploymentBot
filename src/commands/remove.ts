@@ -6,6 +6,7 @@ import { buildInfoEmbed } from "../embeds/embed.js";
 import Deployment from "../tables/Deployment.js";
 import { DeploymentManager } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
+import { formatMemberForLog, formatUserForLog } from "../utils/interaction_format.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 import { action, success } from "../utils/logger.js";
 
@@ -58,7 +59,7 @@ export default new Command({
         const targetUser = interaction.options.getUser("user");
         const deploymentTitle = interaction.options.getString("deployment");
         const reason = interaction.options.getString("reason") || "No reason provided";
-        action(`${interaction.user.tag} attempting to remove ${targetUser.tag} from deployment "${deploymentTitle}"`, "Remove");
+        action(`${formatMemberForLog(interaction.member)} attempting to remove ${formatUserForLog(targetUser)} from deployment: ${deploymentTitle}`, "Remove");
 
         await interaction.deferReply({ ephemeral: true });
         try {
@@ -72,7 +73,7 @@ export default new Command({
             throw e;
         }
         await editReplyWithSuccess(interaction, 'Succesfuly removed player');
-        success(`${targetUser.tag} removed from deployment "${deploymentTitle}" by ${interaction.user.tag}`, "Remove");
+        success(`${formatMemberForLog(interaction.member)} removed ${formatUserForLog(targetUser)} from deployment: ${deploymentTitle}`, "Remove");
     }
 });
 
