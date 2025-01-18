@@ -5,7 +5,7 @@ import { buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
 import buildQueuePanelEmbed from "../embeds/queue.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
-import { action, error, log, success } from "../utils/logger.js";
+import { action, error, success, warn } from "../utils/logger.js";
 
 export default new Command({
     name: "queue-panel",
@@ -18,7 +18,7 @@ export default new Command({
         action(`${interaction.user.tag} creating queue panel`, "QueuePanel");
 
         if (!interaction.memberPermissions.has("ManageRoles")) {
-            log(`${interaction.user.tag} attempted to create queue panel without permissions`, "QueuePanel");
+            warn(`${interaction.user.tag} attempted to create queue panel without permissions`, "QueuePanel");
             interaction.reply({ content: "You don't have permission to use this command.", ephemeral: true });
             return;
         }
