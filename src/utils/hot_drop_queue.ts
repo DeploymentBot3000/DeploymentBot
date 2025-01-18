@@ -200,8 +200,6 @@ export class HotDropQueue {
 }
 
 async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime, strikeModeEnabled: boolean) {
-    verbose("Updating Hot Drop Embed", 'Queue System');
-
     const queueMessages = await QueueStatusMsg.find();
     if (queueMessages.length == 0) {
         return null;
@@ -209,8 +207,6 @@ async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime,
     const queueMessage = queueMessages[0];
     const channel = await client.channels.fetch(queueMessage.channel) as GuildTextBasedChannel;
     const message = await channel.messages.fetch(queueMessage.message);
-
-    verbose(`Next deployment time: ${nextDeploymentTime.toISO()}`, 'Queue System');
 
     const currentQueue = await Queue.find();
     const hosts = await Promise.all(currentQueue.filter(q => q.isHost).map(async host => {
@@ -226,6 +222,6 @@ async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime,
     const embed = buildQueuePanelEmbed(nextDeploymentTime.toMillis(), hosts, players, strikeModeEnabled);
 
     await message.edit({ embeds: [embed] });
-    verbose(`Hot Drop Embed updated: ${message.id}`, 'Queue System');
+    verbose(`Hot Drop Embed updated: ${message.id}; Next deployment time: ${nextDeploymentTime.toISO()}`, 'Queue System');
     return message;
 }
