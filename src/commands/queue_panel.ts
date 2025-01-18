@@ -5,7 +5,7 @@ import { buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
 import buildQueuePanelEmbed from "../embeds/queue.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
-import { action, error, success, warn } from "../utils/logger.js";
+import { error, success, warn } from "../utils/logger.js";
 
 export default new Command({
     name: "queue-panel",
@@ -15,8 +15,6 @@ export default new Command({
     },
     options: [],
     callback: async function ({ interaction }) {
-        action(`${interaction.user.tag} creating queue panel`, "QueuePanel");
-
         if (!interaction.memberPermissions.has("ManageRoles")) {
             warn(`${interaction.user.tag} attempted to create queue panel without permissions`, "QueuePanel");
             interaction.reply({ content: "You don't have permission to use this command.", ephemeral: true });
@@ -42,11 +40,11 @@ export default new Command({
                 await currentMsg.save();
             } else await QueueStatusMsg.insert({ channel: interaction.channelId, message: msg.id });
 
-            success(`Queue panel created by ${interaction.user.tag}`, "QueuePanel");
-
             const successEmbed = buildSuccessEmbed()
                 .setDescription("Queue panel sent");
             await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+
+            success('Queue panel created', 'QueuePanel');
         } catch (e) {
             error(`Failed to create queue panel: ${e}`, "QueuePanel");
             const successEmbed = buildErrorEmbed()
