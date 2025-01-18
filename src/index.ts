@@ -9,7 +9,13 @@ import modalSubmittionInteraction from "./events/modal_submit_interaction.js";
 import selectMenuInteraction from "./events/select_menu_interaction.js";
 import { formatInteractionDetailsForLog } from "./utils/interaction_format.js";
 import { sendErrorToLogChannel } from "./utils/log_channel.js";
-import { action, log, success } from "./utils/logger.js";
+import { action, fatal, logger, LogLevel, success, verbose } from "./utils/logger.js";
+import { isEnumKey } from "./utils/typescript.js";
+
+if (!isEnumKey(LogLevel, config.logLevel)) {
+    fatal(`${config.logLevel} is not a valid log level`);
+}
+logger.level = LogLevel[config.logLevel];
 
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     try {
@@ -53,11 +59,11 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
     process.on(signal, async (signal: string) => {
         await sendErrorToLogChannel(new Error(`Received signal: ${signal}, shutting down.`), client);
         await client.destroy();
-        log('Destroyed discord client!');
+        verbose('Destroyed discord client!');
         process.exit(1);
     });
 }
 
 // Log in bot
-log('Logging in discord client', 'Startup');
+verbose('Logging in discord client', 'Startup');
 client.once(Events.ClientReady, discordClientReadyCallback.bind(null)).login(config.token);
