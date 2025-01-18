@@ -20,8 +20,6 @@ export async function deprecated_buildDeploymentEmbedFromDb(deployment: Deployme
 }
 
 export function buildDeploymentEmbed(details: DeploymentDetails, color: ColorResolvable, started: boolean) {
-    console.log('Building deployment embed with color:', color);
-
     const googleCalendarLink = getGoogleCalendarLink(details.title, details.description, details.startTime.toMillis(), details.endTime.toMillis());
 
     return new EmbedBuilder()

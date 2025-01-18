@@ -4,7 +4,7 @@ import { client } from "../custom_client.js";
 import { buildSuccessEmbed } from "../embeds/embed.js";
 import Queue from "../tables/Queue.js";
 import { sendDmToUser } from "./dm.js";
-import { debug, success } from "./logger.js";
+import { debug, success, verbose } from "./logger.js";
 import { logHotDropStarted } from "./queueLogger.js";
 import { VoiceChannelManager } from "./voice_channels.js";
 
@@ -35,7 +35,7 @@ export async function startQueuedGameImpl(strikeMode: boolean): Promise<void> {
         // Include the group if we have a host and enough assigned players.
         // If we don't, the assigned players will be scheduled on the next round if we have another host.
         if (1 + assignedPlayers.length >= config.min_players) {
-            debug(`Creating hot drop; Host: ${host.user}; players: ${assignedPlayers.map(p => p.user).join(', ')}; min_players: ${config.min_players}`);
+            debug(`Creating hot drop; Host: ${host.user}; players: ${assignedPlayers.map(p => p.user).join(', ')}; min_players: ${config.min_players}`, 'Queue System');
             groups.push({
                 host: host,
                 players: assignedPlayers
@@ -44,6 +44,7 @@ export async function startQueuedGameImpl(strikeMode: boolean): Promise<void> {
     })
 
     if (!groups.length) {
+        verbose(`Not enough players for hot drop; Hosts: ${hosts.length}; Players: ${players.length};`, 'Queue System');
         return;
     }
 
@@ -127,7 +128,7 @@ export async function startQueuedGameImpl(strikeMode: boolean): Promise<void> {
             playerMembers,
             vc
         });
-        success(`Successfully created hot drop: ${randomCode}; Host: ${hostDisplayName}; Participants: ${selectedPlayers.map(p => p.user).join(",")};`, 'Queue System');
+        success(`Created hot drop: ${randomCode}; Host: ${hostDisplayName}; Participants: ${selectedPlayers.map(p => p.user).join(",")};`, 'Queue System');
     }
 }
 
