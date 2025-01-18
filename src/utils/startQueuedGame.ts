@@ -127,7 +127,7 @@ export async function startQueuedGameImpl(strikeMode: boolean): Promise<void> {
             playerMembers,
             vc
         });
-        success(`Successfully created deployment for ${hostDisplayName}`, 'Queue System');
+        success(`Successfully created hot drop: ${randomCode}; Host: ${hostDisplayName}; Participants: ${selectedPlayers.map(p => p.user).join(",")};`, 'Queue System');
     }
 }
 
