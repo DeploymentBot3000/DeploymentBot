@@ -1,11 +1,9 @@
-import colors from "colors";
 import { AnySelectMenuInteraction } from "discord.js";
 import SelectMenu from "../classes/SelectMenu.js";
 import signup from "../selectMenus/deployment_role_select.js";
 import { checkCooldown } from "../utils/cooldowns.js";
 import { replyWithError } from "../utils/interaction_replies.js";
 import { sendErrorToLogChannel } from "../utils/log_channel.js";
-import { error, log } from "../utils/logger.js";
 import { checkPermissions } from "../utils/permissions.js";
 
 const _kSelectMenus: Map<string, SelectMenu> = new Map();
@@ -36,10 +34,8 @@ export default {
         }
 
         try {
-            log(`[Select Menu Clicked] ${interaction.customId} ${colors.blue("||")} Author: ${interaction.user.username} ${colors.blue("||")} ID: ${interaction.user.id} ${colors.blue("||")} Server: ${interaction.guild?.name || "DM"}`);
             await selectMenu.callback({ interaction });
         } catch (e) {
-            error(`[Select Menu Error] ${interaction.customId} ${colors.blue("||")} Author: ${interaction.user.username} ${colors.blue("||")} ID: ${interaction.user.id} ${colors.blue("||")} Server: ${interaction.guild?.name || "DM"} ${colors.red("||")} ${e}`);
             await sendErrorToLogChannel(e, interaction.client);
         }
     },

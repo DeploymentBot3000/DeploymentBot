@@ -20,7 +20,6 @@ import Deployment from "../tables/Deployment.js";
 import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
-import { action } from "../utils/logger.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 
 export const DeploymentEditButton = new Button({
@@ -125,7 +124,6 @@ async function _selectFieldsToEdit(interaction: ButtonInteraction<'cached'>): Pr
 }
 
 async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'cached'>) {
-    action(`User ${interaction.user.tag} editing deployment`, "EditDeployment");
     await interaction.deferReply({ ephemeral: true });
     try {
         const details = getDeploymentModalValues(interaction.fields);
