@@ -24,7 +24,7 @@ export const DeploymentNewButton = new Button({
         requireRoles: config.hostRoles,
         deniedRoles: config.deniedRoles,
     },
-    callback: async function ({ interaction }: { interaction: ButtonInteraction }) {
+    callback: async function ({ interaction }: { interaction: ButtonInteraction<'cached'> }) {
         await onNewDeploymentButtonPress(interaction);
     }
 });
@@ -36,7 +36,7 @@ export const DeploymentNewModal = new Modal({
     }
 });
 
-async function onNewDeploymentButtonPress(interaction: ButtonInteraction) {
+async function onNewDeploymentButtonPress(interaction: ButtonInteraction<'cached'>) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
     const modal = buildNewDeploymentModal(latestInput?.title, latestInput?.difficulty, latestInput?.description, latestInput?.startTime);
     await interaction.showModal(modal);

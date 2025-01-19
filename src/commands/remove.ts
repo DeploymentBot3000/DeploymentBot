@@ -37,7 +37,7 @@ export default new Command({
             required: false
         }
     ],
-    autocomplete: async function({ interaction }: { interaction: AutocompleteInteraction }) {
+    autocomplete: async function ({ interaction }: { interaction: AutocompleteInteraction<'cached'> }) {
         const focusedValue = interaction.options.getFocused();
         const deployments = await Deployment.find({
             where: {

@@ -41,7 +41,7 @@ export const DeploymentEditModal = new Modal({
     }
 });
 
-async function onDeploymentEditButtonPress(interaction: ButtonInteraction) {
+async function onDeploymentEditButtonPress(interaction: ButtonInteraction<'cached'>) {
     await interaction.deferReply({ ephemeral: true });
 
     const deployment = await _checkCanEditDeployment(interaction);
@@ -68,7 +68,7 @@ async function onDeploymentEditButtonPress(interaction: ButtonInteraction) {
     await selectMenuInteraction.showModal(modal);
 }
 
-async function _checkCanEditDeployment(interaction: ButtonInteraction): Promise<Deployment | Error> {
+async function _checkCanEditDeployment(interaction: ButtonInteraction<'cached'>): Promise<Deployment | Error> {
     const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
     if (!deployment) {
         return new Error("Deployment not found");
@@ -94,7 +94,7 @@ async function _checkCanEditDeployment(interaction: ButtonInteraction): Promise<
     return deployment;
 }
 
-async function _selectFieldsToEdit(interaction: ButtonInteraction): Promise<StringSelectMenuInteraction | Error> {
+async function _selectFieldsToEdit(interaction: ButtonInteraction<'cached'>): Promise<StringSelectMenuInteraction | Error> {
     const selectmenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
         new StringSelectMenuBuilder().setCustomId("editDeployment").setPlaceholder("Select an option").setMaxValues(4).addOptions(
             { label: "Title", value: DeploymentFields.TITLE, emoji: config.editEmoji },
