@@ -5,7 +5,7 @@ import Command from "../classes/Command.js";
 import { buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 
-function parseDeploymentTimeString(input: string) {
+export function parseDeploymentTimeString(input: string) {
     const milis = ms(input);
     if (milis == undefined) {
         return new Error(`Invalid input: ${input}; reason: Failed to parse duration`);

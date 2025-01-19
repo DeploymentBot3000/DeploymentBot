@@ -1,9 +1,9 @@
 import { Snowflake } from "discord.js";
+import { Duration } from "luxon";
 import Settings from "../tables/Settings.js";
 import { debug } from "./logger.js";
-import { Duration } from "luxon";
 
-enum SettingKey {
+export enum SettingKey {
     deployment_time = "deployment_time",
 }
 
@@ -20,7 +20,7 @@ async function getSetting(guildId: Snowflake, name: SettingKey, defaultValue: st
     return defaultValue;
 }
 
-async function setSetting(guildId: Snowflake, name: SettingKey, value: string) {
+export async function setSetting(guildId: Snowflake, name: SettingKey, value: string) {
     if (!(<any>Object).values(SettingKey).includes(name)) {
         throw new Error(`${name} is not a valid option key.`);
     }
