@@ -24,14 +24,14 @@ export default class Command {
         options: OmittedCommandInteractionOptionResolver
     }) => Promise<void>;
     public autocomplete?: (params: {
-        interaction: AutocompleteInteraction;
+        interaction: AutocompleteInteraction<'cached'>;
     }) => void;
     public constructor({ name, description, permissions, options, callback, autocomplete }: {
         name: string, description: string, permissions: PermissionsConfig, options: ApplicationCommandOption[], callback: (params: {
             interaction: ChatInputCommandInteraction<'cached'>;
             options: OmittedCommandInteractionOptionResolver;
         }) => Promise<void>, autocomplete?: (params: {
-            interaction: AutocompleteInteraction;
+            interaction: AutocompleteInteraction<'cached'>;
         }) => void
     }) {
         this.name = name;
