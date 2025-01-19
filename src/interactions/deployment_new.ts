@@ -12,7 +12,9 @@ import { buildNewDeploymentModal, getDeploymentModalValues, getDeploymentModalVa
 import LatestInput from "../tables/LatestInput.js";
 import { DeploymentManager, DeploymentRole } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
+import { formatMemberForLog } from "../utils/interaction_format.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
+import { success } from "../utils/logger.js";
 import { formatDiscordTime } from "../utils/time.js";
 
 export const DeploymentNewButton = new Button({
@@ -77,6 +79,7 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
         await sendDmToUser(interaction.user, { content: `You create a new deployment: ${deployment.title}.\nScheduled for: ${formatDiscordTime(deployment.startTime)} (${deployment.startTime.toISO()}).\n${link}` });
 
         await editReplyWithSuccess(interaction, 'Deployment created successfully');
+        success(`User: ${formatMemberForLog(interaction.member)} created Deployment: ${deployment.title}; ID: ${deployment.id}; Message: ${deployment.message.id}`);
     } catch (e: any) {
         await editReplyWithError(interaction, 'Failed to create deployment');
         throw e;
