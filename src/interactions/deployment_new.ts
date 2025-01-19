@@ -14,7 +14,7 @@ import { DeploymentManager, DeploymentRole } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
-import { success } from "../utils/logger.js";
+import { error, success } from "../utils/logger.js";
 import { formatDiscordTime } from "../utils/time.js";
 
 export const DeploymentNewButton = new Button({
@@ -43,11 +43,25 @@ async function onNewDeploymentButtonPress(interaction: ButtonInteraction<'cached
 }
 
 async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'cached'>) {
-    await interaction.deferReply({ ephemeral: true });
+    const detailsRaw = getDeploymentModalValuesRaw(interaction.fields);
+
+    // We have seen deferal failures for the new deployment modal submit due to
+    // what seems like network delays causing us to miss the 3 second window to defer the interaction.
+    // These are benighn and present as a red text prompt at the top of the modal that
+    // reads: "Something went wrong. Try again.".
+    // Suppress the error so it doesn't spam our error logs.
+    try {
+        await interaction.deferReply({ ephemeral: true });
+    } catch (e: any) {
+        if ((e as Error).message.includes('Unknown interaction')) {
+            error(`Unknown interaction in onNewDeploymentModalSubmit for: ${formatMemberForLog(interaction.member)}; Title: ${detailsRaw.title}`);
+            return;
+        }
+        throw e;
+    }
     try {
         let deployment = getDeploymentModalValues(interaction.fields);
         if (deployment instanceof Error) {
-            const detailsRaw = getDeploymentModalValuesRaw(interaction.fields);
             await storeLatestInput(interaction.user.id, detailsRaw.title, detailsRaw.difficulty, detailsRaw.description, detailsRaw.startTime);
             await editReplyWithError(interaction, deployment.message);
             return;
