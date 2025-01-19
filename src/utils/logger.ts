@@ -13,7 +13,7 @@ export enum LogLevel {
 class Logger {
 	level = LogLevel.INFO;
 
-	log(level: LogLevel, payload: any, context?: string) {
+	log(level: LogLevel, payload: any, context?: string): void | never {
 		if (level <= this.level) {
 			const color = _logLevelColor(level);
 			console.log(DateTime.now().toISO(), color(LogLevel[level].padEnd(this._padLength, ' ')), context ? ` [${context}]` : '', payload);
@@ -39,7 +39,11 @@ function _logLevelColor(level: LogLevel) {
 
 export const logger = new Logger();
 
-export const fatal = logger.log.bind(logger, LogLevel.FATAL);
+export function fatal(payload: any, context?: string): never {
+	logger.log(LogLevel.DEBUG, colors.gray(payload), context ? colors.gray(context) : undefined);
+	process.exit(1);
+}
+
 export const error = logger.log.bind(logger, LogLevel.ERROR);
 export const warn = logger.log.bind(logger, LogLevel.WARNING);
 export const info = logger.log.bind(logger, LogLevel.INFO);
