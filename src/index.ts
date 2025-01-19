@@ -7,11 +7,13 @@ import chatInputCommandInteraction from "./events/chat_input_command_interaction
 import { discordClientReadyCallback } from "./events/client_ready_event.js";
 import modalSubmittionInteraction from "./events/modal_submit_interaction.js";
 import selectMenuInteraction from "./events/select_menu_interaction.js";
+import { formatInteractionDetailsForLog } from "./utils/interaction_format.js";
 import { sendErrorToLogChannel } from "./utils/log_channel.js";
-import { log } from "./utils/logger.js";
+import { action, log, success } from "./utils/logger.js";
 
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     try {
+        action(formatInteractionDetailsForLog(interaction));
         if (!interaction.inCachedGuild()) {
             console.log(interaction);
             throw new Error('Interaction not in a cached guild!');
@@ -28,8 +30,9 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
             await selectMenuInteraction.callback(interaction);
         } else {
             console.log('Unknown interaction object:', interaction);
-            await sendErrorToLogChannel(new Error(`Unknown interaction: ${interaction.id}`), client);
+            throw new Error(`Unknown interaction: ${interaction.id}`);
         }
+        success(`Interaction Done: ${interaction.id}`);
     } catch (e: any) {
         await sendErrorToLogChannel(e, client);
     }
