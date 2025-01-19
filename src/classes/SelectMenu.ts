@@ -16,11 +16,11 @@ export default class SelectMenu {
     public cooldown?: Duration;
     public permissions: PermissionsConfig;
     public callback: (params: {
-        interaction: AnySelectMenuInteraction;
+        interaction: AnySelectMenuInteraction<'cached'>;
     }) => Promise<void>;
     public constructor({ id, cooldown, permissions, callback }: {
         id: string, cooldown: Duration, permissions: PermissionsConfig, callback: (params: {
-        interaction: AnySelectMenuInteraction;
+            interaction: AnySelectMenuInteraction<'cached'>;
         }) => Promise<void>
     }) {
         this.id = id;

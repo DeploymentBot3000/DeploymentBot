@@ -16,7 +16,7 @@ function getModalById(id: string) {
 }
 
 export default {
-    callback: async function (interaction: ModalSubmitInteraction) {
+    callback: async function (interaction: ModalSubmitInteraction<'cached'>) {
         if (!interaction.inCachedGuild()) {
             throw new Error('Interaction is not in a cached guild');
         }

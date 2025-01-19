@@ -14,7 +14,7 @@ export default new SelectMenu({
     permissions: {
         deniedRoles: config.deniedRoles,
     },
-    callback: async function ({ interaction }: { interaction: AnySelectMenuInteraction }): Promise<void> {
+    callback: async function ({ interaction }: { interaction: AnySelectMenuInteraction<'cached'> }): Promise<void> {
         if (!interaction.isStringSelectMenu()) {
             console.log(interaction);
             throw new Error('Wrong interaction type');
@@ -23,7 +23,7 @@ export default new SelectMenu({
     }
 });
 
-async function onSignupSelectMenuInteraction(interaction: StringSelectMenuInteraction) {
+async function onSignupSelectMenuInteraction(interaction: StringSelectMenuInteraction<'cached'>) {
     await interaction.deferReply({ ephemeral: true });
 
     try {
