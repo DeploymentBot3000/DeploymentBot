@@ -10,11 +10,12 @@ import selectMenuInteraction from "./events/select_menu_interaction.js";
 import { formatInteractionDetailsForLog } from "./utils/interaction_format.js";
 import { sendErrorToLogChannel } from "./utils/log_channel.js";
 import { action, fatal, logger, LogLevel, success, verbose } from "./utils/logger.js";
+import { isEnumKey } from "./utils/typescript.js";
 
-if (!Object.keys(LogLevel).includes(config.logLevel)) {
+if (!isEnumKey(LogLevel, config.logLevel)) {
     fatal(`${config.logLevel} is not a valid log level`);
 }
-logger.level = LogLevel[config.logLevel as keyof typeof LogLevel];
+logger.level = LogLevel[config.logLevel];
 
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     try {
