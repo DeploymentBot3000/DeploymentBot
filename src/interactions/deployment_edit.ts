@@ -19,7 +19,9 @@ import { buildEditDeploymentModal, DeploymentFields, getDeploymentModalValues } 
 import Deployment from "../tables/Deployment.js";
 import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
+import { formatMemberForLog } from "../utils/interaction_format.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
+import { success } from "../utils/logger.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 
 export const DeploymentEditButton = new Button({
@@ -142,6 +144,7 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
         }
 
         await editReplyWithSuccess(interaction, 'Deployment edited successfully');
+        success(`User: ${formatMemberForLog(interaction.member)} edited deployment: ${newDetails.title}; ID: ${newDetails.id}; Message: ${newDetails.message.id}`);
     } catch (e: any) {
         await editReplyWithError(interaction, 'Failed to edit deployment');
         throw e;
