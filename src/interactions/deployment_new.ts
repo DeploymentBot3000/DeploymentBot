@@ -13,7 +13,6 @@ import LatestInput from "../tables/LatestInput.js";
 import { DeploymentManager, DeploymentRole } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
-import { action } from "../utils/logger.js";
 import { formatDiscordTime } from "../utils/time.js";
 
 export const DeploymentNewButton = new Button({
@@ -42,7 +41,6 @@ async function onNewDeploymentButtonPress(interaction: ButtonInteraction<'cached
 }
 
 async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'cached'>) {
-    action(`User ${interaction.user.tag} creating new deployment`, "NewDeployment");
     await interaction.deferReply({ ephemeral: true });
     try {
         let deployment = getDeploymentModalValues(interaction.fields);

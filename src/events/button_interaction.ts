@@ -1,4 +1,3 @@
-import colors from "colors";
 import { ButtonInteraction } from "discord.js";
 import { Button } from "../buttons/button.js";
 import { DeploymentDeleteButton } from "../interactions/deployment_delete.js";
@@ -10,7 +9,6 @@ import { QueueJoinButton } from "../interactions/queue_join.js";
 import { QueueLeaveButton } from "../interactions/queue_leave.js";
 import { checkCooldown } from "../utils/cooldowns.js";
 import { replyWithError } from "../utils/interaction_replies.js";
-import { log } from "../utils/logger.js";
 import { checkPermissions } from "../utils/permissions.js";
 
 const _kButtons: Map<string, Button> = new Map();
@@ -45,8 +43,6 @@ export default {
 			await replyWithError(interaction, e.message);
 			return;
 		}
-
-		log(`${colors.cyan('[Button Clicked]')} ${colors.yellow(interaction.customId)} ${colors.blue('||')} ${colors.green('Author:')} ${colors.magenta(interaction.user.username)}`);
 		await button.callback({ interaction });
 	},
 }
