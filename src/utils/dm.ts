@@ -1,4 +1,5 @@
 import { MessageCreateOptions, MessagePayload, User } from "discord.js";
+import { formatUserForLog } from "./interaction_format.js";
 import { error } from "./logger.js";
 
 // Some users have their incoming dms disabled which results in an exception.
@@ -6,7 +7,11 @@ import { error } from "./logger.js";
 export async function sendDmToUser(user: User, options: string | MessagePayload | MessageCreateOptions) {
     try {
         await user.send(options);
-    } catch (e) {
-        error(e);
+    } catch (e: any) {
+        if ((e as Error).message.includes('Cannot send messages to this user')) {
+            error(`Cannot send messages to this user: ${formatUserForLog(user)}`);
+            return;
+        }
+        throw e;
     }
 }
