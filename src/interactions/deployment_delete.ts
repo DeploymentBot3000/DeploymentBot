@@ -6,9 +6,11 @@ import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../embeds/em
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
-import { formatRoleEmoji, parseRole } from "../utils/deployments.js";
+import { DeploymentDetails, deploymentToDetails, formatRoleEmoji, parseRole } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
+import { formatMemberForLog } from "../utils/interaction_format.js";
 import { sendEmbedToLogChannel, sendErrorToLogChannel } from "../utils/log_channel.js";
+import { success } from "../utils/logger.js";
 
 export const DeploymentDeleteButton = new Button({
     id: "deleteDeployment",
@@ -37,9 +39,11 @@ export const DeploymentDeleteButton = new Button({
         }
 
         const client = interaction.client;
+        let oldDetails: DeploymentDetails = null;
         try {
             const signups = (await Signups.find({ where: { deploymentId: deployment.id } }));
             const backups = (await Backups.find({ where: { deploymentId: deployment.id } }));
+            oldDetails = await deploymentToDetails(client, deployment, signups, backups);
             const deploymentTime = DateTime.fromMillis(Number(deployment.startTime));
             const timeToDeployment = deploymentTime.diff(DateTime.now(), 'minutes').shiftTo('days', 'hours', 'minutes');
 
@@ -64,6 +68,8 @@ export const DeploymentDeleteButton = new Button({
         await interaction.reply({ embeds: [successEmbed], ephemeral: true });
 
         await interaction.message.delete();
+
+        success(`User: ${formatMemberForLog(interaction.member)} deleted Deployment: ${oldDetails.title}; Message: ${oldDetails.message.id}; ID: ${oldDetails.id}`);
     }
 });
 

@@ -4,6 +4,8 @@ import { config } from "../config.js";
 import { buildErrorEmbed } from "../embeds/embed.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
+import { formatMemberForLog } from "../utils/interaction_format.js";
+import { success } from "../utils/logger.js";
 
 export const QueueJoinButton = new Button({
     id: "join",
@@ -24,5 +26,7 @@ export const QueueJoinButton = new Button({
         await sendDmToUser(interaction.user, {
             content: 'You joined the Hot Drop Queue'
         });
+
+        success(`User: ${formatMemberForLog(interaction.member)} joined the hot drop queue as a participant`);
     }
 });
