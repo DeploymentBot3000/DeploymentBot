@@ -1,6 +1,6 @@
 import { ButtonStyle } from "discord.js";
 import { discord_server_config_prod } from "./config/discord_server_prod.js";
-import secrets from "./config/secrets.js";
+import { secrets } from "./config/secrets_loader.js";
 
 export const config_prod = {
     token: secrets.discord_app_token,
