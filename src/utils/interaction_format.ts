@@ -1,6 +1,6 @@
 import { Guild, GuildMember, Interaction, InteractionType, User } from "discord.js";
 
-export function formatInteractionDetailsForLog(interaction: Interaction) {
+export function formatInteractionDetailsForLog(interaction: Interaction<'cached'>) {
     let member = formatUserForLog(interaction.user);
     if (interaction.inCachedGuild()) {
         member = formatMemberForLog(interaction.member);

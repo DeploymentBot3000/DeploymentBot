@@ -19,11 +19,10 @@ logger.level = LogLevel[config.logLevel];
 
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     try {
-        action(formatInteractionDetailsForLog(interaction));
         if (!interaction.inCachedGuild()) {
-            console.log(interaction);
             throw new Error('Interaction not in a cached guild!');
         }
+        action(formatInteractionDetailsForLog(interaction));
         if (interaction.isAutocomplete()) {
             await autocompleteInteraction.callback(interaction);
         } else if (interaction.isChatInputCommand()) {
@@ -40,6 +39,7 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         }
         success(`Interaction Done: ${interaction.id}`);
     } catch (e: any) {
+        console.log(interaction);
         await sendErrorToLogChannel(e, client);
     }
 });
