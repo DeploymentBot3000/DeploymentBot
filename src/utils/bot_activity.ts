@@ -1,5 +1,6 @@
 import { ActivityType, Client } from "discord.js";
 import { Duration } from "luxon";
+import { error } from "./logger.js";
 
 export function startActivityInterval(client: Client) {
     const statusList = [
@@ -18,8 +19,12 @@ export function startActivityInterval(client: Client) {
     ];
 
     function setRandomStatus() {
-        const randomStatus = statusList[Math.floor(Math.random() * statusList.length)];
-        client.user.setActivity(randomStatus, { type: ActivityType.Custom });
+        try {
+            const randomStatus = statusList[Math.floor(Math.random() * statusList.length)];
+            client.user.setActivity(randomStatus, { type: ActivityType.Custom });
+        } catch (e: any) {
+            error(e);
+        }
     }
 
     setRandomStatus();
