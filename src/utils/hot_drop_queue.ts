@@ -1,4 +1,4 @@
-import { Client, GuildMember, GuildTextBasedChannel } from "discord.js";
+import { Client, GuildMember, GuildTextBasedChannel, PermissionsBitField } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import { EntityManager } from "typeorm";
 import { config } from "../config.js";
@@ -8,6 +8,7 @@ import Queue from "../tables/Queue.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import { sendErrorToLogChannel } from "./log_channel.js";
 import { verbose } from "./logger.js";
+import { checkDiscordPerms } from "./permissions.js";
 import { logQueueAction } from "./queueLogger.js";
 import { getDeploymentTimeSetting, setDeploymentTimeSetting } from "./settings.js";
 import { startQueuedGameImpl } from "./startQueuedGame.js";
@@ -210,6 +211,13 @@ async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime,
     }
     const queueMessage = queueMessages[0];
     const channel = await client.channels.fetch(queueMessage.channel) as GuildTextBasedChannel;
+    checkDiscordPerms(channel, client.user, new PermissionsBitField(
+        PermissionsBitField.Flags.ViewChannel
+        | PermissionsBitField.Flags.SendMessages
+        | PermissionsBitField.Flags.EmbedLinks
+        | PermissionsBitField.Flags.ReadMessageHistory
+    ));
+
     const message = await channel.messages.fetch(queueMessage.message);
 
     const currentQueue = await Queue.find();

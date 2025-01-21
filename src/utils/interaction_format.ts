@@ -1,4 +1,4 @@
-import { Guild, GuildMember, Interaction, InteractionType, User } from "discord.js";
+import { Channel, Guild, GuildMember, Interaction, InteractionType, User } from "discord.js";
 
 export function formatInteractionDetailsForLog(interaction: Interaction<'cached'>) {
     let member = formatUserForLog(interaction.user);
@@ -43,4 +43,8 @@ export function formatUserForLog(user: User) {
 
 export function formatMemberForLog(member: GuildMember) {
     return `${member.displayName} (${member.nickname}/${member.user.username}/${member.id})`;
+}
+
+export function formatChannelForLog(channel: Channel) {
+    return `${'name' in channel ? channel.name : 'Unknown'} (${channel.id})`;
 }
