@@ -65,7 +65,11 @@ export class HotDropQueue {
             await sendErrorToLogChannel(e, this._client);
         }
         this._strikeModeEnabled = false;
-        await this._setNextDeployment(this._deploymentInterval);
+        try {
+            await this._setNextDeployment(this._deploymentInterval);
+        } catch (e: any) {
+            await sendErrorToLogChannel(e, this._client);
+        }
     }
 
     public async clear() {

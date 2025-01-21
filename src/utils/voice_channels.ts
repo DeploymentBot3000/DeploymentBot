@@ -59,17 +59,21 @@ export class VoiceChannelManager {
     }
 
     private async _clearEmptyVoiceChannels() {
-        const clearVcChannelsInterval = Duration.fromDurationLike({ 'minutes': config.discord_server.clear_vc_channels_every_minutes });
-        const deleteChannelAfterVacantFor = clearVcChannelsInterval.minus({ 'seconds': 30 });
-        debug("Clearing empty voice channels");
-        const guild = this._client.guilds.cache.get(config.guildId);
-        for (const prefix of [config.discord_server.strike_vc_category_prefix, config.discord_server.hotdrop_vc_category_prefix]) {
-            for (const vcCategory of _findAllVcCategories(guild, prefix).values()) {
-                for (const channel of vcCategory.children.cache.values()) {
-                    await this._removeOldVoiceChannel(this._client, channel, deleteChannelAfterVacantFor);
+        try {
+            const clearVcChannelsInterval = Duration.fromDurationLike({ 'minutes': config.discord_server.clear_vc_channels_every_minutes });
+            const deleteChannelAfterVacantFor = clearVcChannelsInterval.minus({ 'seconds': 30 });
+            debug("Clearing empty voice channels");
+            const guild = this._client.guilds.cache.get(config.guildId);
+            for (const prefix of [config.discord_server.strike_vc_category_prefix, config.discord_server.hotdrop_vc_category_prefix]) {
+                for (const vcCategory of _findAllVcCategories(guild, prefix).values()) {
+                    for (const channel of vcCategory.children.cache.values()) {
+                        await this._removeOldVoiceChannel(this._client, channel, deleteChannelAfterVacantFor);
 
+                    }
                 }
             }
+        } catch (e: any) {
+            sendErrorToLogChannel(e, this._client);
         }
     }
 
