@@ -6,7 +6,7 @@ export function formatInteractionDetailsForLog(interaction: Interaction<'cached'
         member = formatMemberForLog(interaction.member);
     }
     let message = '';
-    if ('message' in interaction) {
+    if ('message' in interaction && interaction.message) {
         message = interaction.message.id;
     }
     let customId = '';
