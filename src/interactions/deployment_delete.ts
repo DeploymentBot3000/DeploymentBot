@@ -2,7 +2,7 @@ import { ButtonInteraction, PermissionFlagsBits } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import { Button } from "../buttons/button.js";
 import { config } from "../config.js";
-import { buildErrorEmbed, buildInfoEmbed, buildSuccessEmbed } from "../embeds/embed.js";
+import { buildInfoEmbed } from "../embeds/embed.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
@@ -11,6 +11,7 @@ import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
 import { sendEmbedToLogChannel, sendErrorToLogChannel } from "../utils/log_channel.js";
 import { success } from "../utils/logger.js";
+import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 
 export const DeploymentDeleteButton = new Button({
     id: "deleteDeployment",
@@ -19,22 +20,17 @@ export const DeploymentDeleteButton = new Button({
         deniedRoles: config.deniedRoles,
     },
     callback: async function ({ interaction }: { interaction: ButtonInteraction<'cached'> }) {
+        await interaction.deferReply({ ephemeral: true });
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
 
         if (!deployment) {
-            const errorEmbed = buildErrorEmbed()
-                .setDescription("Deployment not found");
-
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await editReplyWithError(interaction, "Deployment not found");
             return;
         }
 
         const isAdmin = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
         if (!(isAdmin || deployment.user == interaction.user.id)) {
-            const errorEmbed = buildErrorEmbed()
-                .setDescription("You do not have permission to delete this deployment");
-
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            await editReplyWithError(interaction, "You do not have permission to delete this deployment");
             return;
         }
 
@@ -62,10 +58,7 @@ export const DeploymentDeleteButton = new Button({
 
         await deployment.remove();
 
-        const successEmbed = buildSuccessEmbed()
-            .setDescription("Deployment deleted successfully");
-
-        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+        await editReplyWithSuccess(interaction, "Deployment deleted successfully");
 
         await interaction.message.delete();
 
