@@ -24,6 +24,8 @@ export class VoiceChannelManager {
 
     public async create(guild: Guild, strikeMode: boolean, vcChannelName: string, hostId: Snowflake, _selectedPlayers: Snowflake[]) {
         const vcCategory = _findNextAvailableVoiceCategory(guild, strikeMode);
+        const verifiedPerms = [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak, PermissionsBitField.Flags.UseVAD, PermissionsBitField.Flags.Stream];
+        const hostPerms = verifiedPerms.concat([PermissionsBitField.Flags.MoveMembers, PermissionsBitField.Flags.CreateInstantInvite]);
         const channel = await guild.channels.create({
             name: vcChannelName,
             type: ChannelType.GuildVoice,
@@ -36,15 +38,15 @@ export class VoiceChannelManager {
                 },
                 {
                     id: config.discord_server.roles.verified_role_id,
-                    allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.Connect],
+                    allow: verifiedPerms,
                 },
                 {
                     id: this._client.user.id,
-                    allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.ManageChannels, PermissionsBitField.Flags.MoveMembers, PermissionsBitField.Flags.CreateInstantInvite]
+                    allow: hostPerms.concat([PermissionsBitField.Flags.ManageChannels]),
                 },
                 {
                     id: hostId,
-                    allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak, PermissionsBitField.Flags.Stream, PermissionsBitField.Flags.MoveMembers, PermissionsBitField.Flags.CreateInstantInvite]
+                    allow: hostPerms,
                 },
             ]
         });
