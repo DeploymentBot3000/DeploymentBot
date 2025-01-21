@@ -1,8 +1,9 @@
-import { CategoryChannel, CategoryChildChannel, ChannelType, Client, Collection, Guild, PermissionsBitField, Snowflake } from "discord.js";
+import { CategoryChannel, CategoryChildChannel, ChannelType, Client, Collection, Guild, PermissionsBitField, Snowflake, User, VoiceChannel } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import { config } from "../config.js";
 import { sendErrorToLogChannel } from "./log_channel.js";
 import { debug } from "./logger.js";
+import { checkDiscordPerms } from "./permissions.js";
 
 export class VoiceChannelManager {
     public static async init(client: Client) {
@@ -24,6 +25,7 @@ export class VoiceChannelManager {
 
     public async create(guild: Guild, strikeMode: boolean, vcChannelName: string, hostId: Snowflake, _selectedPlayers: Snowflake[]) {
         const vcCategory = _findNextAvailableVoiceCategory(guild, strikeMode);
+        _checkVcPermissions(vcCategory, guild.client.user);
         const channel = await guild.channels.create({
             name: vcChannelName,
             type: ChannelType.GuildVoice,
@@ -78,11 +80,12 @@ export class VoiceChannelManager {
     }
 
     private async _removeOldVoiceChannel(client: Client, channel: CategoryChildChannel, deleteChannelAfterVacantFor: Duration) {
-        if (channel.type == ChannelType.GuildVoice && channel.members.size == 0) {
+        if (channel.isVoiceBased() && channel.type == ChannelType.GuildVoice && channel.members.size == 0) {
             const lastSeenEmpty = this._lastSeenEmptyVcTime.get(channel.id) || DateTime.now();
             this._lastSeenEmptyVcTime.set(channel.id, lastSeenEmpty);
             if (lastSeenEmpty.plus(deleteChannelAfterVacantFor) < DateTime.now()) {
                 debug(`Deleting voice channel: ${channel.name} with id: ${channel.id}`);
+                _checkVcPermissions(channel, client.user);
                 await channel.delete().catch(e => sendErrorToLogChannel(e, client));
                 this._lastSeenEmptyVcTime.delete(channel.id);
             } else {
@@ -120,4 +123,16 @@ function _findAllVcCategories(guild: Guild, vcCategoryPrefix: string) {
         throw new Error(`Cannot find any categories for prefix ${vcCategoryPrefix} in the server for creating voice channels`);
     }
     return channels;
+}
+
+function _checkVcPermissions(vcCategory: CategoryChannel | VoiceChannel, user: User) {
+    checkDiscordPerms(vcCategory, user, new PermissionsBitField(
+        PermissionsBitField.Flags.ViewChannel
+        | PermissionsBitField.Flags.ManageChannels
+        | PermissionsBitField.Flags.CreateInstantInvite
+        | PermissionsBitField.Flags.Connect
+        | PermissionsBitField.Flags.Speak
+        | PermissionsBitField.Flags.Stream
+        | PermissionsBitField.Flags.MoveMembers
+    ));
 }

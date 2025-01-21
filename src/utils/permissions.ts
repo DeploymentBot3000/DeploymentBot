@@ -1,9 +1,15 @@
 import {
+    CategoryChannel,
     GuildMember,
+    GuildTextBasedChannel,
     PermissionResolvable,
+    PermissionsBitField,
     Role,
-    Snowflake
+    Snowflake,
+    User,
+    VoiceChannel
 } from 'discord.js';
+import { formatChannelForLog, formatUserForLog } from './interaction_format.js';
 
 export interface PermissionsConfig {
     deniedRoles?: Snowflake[];
@@ -43,4 +49,12 @@ function _inDenyList(member: GuildMember, roles: Role[]): Error {
         return new Error(`Denied roles: ${deniedRoles}`);
     }
     return null;
+}
+
+export function checkDiscordPerms(channel: GuildTextBasedChannel | CategoryChannel | VoiceChannel, user: User, requiredPerms: PermissionsBitField): void {
+    const permissions = channel.permissionsFor(user);
+    const missingPermissions = permissions.missing(requiredPerms);
+    if (missingPermissions.length) {
+        throw new Error(`User: ${formatUserForLog(user)} is missing permissions: ${missingPermissions.join(", ")} for channel: ${formatChannelForLog(channel)}`);
+    }
 }
