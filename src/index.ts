@@ -1,5 +1,6 @@
 import { Events, Interaction } from "discord.js";
 import { config } from "./config.js";
+import { secrets } from "./config/secrets_loader.js";
 import { client } from "./custom_client.js";
 import autocompleteInteraction from "./events/auto_complete_Interaction.js";
 import buttonInteraction from "./events/button_interaction.js";
@@ -16,6 +17,8 @@ if (!isEnumKey(LogLevel, config.logLevel)) {
     fatal(`${config.logLevel} is not a valid log level`);
 }
 logger.level = LogLevel[config.logLevel];
+
+verbose(`Loaded secrets file with env: ${secrets.env}`);
 
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     try {
