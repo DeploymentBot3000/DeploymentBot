@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder } from "discord.js";
 import { buildButton } from "../buttons/button.js";
 import Command from "../classes/Command.js";
 import { buildPanelEmbed } from "../embeds/deployment.js";
-import { buildSuccessEmbed } from "../embeds/embed.js";
+import { replyWithSuccess } from "../utils/interaction_replies.js";
 
 export default new Command({
     name: "panel",
@@ -19,9 +19,6 @@ export default new Command({
 
         await interaction.channel.send({ embeds: [embed], components: [row] });
         
-        const successEmbed = buildSuccessEmbed()
-            .setDescription("Panel sent successfully");
-
-        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+        await replyWithSuccess(interaction, 'Panel sent successfully');
     }
 })

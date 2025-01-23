@@ -1,5 +1,4 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { buildErrorEmbed } from "../embeds/embed.js";
 import { replyWithError } from "../utils/interaction_replies.js";
 import { error, success, verbose } from "../utils/logger.js";
 import { checkPermissions } from "../utils/permissions.js";
@@ -23,11 +22,7 @@ export default {
 		} catch (e) {
 			error(`Failed: ${commandStr}`, 'Command');
 			error(e);
-
-			const embed = buildErrorEmbed()
-				.setDescription(`❌ **An error occurred while executing this command!**\n\nCommand: ${commandStr}`);
-
-			await interaction.reply({ embeds: [embed], ephemeral: true });
+			await replyWithError(interaction, `❌ **An error occurred while executing this command!**\n\nCommand: ${commandStr}`);
 		}
 	},
 }
