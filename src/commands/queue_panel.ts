@@ -1,10 +1,10 @@
 import { ActionRowBuilder, ButtonBuilder } from "discord.js";
 import { buildButton } from "../buttons/button.js";
 import Command from "../classes/Command.js";
-import { buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
 import buildQueuePanelEmbed from "../embeds/queue.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
+import { replyWithError, replyWithSuccess } from "../utils/interaction_replies.js";
 import { error, success, warn } from "../utils/logger.js";
 
 export default new Command({
@@ -17,7 +17,7 @@ export default new Command({
     callback: async function ({ interaction }) {
         if (!interaction.memberPermissions.has("ManageRoles")) {
             warn(`${interaction.user.tag} attempted to create queue panel without permissions`, "QueuePanel");
-            interaction.reply({ content: "You don't have permission to use this command.", ephemeral: true });
+            await replyWithError(interaction, "You don't have permission to use this command.");
             return;
         }
 
@@ -40,16 +40,12 @@ export default new Command({
                 await currentMsg.save();
             } else await QueueStatusMsg.insert({ channel: interaction.channelId, message: msg.id });
 
-            const successEmbed = buildSuccessEmbed()
-                .setDescription("Queue panel sent");
-            await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+            await replyWithSuccess(interaction, 'Queue panel sent');
 
             success('Queue panel created', 'QueuePanel');
         } catch (e) {
             error(`Failed to create queue panel: ${e}`, "QueuePanel");
-            const successEmbed = buildErrorEmbed()
-                .setDescription(`Failed to create queue panel: ${e}`);
-            await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+            await replyWithError(interaction, `Failed to create queue panel: ${e}`);
             throw e;
         }
     }

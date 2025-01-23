@@ -1,8 +1,8 @@
 import { ModalSubmitInteraction } from "discord.js";
 import Modal from "../classes/Modal.js";
-import { buildErrorEmbed } from "../embeds/embed.js";
 import { DeploymentEditModal } from "../interactions/deployment_edit.js";
 import { DeploymentNewModal } from "../interactions/deployment_new.js";
+import { replyWithError } from "../utils/interaction_replies.js";
 import { error } from "../utils/logger.js";
 
 const _kModals: Map<string, Modal> = new Map();
@@ -26,11 +26,7 @@ export default {
             await modal.callback({ interaction });
         } catch (e) {
             error(e);
-
-            const embed = buildErrorEmbed()
-                .setDescription(":x: **An error occurred while running this command!**");
-
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await replyWithError(interaction, ":x: **An error occurred while running this command!**");
             return;
         }
     },

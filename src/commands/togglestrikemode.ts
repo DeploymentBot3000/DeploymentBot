@@ -1,6 +1,6 @@
 import Command from "../classes/Command.js";
-import { buildSuccessEmbed } from "../embeds/embed.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
+import { replyWithSuccess } from "../utils/interaction_replies.js";
 
 export default new Command({
     name: "togglestrikemode",
@@ -11,9 +11,6 @@ export default new Command({
     options: [],
     callback: async ({ interaction }) => {
         const strikeModeEnabled = await HotDropQueue.getHotDropQueue().toggleStrikeMode();
-        const successEmbed = buildSuccessEmbed()
-            .setTitle("Strike Mode Toggle")
-            .setDescription(`Strike mode ${strikeModeEnabled ? "enabled" : "disabled"}!`);
-        await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+        await replyWithSuccess(interaction, `Strike mode ${strikeModeEnabled ? "enabled" : "disabled"}!`);
     }}
 );
