@@ -4,6 +4,7 @@ import signup from "../selectMenus/deployment_role_select.js";
 import { checkCooldown } from "../utils/cooldowns.js";
 import { replyWithError } from "../utils/interaction_replies.js";
 import { sendErrorToLogChannel } from "../utils/log_channel.js";
+import { debug } from "../utils/logger.js";
 import { checkPermissions } from "../utils/permissions.js";
 
 const _kSelectMenus: Map<string, SelectMenu> = new Map();
@@ -16,8 +17,14 @@ function getSelectMenuById(id: string) {
 
 export default {
     callback: async function (interaction: AnySelectMenuInteraction<'cached'>) {
+        if (interaction.customId == 'editDeployment') {
+            debug(`Ignoring select menu interaction that is captured by awaitMessageComponent in the edit depoloyment flow ${interaction.id}`);
+            return;
+        }
         const selectMenu = getSelectMenuById(interaction.customId) || getSelectMenuById(interaction.customId.split("-")[0]);
-        if (!selectMenu) return;
+        if (!selectMenu) {
+            throw new Error(`Select Menu: ${interaction.customId} not found!`);
+        }
 
         let e = await checkPermissions(interaction.member, selectMenu.permissions);
         if (e) {
