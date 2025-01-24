@@ -11,15 +11,16 @@ const _kCooldowns: Map<string, DateTime> = new Map();
  * @returns An error if the user is on cooldown, otherwise null.
  */
 export function checkCooldown(userId: Snowflake, interactionItemId: string, cooldown: Duration): Error {
-    const lastUsage = _kCooldowns.get(`${userId}-${interactionItemId}`);
-    debug(`Cooldown Last usage: ${lastUsage}; ${userId}-${interactionItemId}`);
     const now = DateTime.now();
-    if (lastUsage) {
-        const timeUntilNextUseDuration = lastUsage.plus(cooldown).diff(now);
-        if (timeUntilNextUseDuration > Duration.fromMillis(0)) {
-            return new Error(`Please wait ${Math.ceil(timeUntilNextUseDuration.shiftTo('seconds').seconds)} seconds before using this interaction again!`);
-        }
+    const lastUsage = _kCooldowns.get(`${userId}-${interactionItemId}`);
+    const timeSinceLastUse = lastUsage ? now.diff(lastUsage) : undefined;
+    if (timeSinceLastUse && timeSinceLastUse < cooldown) {
+        const timeUntilNextUse = cooldown.minus(timeSinceLastUse);
+        debug(`Cooldown Active - Last usage was: ${timeSinceLastUse} ago; Next Usage in: ${timeUntilNextUse} ${userId}-${interactionItemId}`);
+        return new Error(`Please wait ${Math.ceil(timeUntilNextUse.shiftTo('seconds').seconds)} seconds before using this interaction again!`);
+    } else {
+        debug(`Cooldown Disabled - Last usage was: ${timeSinceLastUse} ago; ${userId}-${interactionItemId}`);
+        _kCooldowns.set(`${userId}-${interactionItemId}`, now);
+        return null;
     }
-    _kCooldowns.set(`${userId}-${interactionItemId}`, now);
-    return null;
 }
