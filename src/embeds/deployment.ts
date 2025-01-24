@@ -1,23 +1,9 @@
 import { ColorResolvable, EmbedBuilder } from "discord.js";
 import { config } from "../config.js";
-import { client } from "../custom_client.js";
-import Backups from "../tables/Backups.js";
-import Deployment from "../tables/Deployment.js";
-import Signups from "../tables/Signups.js";
-import { DeploymentDetails, deploymentToDetails, formatRoleEmoji } from "../utils/deployments.js";
+import { DeploymentDetails, formatRoleEmoji } from "../utils/deployments.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 import { buildEmbed } from "./embed.js";
-
-/**
- * @deprecated Use `buildDeploymentEmbedV2()` instead.
- */
-export async function deprecated_buildDeploymentEmbedFromDb(deployment: Deployment, color: ColorResolvable, started: boolean) {
-    const signups = Signups.find({ where: { deploymentId: deployment.id } });
-    const backups = Backups.find({ where: { deploymentId: deployment.id } });
-    const details = await deploymentToDetails(client, deployment, await signups, await backups);
-    return buildDeploymentEmbed(details, color, started);
-}
 
 export function buildDeploymentEmbed(details: DeploymentDetails, color: ColorResolvable, started: boolean) {
     const googleCalendarLink = getGoogleCalendarLink(details.title, details.description, details.startTime.toMillis(), details.endTime.toMillis());
