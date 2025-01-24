@@ -90,7 +90,7 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
         }
 
         const link = `https://discord.com/channels/${interaction.guild.id}/${deployment.channel.id}/${deployment.message.id}`;
-        await sendDmToUser(interaction.user, { content: `You create a new deployment: ${deployment.title}.\nScheduled for: ${formatDiscordTime(deployment.startTime)} (${deployment.startTime.toISO()}).\n${link}` });
+        await sendDmToUser(interaction.user, `You created a new deployment: ${deployment.title}.\nScheduled for: ${formatDiscordTime(deployment.startTime)} (${deployment.startTime.toISO()}).\n${link}`);
 
         await editReplyWithSuccess(interaction, 'Deployment created successfully');
         success(`User: ${formatMemberForLog(interaction.member)} created Deployment: ${deployment.title}; ID: ${deployment.id}; Message: ${deployment.message.id}`);
