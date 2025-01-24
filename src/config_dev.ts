@@ -108,7 +108,7 @@ export const config_dev = {
             style: ButtonStyle.Danger
         }
     },
-    buttonCooldownSeconds: 5,
+    buttonCooldownSeconds: 3,
     selectMenuCooldownSeconds: 5,
 
     discord_server: discord_server_config_dev,
