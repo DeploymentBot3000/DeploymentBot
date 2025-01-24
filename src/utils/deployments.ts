@@ -263,6 +263,35 @@ export class DeploymentManager {
         });
     }
 
+    public async leave(memberId: Snowflake, messageId: Snowflake): Promise<DeploymentDetails | Error> {
+        return await dataSource.transaction(async (entityManager: EntityManager) => {
+            const deployment = await entityManager.findOne(Deployment, { where: { message: messageId } });
+            if (!deployment) {
+                return new Error(`Can't find deployment for message: ${messageId}`);
+            } else if (deployment.started) {
+                return new Error(`Can't leave deployment after it already started`);
+            } else if (deployment.user == memberId) {
+                return new Error('You cannot leave your own deployment!');
+            }
+
+            const signups = await entityManager.find(Signups, { where: { deploymentId: deployment.id } });
+            const backups = await entityManager.find(Backups, { where: { deploymentId: deployment.id } });
+
+            const signup = _spliceItem(signups, s => s.userId == memberId);
+            if (signup) {
+                await entityManager.remove(signup);
+            } else {
+                const backup = _spliceItem(backups, b => b.userId == memberId);
+                if (backup) {
+                    await entityManager.remove(backup);
+                } else {
+                    return new Error('You are not signed up for this deployment');
+                }
+            }
+            return await deploymentToDetails(this._client, deployment, signups, backups);
+        });
+    }
+
     private _client: Client;
 }
 
