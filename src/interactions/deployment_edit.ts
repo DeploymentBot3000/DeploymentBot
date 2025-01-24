@@ -21,7 +21,7 @@ import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
 import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
-import { success } from "../utils/logger.js";
+import { debug, success } from "../utils/logger.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 
 export const DeploymentEditButton = new Button({
@@ -66,6 +66,7 @@ async function onDeploymentEditButtonPress(interaction: ButtonInteraction<'cache
     // Always show an empty field for start time.
     const startTime = selectMenuInteraction.values.includes(DeploymentFields.START_TIME) ? '' : null;
     const modal = buildEditDeploymentModal(deployment.id, title, difficulty, description, startTime);
+    debug(`Editing fields: ${selectMenuInteraction.values.join(', ')}; ID: ${interaction.id}`);
     await selectMenuInteraction.showModal(modal);
 }
 
@@ -117,6 +118,7 @@ async function _selectFieldsToEdit(interaction: ButtonInteraction<'cached'>): Pr
         if (e.code == DiscordjsErrorCodes.InteractionCollectorError && e.message.includes('time')) {
             return new Error("Selection timed out");
         }
+        console.log('selectMenuResponse', selectMenuResponse);
         throw e;
     }
     if (!selectMenuResponse.values || !Array.isArray(selectMenuResponse.values)) {
