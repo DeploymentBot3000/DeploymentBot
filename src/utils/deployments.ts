@@ -292,6 +292,54 @@ export class DeploymentManager {
         });
     }
 
+    public async signup(memberId: Snowflake, messageId: Snowflake, role: DeploymentRole): Promise<DeploymentDetails | Error> {
+        if (role == DeploymentRole.UNSPECIFIED) {
+            throw new Error('DeploymentRole.UNSPECIFIED in signup');
+        }
+        return await dataSource.transaction(async (entityManager: EntityManager) => {
+            const deployment = await entityManager.findOne(Deployment, { where: { message: messageId } });
+            if (!deployment) {
+                return new Error(`Can't find deployment for message: ${messageId}`);
+            } else if (deployment.started) {
+                return new Error(`Can't signup to deployment after it already started`);
+            } else if (deployment.user == memberId && role == DeploymentRole.BACKUP) {
+                return new Error('You cannot sign up as backup to your own deployment!');
+            }
+
+            const signups = await entityManager.find(Signups, { where: { deploymentId: deployment.id } });
+            const backups = await entityManager.find(Backups, { where: { deploymentId: deployment.id } });
+
+            if (role == DeploymentRole.BACKUP && backups.length >= config.max_players) {
+                return new Error('Backup slots are full!');
+            } else if (role != DeploymentRole.BACKUP && signups.length >= config.max_players) {
+                return new Error('Fireteam slots are full!');
+            }
+
+            const previous = await _spliceSignup(signups, backups, memberId);
+
+            if (previous) {
+                if ((previous instanceof Backups && role == DeploymentRole.BACKUP) || (previous instanceof Signups && previous.role == role)) {
+                    return new Error(`You are already signed up as ${role}`);
+                }
+                await entityManager.remove(previous);
+            }
+            if (role == DeploymentRole.BACKUP) {
+                backups.push(await entityManager.save(entityManager.create(Backups, {
+                    deploymentId: deployment.id,
+                    userId: memberId,
+                })));
+            } else {
+                signups.push(await entityManager.save(entityManager.create(Signups, {
+                    deploymentId: deployment.id,
+                    userId: memberId,
+                    role: role,
+                })));
+            }
+
+            return await deploymentToDetails(this._client, deployment, signups, backups);
+        });
+    }
+
     private _client: Client;
 }
 
@@ -519,4 +567,8 @@ function _spliceItem<T>(array: T[], predicate: (item: T) => boolean): T | undefi
         return array.splice(index, 1)[0];
     }
     return undefined;
+}
+
+async function _spliceSignup(signups: Signups[], backups: Backups[], userId: Snowflake) {
+    return _spliceItem(signups, s => s.userId == userId) ?? _spliceItem(backups, b => b.userId == userId);
 }
