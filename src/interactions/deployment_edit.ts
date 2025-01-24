@@ -51,13 +51,14 @@ async function onDeploymentEditButtonPress(interaction: ButtonInteraction<'cache
         return;
     }
 
+    // Since we are going to show a modal as a response to this interaction, we cannot do any async operations.
+    // showModal does not support deferReply/deferUpdate.
+    // Do not perform any async operations from here until the modal is shown.
     const selectMenuInteraction = await _selectFieldsToEdit(interaction);
     if (selectMenuInteraction instanceof Error) {
         await editReplyWithError(interaction, selectMenuInteraction.message);
         return;
     }
-    // Now that we finished all the validation and about to show a modal, delete the select option reply.
-    await interaction.deleteReply();
 
     const title = selectMenuInteraction.values.includes(DeploymentFields.TITLE) ? deployment.title : null;
     const difficulty = selectMenuInteraction.values.includes(DeploymentFields.DIFFICULTY) ? deployment.difficulty : null;
@@ -68,6 +69,9 @@ async function onDeploymentEditButtonPress(interaction: ButtonInteraction<'cache
     const modal = buildEditDeploymentModal(deployment.id, title, difficulty, description, startTime);
     debug(`Editing fields: ${selectMenuInteraction.values.join(', ')}; ID: ${interaction.id}`);
     await selectMenuInteraction.showModal(modal);
+
+    // Now that the modal is shows, we can perform async operations and delete the reply.
+    await interaction.deleteReply();
 }
 
 async function _checkCanEditDeployment(interaction: ButtonInteraction<'cached'>): Promise<Deployment | Error> {
