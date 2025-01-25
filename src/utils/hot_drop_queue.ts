@@ -60,7 +60,7 @@ export class HotDropQueue {
 
     private async _startNewGames() {
         try {
-            await startQueuedGameImpl(this._strikeModeEnabled);
+            await startQueuedGameImpl(this._client, this._strikeModeEnabled);
         } catch (e: any) {
             await sendErrorToLogChannel(e, this._client);
         }
