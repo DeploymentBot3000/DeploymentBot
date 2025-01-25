@@ -20,7 +20,7 @@ import Deployment from "../tables/Deployment.js";
 import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
-import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
+import { deferReply, editReplyWithError, editReplyWithSuccess, showModal } from "../utils/interaction_replies.js";
 import { debug, success } from "../utils/logger.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 
@@ -31,6 +31,7 @@ export const DeploymentEditButton = new Button({
         deniedRoles: config.deniedRoles,
     },
     callback: async function ({ interaction }) {
+        if (!await deferReply(interaction)) { return; }
         await onDeploymentEditButtonPress(interaction);
     }
 });
@@ -38,13 +39,12 @@ export const DeploymentEditButton = new Button({
 export const DeploymentEditModal = new Modal({
     id: "editDeployment",
     callback: async function ({ interaction }: { interaction: ModalSubmitInteraction<'cached'> }): Promise<void> {
+        if (!await deferReply(interaction)) { return; }
         await onDeploymentEditModalSubmit(interaction);
     }
 });
 
 async function onDeploymentEditButtonPress(interaction: ButtonInteraction<'cached'>) {
-    await interaction.deferReply({ ephemeral: true });
-
     const deployment = await _checkCanEditDeployment(interaction);
     if (deployment instanceof Error) {
         await editReplyWithError(interaction, deployment.message);
@@ -68,7 +68,7 @@ async function onDeploymentEditButtonPress(interaction: ButtonInteraction<'cache
     const startTime = selectMenuInteraction.values.includes(DeploymentFields.START_TIME) ? '' : null;
     const modal = buildEditDeploymentModal(deployment.id, title, difficulty, description, startTime);
     debug(`Editing fields: ${selectMenuInteraction.values.join(', ')}; ID: ${interaction.id}`);
-    await selectMenuInteraction.showModal(modal);
+    await showModal(selectMenuInteraction, modal);
 
     // Now that the modal is shows, we can perform async operations and delete the reply.
     await interaction.deleteReply();
@@ -132,7 +132,6 @@ async function _selectFieldsToEdit(interaction: ButtonInteraction<'cached'>): Pr
 }
 
 async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'cached'>) {
-    await interaction.deferReply({ ephemeral: true });
     try {
         const details = getDeploymentModalValues(interaction.fields);
         if (details instanceof Error) {

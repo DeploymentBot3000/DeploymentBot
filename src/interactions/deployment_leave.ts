@@ -5,7 +5,7 @@ import { config } from "../config.js";
 import { buildDeploymentEmbed } from "../embeds/deployment.js";
 import { DeploymentManager } from "../utils/deployments.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
-import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
+import { deferReply, editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 import { error, success } from "../utils/logger.js";
 
 export const DeploymentLeaveButton = new Button({
@@ -15,7 +15,7 @@ export const DeploymentLeaveButton = new Button({
         deniedRoles: config.deniedRoles,
     },
     callback: async function ({ interaction }: { interaction: ButtonInteraction<"cached"> }) {
-        await interaction.deferReply({ ephemeral: true });
+        if (!await deferReply(interaction)) { return; }
 
         const newDetails = await DeploymentManager.get().leave(interaction.member.id, interaction.message.id);
         if (newDetails instanceof Error) {

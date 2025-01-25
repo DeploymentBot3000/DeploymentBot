@@ -7,7 +7,7 @@ import Deployment from "../tables/Deployment.js";
 import { DeploymentManager } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog, formatUserForLog } from "../utils/interaction_format.js";
-import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
+import { deferReply, editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 import { action, success } from "../utils/logger.js";
 
 export default new Command({
@@ -56,12 +56,13 @@ export default new Command({
         );
     },
     callback: async function ({ interaction }: { interaction: ChatInputCommandInteraction<'cached'> }) {
+        if (!await deferReply(interaction)) { return; }
+
         const targetUser = interaction.options.getUser("user");
         const deploymentTitle = interaction.options.getString("deployment");
         const reason = interaction.options.getString("reason") || "No reason provided";
         action(`${formatMemberForLog(interaction.member)} attempting to remove ${formatUserForLog(targetUser)} from deployment: ${deploymentTitle}`, "Remove");
 
-        await interaction.deferReply({ ephemeral: true });
         try {
             const error = await _removePlayerFromDeployment(interaction.member, targetUser, deploymentTitle, reason);
             if (error instanceof Error) {

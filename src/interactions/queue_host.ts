@@ -5,6 +5,7 @@ import { buildErrorEmbed } from "../embeds/embed.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { HotDropQueue } from "../utils/hot_drop_queue.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
+import { deferUpdate } from "../utils/interaction_replies.js";
 import { success } from "../utils/logger.js";
 
 export const QueueHostButton = new Button({
@@ -15,7 +16,7 @@ export const QueueHostButton = new Button({
         deniedRoles: config.deniedRoles,
     },
     callback: async function ({ interaction }) {
-        await interaction.deferUpdate();
+        if (!await deferUpdate(interaction)) { return; }
 
         const error = await HotDropQueue.getHotDropQueue().joinAsHost(interaction.user.id);
         if (error instanceof Error) {

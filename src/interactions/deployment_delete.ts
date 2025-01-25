@@ -9,9 +9,9 @@ import Signups from "../tables/Signups.js";
 import { DeploymentDetails, deploymentToDetails, formatRoleEmoji, parseRole } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
+import { deferReply, editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 import { sendEmbedToLogChannel, sendErrorToLogChannel } from "../utils/log_channel.js";
 import { success } from "../utils/logger.js";
-import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 
 export const DeploymentDeleteButton = new Button({
     id: "deleteDeployment",
@@ -20,7 +20,8 @@ export const DeploymentDeleteButton = new Button({
         deniedRoles: config.deniedRoles,
     },
     callback: async function ({ interaction }: { interaction: ButtonInteraction<'cached'> }) {
-        await interaction.deferReply({ ephemeral: true });
+        if (!await deferReply(interaction)) { return; }
+
         const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
 
         if (!deployment) {
