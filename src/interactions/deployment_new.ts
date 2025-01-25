@@ -13,8 +13,8 @@ import LatestInput from "../tables/LatestInput.js";
 import { DeploymentManager, DeploymentRole } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
-import { editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
-import { error, success } from "../utils/logger.js";
+import { deferReply, editReplyWithError, editReplyWithSuccess, showModal } from "../utils/interaction_replies.js";
+import { success } from "../utils/logger.js";
 import { formatDiscordTime } from "../utils/time.js";
 
 export const DeploymentNewButton = new Button({
@@ -32,6 +32,7 @@ export const DeploymentNewButton = new Button({
 export const DeploymentNewModal = new Modal({
     id: "newDeployment",
     callback: async function ({ interaction }: { interaction: ModalSubmitInteraction<'cached'> }) {
+        if (!await deferReply(interaction)) { return; }
         await onNewDeploymentModalSubmit(interaction);
     }
 });
@@ -39,26 +40,12 @@ export const DeploymentNewModal = new Modal({
 async function onNewDeploymentButtonPress(interaction: ButtonInteraction<'cached'>) {
     const latestInput = await LatestInput.findOne({ where: { userId: interaction.user.id } });
     const modal = buildNewDeploymentModal(latestInput?.title, latestInput?.difficulty, latestInput?.description, latestInput?.startTime);
-    await interaction.showModal(modal);
+    await showModal(interaction, modal);
 }
 
 async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'cached'>) {
     const detailsRaw = getDeploymentModalValuesRaw(interaction.fields);
 
-    // We have seen deferal failures for the new deployment modal submit due to
-    // what seems like network delays causing us to miss the 3 second window to defer the interaction.
-    // These are benighn and present as a red text prompt at the top of the modal that
-    // reads: "Something went wrong. Try again.".
-    // Suppress the error so it doesn't spam our error logs.
-    try {
-        await interaction.deferReply({ ephemeral: true });
-    } catch (e: any) {
-        if ((e as Error).message.includes('Unknown interaction')) {
-            error(`Unknown interaction in onNewDeploymentModalSubmit for: ${formatMemberForLog(interaction.member)}; Title: ${detailsRaw.title}`);
-            return;
-        }
-        throw e;
-    }
     try {
         let deployment = getDeploymentModalValues(interaction.fields);
         if (deployment instanceof Error) {
