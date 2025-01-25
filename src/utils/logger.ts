@@ -14,6 +14,8 @@ class Logger {
 	level = LogLevel.INFO;
 
 	log(level: LogLevel, payload: any, context?: string): void | never {
+		console.log(payload);
+		console.debug(payload);
 		if (level <= this.level) {
 			const color = _logLevelColor(level);
 			console.log(DateTime.now().toISO(), color(LogLevel[level].padEnd(this._padLength, ' ')), context ? ` [${context}]` : '', payload);

@@ -27,7 +27,18 @@ let fileData: string = null;
 try {
     fileData = fs.readFileSync(secretsFilePath, 'utf-8');
 } catch (e: any) {
-    fatal(`Failed to load secrets file. Please make sure you set up your secrets file at: ${secretsFilePath}. Error: ${e}`);
+    if ('JEST_WORKER_ID' in process.env) {
+        fileData = JSON.stringify({
+            discord_app_token: '',
+            db_host: '',
+            db_username: '',
+            db_password: '',
+            db_name: '',
+            env: 'dev',
+        });
+    } else {
+        fatal(`Failed to load secrets file. Please make sure you set up your secrets file at: ${secretsFilePath}. Error: ${e}`);
+    }
 }
 
 export const secrets = JSON.parse(fileData) as Secrets;
