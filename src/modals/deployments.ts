@@ -2,6 +2,7 @@ import { ActionRowBuilder, ModalBuilder, ModalSubmitFields, TextInputBuilder, Te
 import { Duration } from "luxon";
 import * as emoji from 'node-emoji';
 import { DeploymentDetails } from "../utils/deployments.js";
+import { debug } from "../utils/logger.js";
 import { parseStartTime } from "../utils/time.js";
 
 export enum DeploymentFields {
@@ -73,6 +74,7 @@ export function getDeploymentModalValues(fields: ModalSubmitFields) {
     if (detailsRaw.startTime) {
         const startTime = parseStartTime(detailsRaw.startTime);
         if (startTime instanceof Error) {
+            debug(`Invalid startTime: ${detailsRaw.startTime};`);
             return startTime;
         }
         details.startTime = startTime;
