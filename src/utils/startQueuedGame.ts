@@ -1,11 +1,12 @@
-import { GuildMember, GuildTextBasedChannel, VoiceChannel } from "discord.js";
+import { Client, GuildMember, GuildTextBasedChannel, VoiceChannel } from "discord.js";
 import { config } from "../config.js";
 import { client } from "../custom_client.js";
 import { buildSuccessEmbed } from "../embeds/embed.js";
+import { buildHotDropStartedEmbed, QueueDeploymentEmbedOptions } from "../embeds/queue.js";
 import Queue from "../tables/Queue.js";
 import { sendDmToUser } from "./dm.js";
-import { debug, success, verbose } from "./logger.js";
-import { logHotDropStarted } from "./queueLogger.js";
+import { sendEmbedToLogChannel } from "./log_channel.js";
+import { debug, error, success, verbose } from "./logger.js";
 import { VoiceChannelManager } from "./voice_channels.js";
 
 // Add this function to generate a random 4-digit number
@@ -123,7 +124,7 @@ export async function startQueuedGameImpl(strikeMode: boolean): Promise<void> {
         const playerMembers = await Promise.all(selectedPlayers.map(p => departureChannel.guild.members.fetch(p.user).catch(() => null as GuildMember)));
 
         // Log to all logging channels
-        await logHotDropStarted({
+        await _logHotDropStarted(client, {
             hostDisplayName,
             playerMembers,
             vc
@@ -163,4 +164,11 @@ Host and assigned divers, please join ASAP.
 **Host:** <@${host.user}>
 **Assigned divers:** ${signupsFormatted}
 -------------------------------------------`;
+}
+
+async function _logHotDropStarted(client: Client, options: QueueDeploymentEmbedOptions) {
+    await sendEmbedToLogChannel(buildHotDropStartedEmbed(options), client).catch(e => {
+        error('Failed to send embed to log channel');
+        error(e);
+    });
 }

@@ -3,13 +3,12 @@ import { DateTime, Duration } from "luxon";
 import { EntityManager } from "typeorm";
 import { config } from "../config.js";
 import { dataSource } from "../data_source.js";
-import buildQueuePanelEmbed from "../embeds/queue.js";
+import buildQueuePanelEmbed, { buildQueueEventEmbed, QueueEventEmbedOptions } from "../embeds/queue.js";
 import Queue from "../tables/Queue.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
-import { sendErrorToLogChannel } from "./log_channel.js";
-import { verbose } from "./logger.js";
+import { sendEmbedToLogChannel, sendErrorToLogChannel } from "./log_channel.js";
+import { error, verbose } from "./logger.js";
 import { checkDiscordPerms } from "./permissions.js";
-import { logQueueAction } from "./queueLogger.js";
 import { getDeploymentTimeSetting, setDeploymentTimeSetting } from "./settings.js";
 import { startQueuedGameImpl } from "./startQueuedGame.js";
 
@@ -109,7 +108,7 @@ export class HotDropQueue {
             return error;
         }
 
-        await logQueueAction({
+        await _logQueueAction(this._client, {
             type: 'host',
             userId: userId
         });
@@ -148,7 +147,7 @@ export class HotDropQueue {
             return error;
         }
 
-        await logQueueAction({
+        await _logQueueAction(this._client, {
             type: 'join',
             userId: userId
         });
@@ -181,7 +180,7 @@ export class HotDropQueue {
             return transactionResult;
         }
 
-        await logQueueAction({
+        await _logQueueAction(this._client, {
             type: 'leave',
             userId: userId,
             joinTime: transactionResult.joinTime,
@@ -236,4 +235,11 @@ async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime,
     await message.edit({ embeds: [embed] });
     verbose(`Hot Drop Embed updated: ${message.id}; Next deployment time: ${nextDeploymentTime.toISO()}`, 'Queue System');
     return message;
+}
+
+async function _logQueueAction(client: Client, options: QueueEventEmbedOptions) {
+    await sendEmbedToLogChannel(buildQueueEventEmbed(options), client).catch(e => {
+        error('Failed to send embed to log channel');
+        error(e);
+    });
 }
