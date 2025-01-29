@@ -67,7 +67,6 @@ async function onDeploymentEditButtonPress(interaction: ButtonInteraction<'cache
     // Always show an empty field for start time.
     const startTime = selectMenuInteraction.values.includes(DeploymentFields.START_TIME) ? '' : null;
     const modal = buildEditDeploymentModal(deployment.id, title, difficulty, description, startTime);
-    debug(`Editing fields: ${selectMenuInteraction.values.join(', ')}; ID: ${interaction.id}`);
     await showModal(selectMenuInteraction, modal);
 
     // Now that the modal is shows, we can perform async operations and delete the reply.
@@ -109,6 +108,7 @@ async function _selectFieldsToEdit(interaction: ButtonInteraction<'cached'>): Pr
             { label: "Start Time", value: DeploymentFields.START_TIME, emoji: config.editEmoji }
         )
     );
+    debug(`Presenting edit deployment select menu to interaction: ${interaction.id}`);
     await interaction.editReply({ content: "Select an option to edit", components: [selectmenu], embeds: [] });
 
     let selectMenuResponse: StringSelectMenuInteraction;
@@ -128,6 +128,7 @@ async function _selectFieldsToEdit(interaction: ButtonInteraction<'cached'>): Pr
     if (!selectMenuResponse.values || !Array.isArray(selectMenuResponse.values)) {
         return new Error("Invalid selection");
     }
+    debug(`Editing fields: ${selectMenuResponse.values.join(', ')}; SelectID: ${selectMenuResponse.id}; ID: ${interaction.id}`);
     return selectMenuResponse;
 }
 
