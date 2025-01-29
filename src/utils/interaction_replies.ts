@@ -72,6 +72,7 @@ export async function showModal(interaction: ButtonInteraction | StringSelectMen
     } catch (e: any) {
         if ((e as Error).message.includes('Unknown interaction')) {
             await sendErrorToLogChannel(new Error(`Failed to show modal: ${interaction.id}`), interaction.client);
+            return;
         }
         throw e;
     }
