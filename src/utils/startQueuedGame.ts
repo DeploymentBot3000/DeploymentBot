@@ -77,6 +77,7 @@ export async function startQueuedGameImpl(client: Client, strikeMode: boolean): 
 
         const defaultContent = _hotDropDepartureNotice(randomCode, hostDisplayName, vc, host, signupsFormatted);
         const strikeContent = _strikeDepartureNotice(hostDisplayName, vc, host, signupsFormatted);
+        debug(`Sending departure message: ${randomCode}; host: ${hostDisplayName}; signups: ${signupsFormatted};`);
         await departureChannel.send({ content: strikeMode ? strikeContent : defaultContent }).catch(() => { });
 
         for (const player of selectedPlayers) {

@@ -11,7 +11,7 @@ import Deployment from "../tables/Deployment.js";
 import LatestInput from "../tables/LatestInput.js";
 import Signups from "../tables/Signups.js";
 import { sendErrorToLogChannel } from "./log_channel.js";
-import { verbose } from "./logger.js";
+import { debug, verbose } from "./logger.js";
 import { formatDiscordTime } from "./time.js";
 
 export enum DeploymentRole {
@@ -362,6 +362,7 @@ async function _sendDepartureMessage(client: Client, deployment: Deployment) {
     const signups = await Signups.find({ where: { deploymentId: deployment.id } });
     const backups = await Backups.find({ where: { deploymentId: deployment.id } });
 
+    debug(`Sending departure message: ${deployment.id}; signups: ${signups.map(s => s.userId).join(',')}; backups: ${backups.map(b => b.userId).join(',')};`);
     await departureChannel.send({ content: _departureMessage(deployment, signups, backups), });
 
     deployment.noticeSent = true;
@@ -470,6 +471,7 @@ async function _sendDeploymentSignupMessage(deployment: DeploymentDetails) {
     const embed = buildDeploymentEmbed(deployment, Colors.Green, /*started=*/false);
     const rows = _buildDeploymentSignupRows();
 
+    debug(`Sending signup message: ${deployment.id}; Host: ${deployment.host.guildMember.id}; signups: ${deployment.signups.map(s => s.guildMember.id).join(',')}; backups: ${deployment.backups.map(b => b.guildMember.id).join(',')};`);
     return await deployment.channel.send({ content: `<@${deployment.host.guildMember.id}> is looking for people to group up! ⬇️. <@&${config.discord_server.roles.lfg_role_id}>`, embeds: [embed], components: rows });
 }
 
