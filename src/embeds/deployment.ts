@@ -23,16 +23,28 @@ export function buildDeploymentEmbed(details: DeploymentDetails, color: ColorRes
             },
             {
                 name: "Signups:",
-                value: details.signups.map(signup => {
-                    return `${formatRoleEmoji(signup.role)} <@${signup.guildMember.user.id}>`;
-                }).join("\n") || "` - `",
+                value: details.signups.map(s => `${formatRoleEmoji(s.role)} ${s.guildMember.displayName}`).join("\n") || "` - `",
                 inline: true
             },
             {
                 name: "Backups:",
-                value: details.backups.map(backup => `${config.backupEmoji} <@${backup.guildMember.user.id}>`).join("\n") || "` - `",
+                value: details.backups.map(b => `${config.backupEmoji} ${b.guildMember.displayName}`).join("\n") || "` - `",
                 inline: true
-            }
+            },
+            {
+                name: ' ',
+                value: ' ',
+            },
+            {
+                name: ' ',
+                value: `||${details.signups.map(s => `<@${s.guildMember.id}>`).join("\n")} ||`,
+                inline: true
+            },
+            {
+                name: ' ',
+                value: `||${details.backups.map(b => `<@${b.guildMember.id}>`).join("\n")} ||`,
+                inline: true
+            },
         ])
         .setColor(color)
         .setFooter({ text: `Sign ups: ${details.signups.length}/4 ~ Backups: ${details.backups.length}/4` })
