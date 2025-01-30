@@ -10,7 +10,7 @@ import Modal from "../classes/Modal.js";
 import { config } from "../config.js";
 import { buildNewDeploymentModal, getDeploymentModalValues, getDeploymentModalValuesRaw } from "../modals/deployments.js";
 import LatestInput from "../tables/LatestInput.js";
-import { DeploymentManager, DeploymentRole } from "../utils/deployments.js";
+import { DeploymentManager, DeploymentRole, formatDeployment } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
 import { deferReply, editReplyWithError, editReplyWithSuccess, showModal } from "../utils/interaction_replies.js";
@@ -80,7 +80,7 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
         await sendDmToUser(interaction.user, `You created a new deployment: ${deployment.title}.\nScheduled for: ${formatDiscordTime(deployment.startTime)} (${deployment.startTime.toISO()}).\n${link}`);
 
         await editReplyWithSuccess(interaction, 'Deployment created successfully');
-        success(`User: ${formatMemberForLog(interaction.member)} created Deployment: ${deployment.title}; ID: ${deployment.id}; Message: ${deployment.message.id}`);
+        success(`User: ${formatMemberForLog(interaction.member)} created Deployment: ${formatDeployment(deployment)}`);
     } catch (e: any) {
         await editReplyWithError(interaction, 'Failed to create deployment');
         throw e;

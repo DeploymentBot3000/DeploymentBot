@@ -4,7 +4,7 @@ import Command from "../classes/Command.js";
 import { buildDeploymentEmbed } from "../embeds/deployment.js";
 import { buildInfoEmbed } from "../embeds/embed.js";
 import Deployment from "../tables/Deployment.js";
-import { DeploymentManager } from "../utils/deployments.js";
+import { DeploymentDetails, DeploymentManager, formatDeployment } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog, formatUserForLog } from "../utils/interaction_format.js";
 import { deferReply, editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
@@ -63,10 +63,11 @@ export default new Command({
         const reason = interaction.options.getString("reason") || "No reason provided";
         action(`${formatMemberForLog(interaction.member)} attempting to remove ${formatUserForLog(targetUser)} from deployment: ${deploymentTitle}`, "Remove");
 
+        let newDetails: DeploymentDetails | Error = null;
         try {
-            const error = await _removePlayerFromDeployment(interaction.member, targetUser, deploymentTitle, reason);
-            if (error instanceof Error) {
-                await editReplyWithError(interaction, error.message);
+            newDetails = await _removePlayerFromDeployment(interaction.member, targetUser, deploymentTitle, reason);
+            if (newDetails instanceof Error) {
+                await editReplyWithError(interaction, newDetails.message);
                 return;
             }
         } catch (e: any) {
@@ -74,11 +75,11 @@ export default new Command({
             throw e;
         }
         await editReplyWithSuccess(interaction, 'Succesfuly removed player');
-        success(`${formatMemberForLog(interaction.member)} removed ${formatUserForLog(targetUser)} from deployment: ${deploymentTitle}`, "Remove");
+        success(`User: ${formatMemberForLog(interaction.member)} removed User: ${formatUserForLog(targetUser)} from Deployment: ${formatDeployment(newDetails)}`, "Remove");
     }
 });
 
-async function _removePlayerFromDeployment(member: GuildMember, targetUser: User, deploymentTitle: string, reason: string): Promise<Error> {
+async function _removePlayerFromDeployment(member: GuildMember, targetUser: User, deploymentTitle: string, reason: string): Promise<DeploymentDetails | Error> {
     const newDetails = await DeploymentManager.get().remove(member, targetUser, deploymentTitle);
     if (newDetails instanceof Error) {
         return newDetails;
@@ -94,5 +95,5 @@ async function _removePlayerFromDeployment(member: GuildMember, targetUser: User
             .setDescription(`You have been removed from deployment: **${deploymentTitle}**\n**By:** <@${member.id}>\n**Reason:** ${reason}`)
         ]
     });
-    return null;
+    return newDetails;
 }

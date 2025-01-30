@@ -17,7 +17,7 @@ import { buildDeploymentEmbed } from "../embeds/deployment.js";
 import { buildInfoEmbed } from "../embeds/embed.js";
 import { buildEditDeploymentModal, DeploymentFields, getDeploymentModalValues } from "../modals/deployments.js";
 import Deployment from "../tables/Deployment.js";
-import { DeploymentDetails, DeploymentManager } from "../utils/deployments.js";
+import { DeploymentDetails, DeploymentManager, formatDeployment } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
 import { deferReply, editReplyWithError, editReplyWithSuccess, showModal } from "../utils/interaction_replies.js";
@@ -150,7 +150,7 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
         }
 
         await editReplyWithSuccess(interaction, 'Deployment edited successfully');
-        success(`User: ${formatMemberForLog(interaction.member)} edited deployment: ${newDetails.title}; ID: ${newDetails.id}; Message: ${newDetails.message.id}`);
+        success(`User: ${formatMemberForLog(interaction.member)} edited Deployment: ${formatDeployment(oldDetails)} to Deployment: ${formatDeployment(newDetails)}`);
     } catch (e: any) {
         await editReplyWithError(interaction, 'Failed to edit deployment');
         throw e;
