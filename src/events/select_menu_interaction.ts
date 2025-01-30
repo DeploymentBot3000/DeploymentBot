@@ -1,6 +1,6 @@
 import { AnySelectMenuInteraction } from "discord.js";
 import SelectMenu from "../classes/SelectMenu.js";
-import signup from "../selectMenus/deployment_role_select.js";
+import { DeploymentSignupSelectMenu } from "../interactions/deployment_signup.js";
 import { checkCooldown } from "../utils/cooldowns.js";
 import { replyWithError } from "../utils/interaction_replies.js";
 import { sendErrorToLogChannel } from "../utils/log_channel.js";
@@ -9,7 +9,7 @@ import { checkPermissions } from "../utils/permissions.js";
 
 const _kSelectMenus: Map<string, SelectMenu> = new Map();
 
-_kSelectMenus.set(signup.id, signup);
+_kSelectMenus.set(DeploymentSignupSelectMenu.id, DeploymentSignupSelectMenu);
 
 function getSelectMenuById(id: string) {
     return _kSelectMenus.get(id);
