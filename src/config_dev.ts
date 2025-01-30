@@ -42,6 +42,9 @@ export const config_dev = {
     // Time before deployment to send departure notice.
     departure_notice_lead_time_minutes: 2,
 
+    // The length of a deployment from start time to end time.
+    deployment_duration_minutes: 4,
+
     backupEmoji: "🔄",
     queueMaxes: {
         hosts: 50,
