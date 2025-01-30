@@ -7,6 +7,7 @@ import chatInputCommandInteraction from "./events/chat_input_command_interaction
 import { discordClientReadyCallback } from "./events/client_ready_event.js";
 import modalSubmittionInteraction from "./events/modal_submit_interaction.js";
 import selectMenuInteraction from "./events/select_menu_interaction.js";
+import { npm_package } from "./package.js";
 import { formatInteractionDetailsForLog } from "./utils/interaction_format.js";
 import { sendErrorToLogChannel } from "./utils/log_channel.js";
 import { action, fatal, logger, LogLevel, success, verbose } from "./utils/logger.js";
@@ -17,6 +18,7 @@ if (!isEnumKey(LogLevel, config.logLevel)) {
 }
 logger.level = LogLevel[config.logLevel];
 
+verbose(`Version: ${npm_package.version}`);
 verbose(`Loaded secrets file with env: ${secrets.env}`);
 
 // Initialize the client
