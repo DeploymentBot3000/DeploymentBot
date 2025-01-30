@@ -90,12 +90,6 @@ async function _checkCanEditDeployment(interaction: ButtonInteraction<'cached'>)
     if (now >= deploymentStartTime) {
         return new Error("You can't edit a deployment that has already started!");
     }
-
-    const timeUntilStart = deploymentStartTime.diff(now, 'minutes');
-    const editLeadTime = Duration.fromObject({ 'minutes': config.deployment_edit_lead_time_minutes });
-    if (timeUntilStart < editLeadTime) {
-        return new Error(`You can't edit a deployment within ${editLeadTime.toHuman()} of its start time!\nThis deployment starts in ${timeUntilStart.toHuman()}.`);
-    }
     return deployment;
 }
 

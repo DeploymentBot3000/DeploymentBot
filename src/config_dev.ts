@@ -36,9 +36,6 @@ export const config_dev = {
     // E.g. if it is 12PM and the lead time is 15 minutes, then a new deployment must start after 12:15PM.
     min_deployment_lead_time_minutes: 15,
 
-    // Deployments are editable up to this many minutes before they start.
-    deployment_edit_lead_time_minutes: 15,
-
     // How long after deployment end time should it be deleted.
     deployment_delete_time_minutes: 60,
 
