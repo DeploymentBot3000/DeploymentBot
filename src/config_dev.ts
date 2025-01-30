@@ -34,13 +34,13 @@ export const config_dev = {
     // Min required lead time for deployments in minutes.
     // Deployments must be posted at least this many minutes into the future.
     // E.g. if it is 12PM and the lead time is 15 minutes, then a new deployment must start after 12:15PM.
-    min_deployment_lead_time_minutes: 15,
+    min_deployment_lead_time_minutes: 4,
 
     // How long after deployment end time should it be deleted.
-    deployment_delete_time_minutes: 60,
+    deployment_delete_time_minutes: 2,
 
     // Time before deployment to send departure notice.
-    departure_notice_lead_time_minutes: 15,
+    departure_notice_lead_time_minutes: 2,
 
     backupEmoji: "🔄",
     queueMaxes: {
