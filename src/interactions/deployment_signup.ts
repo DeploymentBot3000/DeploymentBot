@@ -8,7 +8,7 @@ import { formatMemberForLog } from "../utils/interaction_format.js";
 import { deferReply, editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 import { success } from "../utils/logger.js";
 
-export default new SelectMenu({
+export const DeploymentSignupSelectMenu = new SelectMenu({
     id: "signup",
     cooldown: Duration.fromDurationLike({ seconds: config.selectMenuCooldownSeconds }),
     permissions: {
