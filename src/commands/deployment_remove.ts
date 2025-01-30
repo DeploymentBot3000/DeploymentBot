@@ -10,7 +10,7 @@ import { formatMemberForLog, formatUserForLog } from "../utils/interaction_forma
 import { deferReply, editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 import { action, success } from "../utils/logger.js";
 
-export default new Command({
+export const DeploymentRemoveCommand = new Command({
     name: "remove",
     description: "Remove a user from a deployment",
     permissions: {
