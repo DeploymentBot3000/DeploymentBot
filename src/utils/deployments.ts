@@ -11,7 +11,7 @@ import Deployment from "../tables/Deployment.js";
 import LatestInput from "../tables/LatestInput.js";
 import Signups from "../tables/Signups.js";
 import { sendErrorToLogChannel } from "./log_channel.js";
-import { debug, verbose } from "./logger.js";
+import { debug, success, verbose } from "./logger.js";
 import { formatDiscordTime } from "./time.js";
 
 export enum DeploymentRole {
@@ -62,6 +62,13 @@ export interface DeploymentDetails {
     host: DeploymentMember,
     signups: DeploymentMember[],
     backups: DeploymentMember[],
+}
+
+export function formatDeployment(deployment: DeploymentDetails) {
+    return `${deployment.id}; Title: ${deployment.title}; Message: ${deployment.message.id};`
+        + ` Host: ${deployment.host.guildMember.id}; startTime: ${deployment.startTime.toISO()};`
+        + ` Signups: ${deployment.signups.map(v => v.guildMember.id).join(',')};`
+        + ` Backups: ${deployment.backups.map(v => v.guildMember.id).join(',')}`;
 }
 
 export class DeploymentManager {
@@ -361,20 +368,22 @@ async function _sendDepartureMessage(client: Client, deployment: Deployment) {
     const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null as null) as GuildTextBasedChannel;
     const signups = await Signups.find({ where: { deploymentId: deployment.id } });
     const backups = await Backups.find({ where: { deploymentId: deployment.id } });
+    const details = await deploymentToDetails(client, deployment, signups, backups);
 
-    debug(`Sending departure message: ${deployment.id}; signups: ${signups.map(s => s.userId).join(',')}; backups: ${backups.map(b => b.userId).join(',')};`);
-    await departureChannel.send({ content: _departureMessage(deployment, signups, backups), });
+    debug(`Sending departure message for Deployment: ${formatDeployment(details)}`);
+    await departureChannel.send({ content: _departureMessage(details), });
+    success(`Sent departure message for Deployment: ${formatDeployment(details)}`);
 
     deployment.noticeSent = true;
     await deployment.save();
 }
 
-function _departureMessage(deployment: Deployment, signups: Signups[], backups: Backups[]) {
-    const signupsFormatted = signups.filter(s => s.userId != deployment.user).map(signup => {
-        return `${formatRoleEmoji(parseRole(signup.role))} <@${signup.userId}>`;
+function _departureMessage(deployment: DeploymentDetails) {
+    const signupsFormatted = deployment.signups.filter(s => s.guildMember.id != deployment.host.guildMember.id).map(signup => {
+        return `${formatRoleEmoji(signup.role)} <@${signup.guildMember.id}>`;
     }).join(",") || "` - `";
 
-    const backupsFormatted = backups.map(backup => `${config.backupEmoji} <@${backup.userId}>`).join(",") || "` - `";
+    const backupsFormatted = deployment.backups.map(backup => `${config.backupEmoji} <@${backup.guildMember.id}>`).join(",") || "` - `";
 
     const departureNoticeLeadTimeMinutes = config.departure_notice_lead_time_minutes;
 
@@ -392,7 +401,7 @@ The operation starts in **${departureNoticeLeadTimeMinutes} minutes**.
 
 **Difficulty:** **${deployment.difficulty}**
 
-**Host:** <@${deployment.user}>
+**Host:** <@${deployment.host.guildMember.id}>
 **Assigned divers:** ${signupsFormatted}
 **Standby divers:** ${backupsFormatted}
 -------------------------------------------`
@@ -408,10 +417,11 @@ async function _startDeployments(client: Client, now: DateTime) {
     });
 
     for (const deployment of unstartedDeployments) {
+        let details: DeploymentDetails = null;
         try {
             const signups = Signups.find({ where: { deploymentId: deployment.id } });
             const backups = Backups.find({ where: { deploymentId: deployment.id } });
-            const details = await deploymentToDetails(client, deployment, await signups, await backups);
+            details = await deploymentToDetails(client, deployment, await signups, await backups);
             if (!details.message) {
                 continue;
             }
@@ -443,6 +453,7 @@ async function _startDeployments(client: Client, now: DateTime) {
 
         deployment.started = true;
         await deployment.save();
+        success(`Started Deployment: ${formatDeployment(details)}`);
     }
 }
 
@@ -456,14 +467,16 @@ async function _deleteOldDeployments(client: Client, now: DateTime) {
     });
 
     for (const deployment of deploymentsToDelete) {
-        const channel = await client.channels.fetch(deployment.channel).catch(() => null as null) as GuildTextBasedChannel;
-        const message = await channel?.messages.fetch(deployment.message).catch(() => null as null);
+        const signups = await Signups.find({ where: { deploymentId: deployment.id } });
+        const backups = await Backups.find({ where: { deploymentId: deployment.id } });
+        const details = await deploymentToDetails(client, deployment, signups, backups);
 
-        if (message) {
-            await message.delete().catch(() => { });
+        if (details.message) {
+            await details.message.delete().catch((e: any) => sendErrorToLogChannel(e, client));
         }
         deployment.deleted = true;
         await deployment.save();
+        success(`Deleted Deployment: ${formatDeployment(details)}`);
     }
 }
 
