@@ -10,7 +10,7 @@ import selectMenuInteraction from "./events/select_menu_interaction.js";
 import { npm_package } from "./package.js";
 import { formatInteractionDetailsForLog } from "./utils/interaction_format.js";
 import { sendErrorToLogChannel } from "./utils/log_channel.js";
-import { action, fatal, logger, LogLevel, success, verbose } from "./utils/logger.js";
+import { action, error, fatal, logger, LogLevel, success, verbose } from "./utils/logger.js";
 import { isEnumKey } from "./utils/typescript.js";
 
 if (!isEnumKey(LogLevel, config.logLevel)) {
@@ -82,9 +82,11 @@ process.on('uncaughtException', async (e: Error) => {
     process.exit(1);
 });
 
+// We skip sending error logs for signals since these don't work with our
+// current hosting provider and only spam us when doing local development.
 for (const signal of ['SIGINT', 'SIGTERM']) {
     process.on(signal, async (signal: string) => {
-        await sendErrorToLogChannel(new Error(`Received signal: ${signal}, shutting down.`), client);
+        error(`Received signal: ${signal}`);
         await client.destroy();
         verbose('Destroyed discord client!');
         process.exit(1);
