@@ -379,11 +379,14 @@ async function _sendDepartureMessage(client: Client, deployment: Deployment) {
 }
 
 function _departureMessage(deployment: DeploymentDetails) {
-    const signupsFormatted = deployment.signups.filter(s => s.guildMember.id != deployment.host.guildMember.id).map(signup => {
-        return `${formatRoleEmoji(signup.role)} <@${signup.guildMember.id}>`;
-    }).join(",") || "` - `";
+    const signupsFormatted = deployment.signups
+        .filter(s => s.guildMember.id != deployment.host.guildMember.id)
+        .map(s => `${formatRoleEmoji(s.role)} ${s.guildMember.displayName} ||<@${s.guildMember.id}>||`)
+        .join(", ") || "` - `";
 
-    const backupsFormatted = deployment.backups.map(backup => `${config.backupEmoji} <@${backup.guildMember.id}>`).join(",") || "` - `";
+    const backupsFormatted = deployment.backups
+        .map(b => `${config.backupEmoji} ${b.guildMember.displayName} ||<@${b.guildMember.id}>||`)
+        .join(", ") || "` - `";
 
     const departureNoticeLeadTimeMinutes = config.departure_notice_lead_time_minutes;
 
@@ -401,7 +404,7 @@ The operation starts in **${departureNoticeLeadTimeMinutes} minutes**.
 
 **Difficulty:** **${deployment.difficulty}**
 
-**Host:** <@${deployment.host.guildMember.id}>
+**Host:** ${deployment.host.guildMember.displayName} ||<@${deployment.host.guildMember.id}>||
 **Assigned divers:** ${signupsFormatted}
 **Standby divers:** ${backupsFormatted}
 -------------------------------------------`
