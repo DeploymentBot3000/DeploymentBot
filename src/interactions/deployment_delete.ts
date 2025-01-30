@@ -6,7 +6,7 @@ import { buildInfoEmbed } from "../embeds/embed.js";
 import Backups from "../tables/Backups.js";
 import Deployment from "../tables/Deployment.js";
 import Signups from "../tables/Signups.js";
-import { DeploymentDetails, deploymentToDetails, formatRoleEmoji, parseRole } from "../utils/deployments.js";
+import { DeploymentDetails, deploymentToDetails, formatDeployment, formatRoleEmoji, parseRole } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
 import { deferReply, editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
@@ -63,7 +63,7 @@ export const DeploymentDeleteButton = new Button({
 
         await interaction.message.delete();
 
-        success(`User: ${formatMemberForLog(interaction.member)} deleted Deployment: ${oldDetails.title}; Message: ${oldDetails.message.id}; ID: ${oldDetails.id}`);
+        success(`User: ${formatMemberForLog(interaction.member)} deleted Deployment: ${formatDeployment(oldDetails)}`);
     }
 });
 

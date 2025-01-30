@@ -3,7 +3,7 @@ import { Duration } from "luxon";
 import { Button } from "../buttons/button.js";
 import { config } from "../config.js";
 import { buildDeploymentEmbed } from "../embeds/deployment.js";
-import { DeploymentManager } from "../utils/deployments.js";
+import { DeploymentManager, formatDeployment } from "../utils/deployments.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
 import { deferReply, editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 import { error, success } from "../utils/logger.js";
@@ -33,6 +33,6 @@ export const DeploymentLeaveButton = new Button({
         }
 
         await editReplyWithSuccess(interaction, 'You left the deployment');
-        success(`User: ${formatMemberForLog(interaction.member)} left deployment: ${newDetails.title}; ID: ${newDetails.id}; Message: ${newDetails.message.id}`);
+        success(`User: ${formatMemberForLog(interaction.member)} left deployment: ${formatDeployment(newDetails)}`);
     }
 });

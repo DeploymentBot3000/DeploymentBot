@@ -3,7 +3,7 @@ import { Duration } from "luxon";
 import SelectMenu from "../classes/SelectMenu.js";
 import { config } from "../config.js";
 import { buildDeploymentEmbed } from "../embeds/deployment.js";
-import { DeploymentManager, parseRole } from "../utils/deployments.js";
+import { DeploymentManager, formatDeployment, parseRole } from "../utils/deployments.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
 import { deferReply, editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 import { success } from "../utils/logger.js";
@@ -36,5 +36,5 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
     const embed = buildDeploymentEmbed(newDetails, Colors.Green, /*started=*/false);
     await interaction.message.edit({ embeds: [embed] });
     await editReplyWithSuccess(interaction, `You have signed up to deployment: ${newDetails.title} as: ${role}`);
-    success(`User: ${formatMemberForLog(interaction.member)} joined Deployment: ${newDetails.title}  as ${role}; Message: ${newDetails.message.id}; ID: ${newDetails.id}`);
+    success(`User: ${formatMemberForLog(interaction.member)} joined Deployment: ${formatDeployment(newDetails)}`);
 }
