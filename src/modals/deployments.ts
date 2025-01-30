@@ -1,6 +1,7 @@
 import { ActionRowBuilder, ModalBuilder, ModalSubmitFields, TextInputBuilder, TextInputStyle } from "discord.js";
 import { Duration } from "luxon";
 import * as emoji from 'node-emoji';
+import { config } from "../config.js";
 import { DeploymentDetails } from "../utils/deployments.js";
 import { debug } from "../utils/logger.js";
 import { parseStartTime } from "../utils/time.js";
@@ -78,7 +79,7 @@ export function getDeploymentModalValues(fields: ModalSubmitFields) {
             return startTime;
         }
         details.startTime = startTime;
-        details.endTime = startTime.plus(Duration.fromDurationLike({ hours: 2 }));
+        details.endTime = startTime.plus(Duration.fromDurationLike({ minutes: config.deployment_duration_minutes }));
     }
     return details;
 }
