@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Colors, EmbedBuilder, Guild, GuildMember, GuildTextBasedChannel, Message, PermissionFlagsBits, Snowflake, StringSelectMenuBuilder, TextChannel, User } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import cron from 'node-cron';
-import { EntityManager, In, LessThanOrEqual } from "typeorm";
+import { EntityManager, FindManyOptions, In, LessThanOrEqual } from "typeorm";
 import { buildButton } from "../buttons/button.js";
 import { config } from "../config.js";
 import { dataSource } from "../data_source.js";
@@ -351,7 +351,12 @@ export class DeploymentManager {
 }
 
 async function _sendDeploymentNotices(client: Client, now: DateTime) {
-    const deploymentsNoNotice = await Deployment.find({
+    const departureChannel = await client.channels.fetch(config.departureChannel);
+    if (!(departureChannel instanceof TextChannel)) {
+        throw new Error(`Invalid departure channel: ${config.departureChannel}`);
+    }
+
+    const deployments = await _findDeployments(client, {
         where: {
             deleted: false,
             noticeSent: false,
@@ -359,23 +364,22 @@ async function _sendDeploymentNotices(client: Client, now: DateTime) {
         }
     });
 
-    for (const deployment of deploymentsNoNotice) {
-        await _sendDepartureMessage(client, deployment);
+    for (const deployment of deployments) {
+        try {
+            await _sendDepartureMessage(departureChannel, deployment);
+            const d = await Deployment.findOne({ where: { id: deployment.id } });
+            d.noticeSent = true;
+            await d.save();
+        } catch (e: any) {
+            await sendErrorToLogChannel(e, client);
+        }
     }
 }
 
-async function _sendDepartureMessage(client: Client, deployment: Deployment) {
-    const departureChannel = await client.channels.fetch(config.departureChannel).catch(() => null as null) as GuildTextBasedChannel;
-    const signups = await Signups.find({ where: { deploymentId: deployment.id } });
-    const backups = await Backups.find({ where: { deploymentId: deployment.id } });
-    const details = await deploymentToDetails(client, deployment, signups, backups);
-
-    debug(`Sending departure message for Deployment: ${formatDeployment(details)}`);
-    await departureChannel.send({ content: _departureMessage(details), });
-    success(`Sent departure message for Deployment: ${formatDeployment(details)}`);
-
-    deployment.noticeSent = true;
-    await deployment.save();
+async function _sendDepartureMessage(channel: TextChannel, deployment: DeploymentDetails) {
+    debug(`Sending departure message for Deployment: ${formatDeployment(deployment)}`);
+    await channel.send({ content: _departureMessage(deployment), });
+    success(`Sent departure message for Deployment: ${formatDeployment(deployment)}`);
 }
 
 function _departureMessage(deployment: DeploymentDetails) {
@@ -589,4 +593,17 @@ function _spliceItem<T>(array: T[], predicate: (item: T) => boolean): T | undefi
 
 async function _spliceSignup(signups: Signups[], backups: Backups[], userId: Snowflake) {
     return _spliceItem(signups, s => s.userId == userId) ?? _spliceItem(backups, b => b.userId == userId);
+}
+
+async function _findDeployments(client: Client, options: FindManyOptions<Deployment>) {
+    const { deployments, signups, backups } = await dataSource.transaction('READ COMMITTED', async (entityManager: EntityManager) => {
+        const deployments = await entityManager.find(Deployment, options);
+        const deploymentIds = deployments.map(d => d.id);
+        const signups = entityManager.find(Signups, { where: { deploymentId: In(deploymentIds) } });
+        const backups = entityManager.find(Backups, { where: { deploymentId: In(deploymentIds) } });
+        return { deployments, signups: await signups, backups: await backups };
+    });
+    return await Promise.all(deployments.map(d => {
+        return deploymentToDetails(client, d, signups.filter(s => s.deploymentId == d.id), backups.filter(s => s.deploymentId == d.id));
+    }));
 }
