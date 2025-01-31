@@ -545,6 +545,10 @@ export async function deploymentToDetails(client: Client, deployment: Deployment
     if (!(channel instanceof TextChannel)) {
         throw new Error(`Invalid channel type: ${channel}`);
     }
+    const message = channel.messages.fetch(deployment.message);
+    const host = _getDeploymentHost(channel.guild, deployment.user, signups);
+    const signupsMembers = Promise.all(signups.map(s => _getDeploymentMember(channel.guild, s)));
+    const backupMembers = Promise.all(backups.map(b => _getDeploymentMember(channel.guild, b)));
 
     return {
         id: deployment.id,
@@ -552,12 +556,12 @@ export async function deploymentToDetails(client: Client, deployment: Deployment
         difficulty: deployment.difficulty,
         description: deployment.description,
         channel: channel,
-        message: await channel.messages.fetch(deployment.message),
+        message: await message,
         startTime: DateTime.fromMillis(Number(deployment.startTime)),
         endTime: DateTime.fromMillis(Number(deployment.endTime)),
-        host: await _getDeploymentHost(channel.guild, deployment.user, signups),
-        signups: await Promise.all(signups.map(s => _getDeploymentMember(channel.guild, s))),
-        backups: await Promise.all(backups.map(b => _getDeploymentMember(channel.guild, b))),
+        host: await host,
+        signups: await signupsMembers,
+        backups: await backupMembers,
     }
 }
 
