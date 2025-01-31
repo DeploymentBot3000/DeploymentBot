@@ -9,7 +9,7 @@ import {
     StringSelectMenuInteraction,
     User
 } from "discord.js";
-import { DateTime, Duration } from "luxon";
+import { Duration } from "luxon";
 import { Button } from "../buttons/button.js";
 import Modal from "../classes/Modal.js";
 import { config } from "../config.js";
@@ -17,7 +17,7 @@ import { buildDeploymentEmbed } from "../embeds/deployment.js";
 import { buildInfoEmbed } from "../embeds/embed.js";
 import { buildEditDeploymentModal, DeploymentFields, getDeploymentModalValues } from "../modals/deployments.js";
 import Deployment from "../tables/Deployment.js";
-import { DeploymentDetails, DeploymentManager, formatDeployment } from "../utils/deployments.js";
+import { checkCanEditDeployment, DeploymentDetails, DeploymentManager, formatDeployment } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
 import { deferReply, editReplyWithError, editReplyWithSuccess, showModal } from "../utils/interaction_replies.js";
@@ -45,9 +45,12 @@ export const DeploymentEditModal = new Modal({
 });
 
 async function onDeploymentEditButtonPress(interaction: ButtonInteraction<'cached'>) {
-    const deployment = await _checkCanEditDeployment(interaction);
-    if (deployment instanceof Error) {
-        await editReplyWithError(interaction, deployment.message);
+    const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
+    // This is a perliminary check to avoid showing a modal to someone that doesn't have edit permissions.
+    // The permissions will be verified again in the transaction that performs the change.
+    const error = checkCanEditDeployment(deployment, interaction.member.id);
+    if (error instanceof Error) {
+        await editReplyWithError(interaction, error.message);
         return;
     }
 
@@ -71,26 +74,6 @@ async function onDeploymentEditButtonPress(interaction: ButtonInteraction<'cache
 
     // Now that the modal is shows, we can perform async operations and delete the reply.
     await interaction.deleteReply();
-}
-
-async function _checkCanEditDeployment(interaction: ButtonInteraction<'cached'>): Promise<Deployment | Error> {
-    const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
-    if (!deployment) {
-        return new Error("Deployment not found");
-    }
-    if (deployment.user !== interaction.user.id) {
-        return new Error("You do not have permission to edit this deployment");
-    }
-    if (deployment.noticeSent) {
-        return new Error("You can't edit a deployment after the notice has been sent!");
-    }
-
-    const now = DateTime.now();
-    const deploymentStartTime = DateTime.fromMillis(Number(deployment.startTime));
-    if (now >= deploymentStartTime) {
-        return new Error("You can't edit a deployment that has already started!");
-    }
-    return deployment;
 }
 
 async function _selectFieldsToEdit(interaction: ButtonInteraction<'cached'>): Promise<StringSelectMenuInteraction | Error> {
@@ -135,7 +118,13 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
         }
         const deploymentId = Number(interaction.customId.split("-")[1]);
 
-        const { newDetails, oldDetails } = await DeploymentManager.get().update(deploymentId, details);
+        const response = await DeploymentManager.get().update(interaction.member.id, deploymentId, details);
+        if (response instanceof Error) {
+            await editReplyWithError(interaction, response.message);
+            return;
+        }
+        const { newDetails, oldDetails } = response;
+
         const embed = buildDeploymentEmbed(newDetails, Colors.Green, /*started=*/false);
         await newDetails.message.edit({ embeds: [embed] });
 

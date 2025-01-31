@@ -185,11 +185,12 @@ export class DeploymentManager {
         return details;
     }
 
-    public async update(deploymentId: number, details: DeploymentDetails): Promise<{ newDetails: DeploymentDetails, oldDetails: DeploymentDetails }> {
+    public async update(memberId: Snowflake, deploymentId: number, details: DeploymentDetails): Promise<{ newDetails: DeploymentDetails, oldDetails: DeploymentDetails } | Error> {
         return await dataSource.transaction(async (entityManager: EntityManager) => {
             const deployment = await entityManager.findOne(Deployment, { where: { id: deploymentId } });
-            if (!deployment) {
-                throw new Error('Failed to find deployment');
+            const error = checkCanEditDeployment(deployment, memberId);
+            if (error instanceof Error) {
+                return error;
             }
             const signups = entityManager.find(Signups, { where: { deploymentId: deployment.id } });
             const backups = entityManager.find(Backups, { where: { deploymentId: deployment.id } });
@@ -218,10 +219,7 @@ export class DeploymentManager {
                 newDetails.endTime = details.endTime;
             }
             await entityManager.save(deployment);
-            return {
-                oldDetails: oldDetails,
-                newDetails: newDetails,
-            };
+            return { newDetails, oldDetails, };
         });
     }
 
@@ -625,4 +623,22 @@ async function _findDeployments(client: Client, options: FindManyOptions<Deploym
     return await Promise.all(deployments.map(d => {
         return deploymentToDetails(client, d, signups.filter(s => s.deploymentId == d.id), backups.filter(s => s.deploymentId == d.id));
     }));
+}
+
+
+export function checkCanEditDeployment(deployment: Deployment, memberId: Snowflake): Error {
+    if (!deployment) {
+        return new Error("Deployment not found");
+    }
+    if (deployment.user !== memberId) {
+        return new Error("You do not have permission to edit this deployment");
+    }
+    if (deployment.noticeSent) {
+        return new Error("You can't edit a deployment after the notice has been sent!");
+    }
+    const deploymentStartTime = DateTime.fromMillis(Number(deployment.startTime));
+    if (DateTime.now() >= deploymentStartTime) {
+        return new Error("You can't edit a deployment that has already started!");
+    }
+    return null;
 }
