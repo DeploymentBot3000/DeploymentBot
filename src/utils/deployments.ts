@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Colors, EmbedBuilder, Guild, GuildMember, GuildTextBasedChannel, Message, PermissionFlagsBits, Snowflake, StringSelectMenuBuilder, TextChannel, User } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Colors, EmbedBuilder, Guild, GuildMember, Message, PermissionFlagsBits, Snowflake, StringSelectMenuBuilder, TextChannel, User } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import cron from 'node-cron';
 import { EntityManager, FindManyOptions, In, LessThanOrEqual } from "typeorm";
@@ -11,7 +11,7 @@ import Deployment from "../tables/Deployment.js";
 import LatestInput from "../tables/LatestInput.js";
 import Signups from "../tables/Signups.js";
 import { sendErrorToLogChannel } from "./log_channel.js";
-import { debug, success, verbose } from "./logger.js";
+import { debug, success, verbose, warn } from "./logger.js";
 import { formatDiscordTime } from "./time.js";
 
 export enum DeploymentRole {
@@ -415,7 +415,12 @@ The operation starts in **${departureNoticeLeadTimeMinutes} minutes**.
 }
 
 async function _startDeployments(client: Client, now: DateTime) {
-    const unstartedDeployments = await Deployment.find({
+    const loggingChannel = await client.channels.fetch(config.log_channel_id);
+    if (!(loggingChannel instanceof TextChannel)) {
+        throw new Error(`Invalid log channel type: ${config.log_channel_id}`);
+    }
+
+    const deployments = await _findDeployments(client, {
         where: {
             deleted: false,
             started: false,
@@ -423,44 +428,39 @@ async function _startDeployments(client: Client, now: DateTime) {
         }
     });
 
-    for (const deployment of unstartedDeployments) {
-        let details: DeploymentDetails = null;
+    for (const deployment of deployments) {
+        if (!deployment.message) {
+            warn(`Missing deployment message for deployment: ${formatDeployment(deployment)}`);
+            continue;
+        }
         try {
-            const signups = Signups.find({ where: { deploymentId: deployment.id } });
-            const backups = Backups.find({ where: { deploymentId: deployment.id } });
-            details = await deploymentToDetails(client, deployment, await signups, await backups);
-            if (!details.message) {
-                continue;
-            }
-
-            const embed = buildDeploymentEmbed(details, Colors.Red, /*started=*/true);
-            await details.message.edit({ content: "", embeds: [embed], components: [] });
-
-            // Fetch all logging channels and send to each
-            const loggingChannel = await client.channels.fetch(config.log_channel_id).catch(() => null as null) as GuildTextBasedChannel;
+            const embed = buildDeploymentEmbed(deployment, Colors.Red, /*started=*/true);
+            await deployment.message.edit({ content: "", embeds: [embed], components: [] });
 
             const logEmbed = new EmbedBuilder()
                 .setColor("Yellow")
                 .setTitle("Deployment Started")
                 .addFields(
                     { name: "Title", value: deployment.title, inline: true },
-                    { name: "Host", value: formatHost(details.host), inline: true },
+                    { name: "Host", value: formatHost(deployment.host), inline: true },
                     { name: "Difficulty", value: deployment.difficulty, inline: true },
                     { name: "Time", value: formatDiscordTime(DateTime.fromMillis(Number(deployment.startTime))), inline: false },
-                    { name: "Players", value: formatSignups(details.signups, details.host), inline: true },
-                    { name: "Backups", value: formatBackups(details.backups), inline: true },
+                    { name: "Players", value: formatSignups(deployment.signups, deployment.host), inline: true },
+                    { name: "Backups", value: formatBackups(deployment.backups), inline: true },
                     { name: "Description", value: deployment.description || "No description provided" }
                 )
                 .setTimestamp();
 
             await loggingChannel.send({ embeds: [logEmbed] });
-        } catch (err) {
-            console.error(`Error building deployment embed for deployment ${deployment.id}:`, err);
-        }
 
-        deployment.started = true;
-        await deployment.save();
-        success(`Started Deployment: ${formatDeployment(details)}`);
+            const d = await Deployment.findOne({ where: { id: deployment.id } });
+            d.started = true;
+            await d.save();
+
+            success(`Started Deployment: ${formatDeployment(deployment)}`);
+        } catch (e: any) {
+            await sendErrorToLogChannel(e, client);
+        }
     }
 }
 
