@@ -270,6 +270,24 @@ export class DeploymentManager {
         });
     }
 
+    public async delete(memberId: Snowflake, messageId: string, isAdmin: boolean): Promise<DeploymentDetails | Error> {
+        return await dataSource.transaction(async (entityManager: EntityManager) => {
+            const deployment = await entityManager.findOne(Deployment, { where: { message: messageId } });
+            if (!deployment) {
+                return new Error("Deployment not found");
+            }
+            if (!(isAdmin || deployment.user == memberId)) {
+                return new Error("You do not have permission to delete this deployment");
+            }
+            const signups = entityManager.find(Signups, { where: { deploymentId: deployment.id } });
+            const backups = entityManager.find(Backups, { where: { deploymentId: deployment.id } });
+            const oldDetails = await deploymentToDetails(this._client, deployment, await signups, await backups);
+
+            await entityManager.remove(deployment);
+            return oldDetails;
+        });
+    }
+
     public async leave(memberId: Snowflake, messageId: Snowflake): Promise<DeploymentDetails | Error> {
         return await dataSource.transaction(async (entityManager: EntityManager) => {
             const deployment = await entityManager.findOne(Deployment, { where: { message: messageId } });
