@@ -466,24 +466,21 @@ async function _startDeployments(client: Client, now: DateTime) {
 
 async function _deleteOldDeployments(client: Client, now: DateTime) {
     const deploymentDeleteLeadTime = Duration.fromDurationLike({ 'minutes': config.deployment_delete_time_minutes });
-    const deploymentsToDelete = await Deployment.find({
+    const deployments = await _findDeployments(client, {
         where: {
             deleted: false,
             endTime: LessThanOrEqual((now.minus(deploymentDeleteLeadTime)).toMillis())
         }
     });
 
-    for (const deployment of deploymentsToDelete) {
-        const signups = await Signups.find({ where: { deploymentId: deployment.id } });
-        const backups = await Backups.find({ where: { deploymentId: deployment.id } });
-        const details = await deploymentToDetails(client, deployment, signups, backups);
-
-        if (details.message) {
-            await details.message.delete().catch((e: any) => sendErrorToLogChannel(e, client));
+    for (const deployment of deployments) {
+        if (deployment.message) {
+            await deployment.message.delete().catch((e: any) => sendErrorToLogChannel(e, client));
         }
-        deployment.deleted = true;
-        await deployment.save();
-        success(`Deleted Deployment: ${formatDeployment(details)}`);
+        const d = await Deployment.findOne({ where: { id: deployment.id } });
+        d.deleted = true;
+        await d.save();
+        success(`Deleted Deployment: ${formatDeployment(deployment)}`);
     }
 }
 
