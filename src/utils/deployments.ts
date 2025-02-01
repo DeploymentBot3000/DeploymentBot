@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Colors, EmbedBuilder, Guild, GuildMember, Message, PermissionFlagsBits, Snowflake, StringSelectMenuBuilder, TextChannel, User } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import cron from 'node-cron';
-import { EntityManager, FindManyOptions, In, LessThanOrEqual } from "typeorm";
+import { EntityManager, FindManyOptions, In, LessThanOrEqual, Not } from "typeorm";
 import { buildButton } from "../buttons/button.js";
 import { config } from "../config.js";
 import { dataSource } from "../data_source.js";
@@ -83,12 +83,12 @@ export class DeploymentManager {
         cron.schedule('* * * * *', DeploymentManager._instance._checkDeployments.bind(DeploymentManager._instance));
 
         // On startup and then at the top of every hour.
-        await DeploymentManager._instance._removeOldSignups();
-        cron.schedule("0 * * * *", DeploymentManager._instance._removeOldSignups.bind(DeploymentManager._instance));
+        await DeploymentManager._instance._removeDeletedDeployments();
+        cron.schedule("0 * * * *", DeploymentManager._instance._removeDeletedDeployments.bind(DeploymentManager._instance));
 
         // On startup and then at midnight every day.
-        await DeploymentManager._instance._deleteOldDeploymentsFromDatabase();
-        cron.schedule("0 0 * * *", DeploymentManager._instance._deleteOldDeploymentsFromDatabase.bind(DeploymentManager._instance));
+        await DeploymentManager._instance._removeInvalidSignups();
+        cron.schedule("0 0 * * *", DeploymentManager._instance._removeInvalidSignups.bind(DeploymentManager._instance));
     }
 
     public static get(): DeploymentManager {
@@ -111,32 +111,31 @@ export class DeploymentManager {
         await _deleteOldDeployments(this._client, now);
     }
 
-    private async _removeOldSignups() {
-        const deletedDeployments: Deployment[] = await Deployment.find({ where: { deleted: true } });
-        for (const deployment of deletedDeployments) {
-            await Signups.delete({ deploymentId: deployment.id });
-            await Backups.delete({ deploymentId: deployment.id });
-            await Deployment.delete({ id: deployment.id });
-            console.log(`Deleted deployment: ${deployment.id} & associated signups & backups`);
-        }
+    private async _removeDeletedDeployments() {
+        debug('Removing deleted deployments...', 'DeploymentManager');
+        await dataSource.transaction(async (entityManager: EntityManager) => {
+            const deployments = await entityManager.find(Deployment, { where: { deleted: true } });
+            const ids = deployments.map(d => d.id);
+            const deploymentsDelete = entityManager.delete(Deployment, { id: In(ids) });
+            const signups = entityManager.delete(Signups, { deploymentId: In(ids) });
+            const backups = entityManager.delete(Backups, { deploymentId: In(ids) });
+            verbose(`Removed ${(await deploymentsDelete).affected} deleted deployments;  ${(await signups).affected} signups; ${(await backups).affected} backups`, 'DeploymentManager');
+        });
     }
 
-    private async _deleteOldDeploymentsFromDatabase() {
-        const deployments = await Deployment.find();
-        const signups = await Signups.find();
-        const backups = await Backups.find();
-        const deploymentsIDs = deployments.map(deployment => deployment.id);
-        const signupsToDelete = signups.filter(s => !deploymentsIDs.includes(s.deploymentId)).map(s => s.id);
-        const backupsToDelete = backups.filter(b => !deploymentsIDs.includes(b.deploymentId)).map(b => b.id);
-        await Signups.delete({ id: In(signupsToDelete) });
-        await Backups.delete({ id: In(backupsToDelete) });
+    private async _removeInvalidSignups() {
+        debug("Removing old signups...", 'DeploymentManager');
+        const deleteSignups = dataSource.transaction(async (entityManager: EntityManager) => {
+            const ids = (await entityManager.find(Deployment)).map(d => d.id);
+            const signups = entityManager.delete(Signups, { deploymentId: Not(In(ids)) });
+            const backups = entityManager.delete(Backups, { deploymentId: Not(In(ids)) });
+            verbose(`Cleared ${(await signups).affected} invalid signups and ${(await backups).affected} backups`, 'DeploymentManager');
+        });
+        debug("Clearing last input...", 'DeploymentManager');
         await LatestInput.clear();
+        verbose("Cleared last input data", 'DeploymentManager');
 
-        verbose("Performing database cleanup...");
-        verbose(`Cleared ${signupsToDelete.length} invalid signups!`);
-        verbose(`Cleared ${backupsToDelete.length} invalid backups!`);
-        verbose(`Cleared last input data!`);
-        verbose("Database cleanup complete!");
+        await deleteSignups;
     }
 
     public async create(details: DeploymentDetails): Promise<DeploymentDetails> {
