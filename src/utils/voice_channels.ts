@@ -52,7 +52,7 @@ export class VoiceChannelManager {
                 },
             ]
         });
-        debug(`Created voice channel: ${channel.name} with id: ${channel.id}`);
+        debug(`Created voice channel: ${channel.name} with id: ${channel.id}`, 'VoiceChannelManager');
         return channel;
     }
 
@@ -66,7 +66,7 @@ export class VoiceChannelManager {
         try {
             const clearVcChannelsInterval = Duration.fromDurationLike({ 'minutes': config.discord_server.clear_vc_channels_every_minutes });
             const deleteChannelAfterVacantFor = clearVcChannelsInterval.minus({ 'seconds': 30 });
-            debug("Clearing empty voice channels");
+            debug("Clearing empty voice channels", 'VoiceChannelManager');
             const guild = this._client.guilds.cache.get(config.guildId);
             for (const prefix of [config.discord_server.strike_vc_category_prefix, config.discord_server.hotdrop_vc_category_prefix]) {
                 for (const vcCategory of _findAllVcCategories(guild, prefix).values()) {
@@ -86,15 +86,15 @@ export class VoiceChannelManager {
             const lastSeenEmpty = this._lastSeenEmptyVcTime.get(channel.id) || DateTime.now();
             this._lastSeenEmptyVcTime.set(channel.id, lastSeenEmpty);
             if (lastSeenEmpty.plus(deleteChannelAfterVacantFor) < DateTime.now()) {
-                debug(`Deleting voice channel: ${channel.name} with id: ${channel.id}`);
+                debug(`Deleting voice channel: ${channel.name} with id: ${channel.id}`, 'VoiceChannelManager');
                 _checkVcPermissions(channel, client.user);
                 await channel.delete().catch(e => sendErrorToLogChannel(e, client));
                 this._lastSeenEmptyVcTime.delete(channel.id);
             } else {
-                debug(`Voice channel: ${channel.name} with id: ${channel.id} was last seen empty on ${lastSeenEmpty.toISO()}, not old enough to delete`);
+                debug(`Voice channel: ${channel.name} with id: ${channel.id} was last seen empty on ${lastSeenEmpty.toISO()}, not old enough to delete`, 'VoiceChannelManager');
             }
         } else {
-            debug(`Voice channel: ${channel.name} with id: ${channel.id} has ${channel.members.size} members`);
+            debug(`Voice channel: ${channel.name} with id: ${channel.id} has ${channel.members.size} members`, 'VoiceChannelManager');
         }
     }
 
