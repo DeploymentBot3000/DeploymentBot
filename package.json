@@ -1,7 +1,7 @@
 {
-  "name": "discord-bot",
+  "name": "deployment-bot",
   "version": "1.0.14",
-  "description": "101st Discord bot",
+  "description": "Helldivers 2 Deployment Bot",
   "main": "index.js",
   "type": "module",
   "engines": {
@@ -9,11 +9,10 @@
   },
   "scripts": {
     "start": "node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts",
-    "dev": "concurrently \"nodemon --exec node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts\"",
     "build": "tsc"
   },
   "keywords": [],
-  "author": "Echo",
+  "author": "DeploymentBot3000",
   "license": "ISC",
   "dependencies": {
     "@discordjs/rest": "^2.2.0",
