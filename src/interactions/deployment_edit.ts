@@ -1,9 +1,8 @@
 import {
     ActionRowBuilder,
+    AnySelectMenuInteraction,
     ButtonInteraction,
     Colors,
-    ComponentType,
-    DiscordjsErrorCodes,
     ModalSubmitInteraction,
     StringSelectMenuBuilder,
     StringSelectMenuInteraction,
@@ -12,6 +11,7 @@ import {
 import { Duration } from "luxon";
 import { Button } from "../buttons/button.js";
 import Modal from "../classes/Modal.js";
+import SelectMenu from "../classes/SelectMenu.js";
 import { config } from "../config.js";
 import { buildDeploymentEmbed } from "../embeds/deployment.js";
 import { buildInfoEmbed } from "../embeds/embed.js";
@@ -20,9 +20,21 @@ import Deployment from "../tables/Deployment.js";
 import { checkCanEditDeployment, DeploymentDetails, DeploymentManager, formatDeployment } from "../utils/deployments.js";
 import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
-import { deferReply, editReplyWithError, editReplyWithSuccess, showModal } from "../utils/interaction_replies.js";
+import { deferReply, editReplyWithError, editReplyWithSuccess, replyWithError, showModal } from "../utils/interaction_replies.js";
 import { debug, success } from "../utils/logger.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
+
+// We cannot delete the ephemeral select menu that lets the user select the fields
+// to edit with interaction message delete or any other direct way.
+// The only way to delete ephemeral messages is with `interaction.deleteReply()`
+// so we store in this map the original button interaction that created the select menu.
+// When the use selects the fields to edit, we recover the button interaction
+// from this cache and delete the button interaction reply (the select menu message).
+// Note that we also have a timeout on the message and it is ephemeral, so it
+// will eventually be deleted even if we don't explicitly delete it. It is just
+// cleaner from the user's prespective to delete it as soon as it is no longer required.
+// The map key is deployment id.
+const _kEditButtonInteractionCache = new Map<number, ButtonInteraction>();
 
 export const DeploymentEditButton = new Button({
     id: "editDeployment",
@@ -46,6 +58,11 @@ export const DeploymentEditModal = new Modal({
 
 async function onDeploymentEditButtonPress(interaction: ButtonInteraction<'cached'>) {
     const deployment = await Deployment.findOne({ where: { message: interaction.message.id } });
+    if (!deployment) {
+        await editReplyWithError(interaction, 'Deployment not found');
+        return;
+    }
+
     // This is a perliminary check to avoid showing a modal to someone that doesn't have edit permissions.
     // The permissions will be verified again in the transaction that performs the change.
     const error = checkCanEditDeployment(deployment, interaction.member.id);
@@ -54,59 +71,58 @@ async function onDeploymentEditButtonPress(interaction: ButtonInteraction<'cache
         return;
     }
 
-    // Since we are going to show a modal as a response to this interaction, we cannot do any async operations.
-    // showModal does not support deferReply/deferUpdate.
-    // Do not perform any async operations from here until the modal is shown.
-    const selectMenuInteraction = await _selectFieldsToEdit(interaction);
-    if (selectMenuInteraction instanceof Error) {
-        await editReplyWithError(interaction, selectMenuInteraction.message);
-        return;
-    }
-
-    const title = selectMenuInteraction.values.includes(DeploymentFields.TITLE) ? deployment.title : null;
-    const difficulty = selectMenuInteraction.values.includes(DeploymentFields.DIFFICULTY) ? deployment.difficulty : null;
-    const description = selectMenuInteraction.values.includes(DeploymentFields.DESCRIPTION) ? deployment.description : null;
-    // We do not store the original string the user used or the user time zone and displaying the time in UTC time isn't very helpful.
-    // Always show an empty field for start time.
-    const startTime = selectMenuInteraction.values.includes(DeploymentFields.START_TIME) ? '' : null;
-    const modal = buildEditDeploymentModal(deployment.id, title, difficulty, description, startTime);
-    await showModal(selectMenuInteraction, modal);
-
-    // Now that the modal is shows, we can perform async operations and delete the reply.
-    await interaction.deleteReply();
+    const selectMenu = _buildSelectFieldsToEditActionRow(deployment.id);
+    debug(`Presenting edit deployment select menu to interaction: ${interaction.id}`);
+    await interaction.editReply({ content: "Select an option to edit", components: [selectMenu], embeds: [] });
+    _kEditButtonInteractionCache.set(deployment.id, interaction);
+    setTimeout(() => interaction.deleteReply().catch(() => { }), 60000).unref();
 }
 
-async function _selectFieldsToEdit(interaction: ButtonInteraction<'cached'>): Promise<StringSelectMenuInteraction | Error> {
-    const selectmenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-        new StringSelectMenuBuilder().setCustomId("editDeployment").setPlaceholder("Select an option").setMaxValues(4).addOptions(
+export const DeploymentEditSelectMenu = new SelectMenu({
+    id: "editDeployment",
+    cooldown: Duration.fromDurationLike({ seconds: config.selectMenuCooldownSeconds }),
+    permissions: {
+        deniedRoles: config.deniedRoles,
+    },
+    callback: async function ({ interaction }: { interaction: AnySelectMenuInteraction<'cached'> }): Promise<void> {
+        if (!interaction.isStringSelectMenu()) {
+            console.log(interaction);
+            throw new Error('Wrong interaction type');
+        }
+        await onEditDeploymentSelectMenuInteraction(interaction);
+    }
+});
+
+async function onEditDeploymentSelectMenuInteraction(interaction: StringSelectMenuInteraction<'cached'>) {
+    debug(`Editing fields: ${interaction.values.join(', ')}; InteractionID: ${interaction.id}`);
+
+    const deployment = await Deployment.findOne({ where: { id: Number(interaction.customId.split('-')[1]) } });
+    if (!deployment) {
+        await replyWithError(interaction, 'Deployment not found');
+        return;
+    }
+    _kEditButtonInteractionCache.get(deployment.id)?.deleteReply().catch(() => { });
+    _kEditButtonInteractionCache.delete(deployment.id);
+
+    const title = interaction.values.includes(DeploymentFields.TITLE) ? deployment.title : null;
+    const difficulty = interaction.values.includes(DeploymentFields.DIFFICULTY) ? deployment.difficulty : null;
+    const description = interaction.values.includes(DeploymentFields.DESCRIPTION) ? deployment.description : null;
+    // We do not store the original string the user used or the user time zone and displaying the time in UTC time isn't very helpful.
+    // Always show an empty field for start time.
+    const startTime = interaction.values.includes(DeploymentFields.START_TIME) ? '' : null;
+    const modal = buildEditDeploymentModal(deployment.id, title, difficulty, description, startTime);
+    await showModal(interaction, modal);
+}
+
+function _buildSelectFieldsToEditActionRow(deploymentId: number) {
+    return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+        new StringSelectMenuBuilder().setCustomId(`editDeployment-${deploymentId}`).setPlaceholder("Select an option").setMaxValues(4).addOptions(
             { label: "Title", value: DeploymentFields.TITLE, emoji: config.editEmoji },
             { label: "Difficulty", value: DeploymentFields.DIFFICULTY, emoji: config.editEmoji },
             { label: "Description", value: DeploymentFields.DESCRIPTION, emoji: config.editEmoji },
             { label: "Start Time", value: DeploymentFields.START_TIME, emoji: config.editEmoji }
         )
     );
-    debug(`Presenting edit deployment select menu to interaction: ${interaction.id}`);
-    await interaction.editReply({ content: "Select an option to edit", components: [selectmenu], embeds: [] });
-
-    let selectMenuResponse: StringSelectMenuInteraction;
-    try {
-        selectMenuResponse = await interaction.channel.awaitMessageComponent({
-            componentType: ComponentType.StringSelect,
-            time: Duration.fromDurationLike({ minutes: 1 }).toMillis(),
-            filter: i => i.user.id === interaction.user.id && i.customId === "editDeployment",
-        });
-    } catch (e: any) {
-        if (e.code == DiscordjsErrorCodes.InteractionCollectorError && e.message.includes('time')) {
-            return new Error("Selection timed out");
-        }
-        console.log('selectMenuResponse', selectMenuResponse);
-        throw e;
-    }
-    if (!selectMenuResponse.values || !Array.isArray(selectMenuResponse.values)) {
-        return new Error("Invalid selection");
-    }
-    debug(`Editing fields: ${selectMenuResponse.values.join(', ')}; SelectID: ${selectMenuResponse.id}; ID: ${interaction.id}`);
-    return selectMenuResponse;
 }
 
 async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'cached'>) {
