@@ -129,7 +129,6 @@ export function groupPlayers(hosts: Snowflake[], players: Snowflake[], strikeMod
         }
 
         if (1 + assignedPlayers.length >= config.min_players) {
-            debug(`Creating hot drop; Host: ${host}; players: ${assignedPlayers.join(', ')}; min_players: ${config.min_players}`, 'Queue System');
             groups.push({ host: host, players: assignedPlayers });
         }
     });

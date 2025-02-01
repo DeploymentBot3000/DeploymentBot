@@ -108,7 +108,9 @@ export const config_dev = {
             style: ButtonStyle.Danger
         }
     },
-    buttonCooldownSeconds: 3,
+    // Button cooldown is temporarily disabled to stress test the strike queue
+    // panel deferral.
+    buttonCooldownSeconds: 0,
     selectMenuCooldownSeconds: 5,
 
     discord_server: discord_server_config_dev,

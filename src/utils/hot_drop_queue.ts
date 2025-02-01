@@ -7,7 +7,7 @@ import buildQueuePanelEmbed, { buildQueueEventEmbed, QueueEventEmbedOptions } fr
 import Queue from "../tables/Queue.js";
 import QueueStatusMsg from "../tables/QueueStatusMsg.js";
 import { sendEmbedToLogChannel, sendErrorToLogChannel } from "./log_channel.js";
-import { error, verbose } from "./logger.js";
+import { debug, error, verbose } from "./logger.js";
 import { checkDiscordPerms } from "./permissions.js";
 import { getDeploymentTimeSetting, setDeploymentTimeSetting } from "./settings.js";
 import { startQueuedGameImpl } from "./startQueuedGame.js";
@@ -207,7 +207,37 @@ export class HotDropQueue {
     private _nextGame: DateTime;
 }
 
+let _kLastHotDropPanelUpdate: DateTime = DateTime.now();
+
+const _kHotDropPanelUpdateInterval = Duration.fromDurationLike({ seconds: 3 });
+
+let _kHotDropEmbedUpdateTimer: NodeJS.Timeout | null = null;
+
 async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime, strikeModeEnabled: boolean) {
+    // During strikes we have a lot of people sign up all at once, we don't
+    // want to update the embed after every sign up since it slows everything down.
+    // Instead, save the last update time and if not enough time has passed,
+    // defer the update.
+
+    // Delete the previous timer if it is already set since we want to use the latest arguments.
+    if (_kHotDropEmbedUpdateTimer) {
+        clearTimeout(_kHotDropEmbedUpdateTimer);
+    }
+
+    const now = DateTime.now();
+    const nextPanelUpdate = _kLastHotDropPanelUpdate.plus(_kHotDropPanelUpdateInterval);
+    const timeToNextPanelUpdate = nextPanelUpdate.diff(now);
+
+    if (timeToNextPanelUpdate.toMillis() > 0) {
+        debug(`Deferring hot drop panel update to ${nextPanelUpdate.toISO()} which is in ${timeToNextPanelUpdate.shiftTo('second').toHuman()}`);
+        _kHotDropEmbedUpdateTimer = setTimeout(_updateHotDropEmbedInternal.bind(null, client, nextDeploymentTime, strikeModeEnabled), timeToNextPanelUpdate.toMillis());
+    } else {
+        _kLastHotDropPanelUpdate = now;
+        await _updateHotDropEmbedInternal(client, nextDeploymentTime, strikeModeEnabled);
+    }
+}
+
+async function _updateHotDropEmbedInternal(client: Client, nextDeploymentTime: DateTime, strikeModeEnabled: boolean) {
     const queueMessages = await QueueStatusMsg.find();
     if (queueMessages.length == 0) {
         return null;
