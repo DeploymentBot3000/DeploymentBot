@@ -52,7 +52,7 @@ export class VoiceChannelManager {
                 },
             ]
         });
-        debug(`Created voice channel: ${channel.name} with id: ${channel.id}`, 'VoiceChannelManager');
+        debug(`Created voice channel: ${channel.name} with id: ${channel.id} in ${vcCategory.name}`, 'VoiceChannelManager');
         return channel;
     }
 
