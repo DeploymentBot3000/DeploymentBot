@@ -48,7 +48,7 @@ export const config_dev = {
     backupEmoji: "🔄",
     queueMaxes: {
         hosts: 50,
-        players: 200,
+        players: 150,
     },
     editEmoji: "🔧",
     roles: [
