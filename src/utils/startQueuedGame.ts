@@ -27,7 +27,7 @@ export async function startQueuedGameImpl(client: Client, strikeMode: boolean): 
     const queue = await Queue.find();
     const hosts = queue.filter(q => q.isHost);
     const players = queue.filter(q => !q.isHost);
-    const rawGroups = _groupPlayers(hosts.map(h => h.user), players.map(p => p.user), strikeMode);
+    const rawGroups = groupPlayers(hosts.map(h => h.user), players.map(p => p.user), strikeMode);
     if (!rawGroups.length) {
         verbose(`Not enough players for hot drop; Hosts: ${hosts.length}; Players: ${players.length};`, 'Queue System');
         return;
@@ -111,7 +111,7 @@ function _buildHostSquadReadForDeploymentEmbed(randomCode: string, selectedPlaye
         );
 }
 
-function _groupPlayers(hosts: Snowflake[], players: Snowflake[], strikeMode: boolean) {
+export function groupPlayers(hosts: Snowflake[], players: Snowflake[], strikeMode: boolean) {
     const kMaxAssignedPlayers: number = config.max_players - 1;
 
     const groups: { host: Snowflake, players: Snowflake[] }[] = [];

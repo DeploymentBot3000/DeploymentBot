@@ -1,7 +1,7 @@
 import { APIEmbedField, EmbedBuilder, VoiceChannel } from "discord.js";
 import { DateTime } from "luxon";
-import { config } from "../config.js";
 import { MAX_FIELD_VALUE_LENGTH } from "../discord_constants.js";
+import { groupPlayers } from "../utils/startQueuedGame.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 
 export type QueueEventEmbedOptions = {
@@ -111,9 +111,10 @@ export function buildHotDropStartedEmbed(options: QueueDeploymentEmbedOptions) {
 }
 
 export default function buildQueuePanelEmbed(nextDeploymentTime: number, hosts: string[], players: string[], strikeModeEnabled: boolean): EmbedBuilder {
+    const groups = groupPlayers(hosts, players, strikeModeEnabled);
     let content = `❌ Not enough players ┃ Next deployment starting ${formatDiscordTime(DateTime.fromMillis(nextDeploymentTime), DiscordTimestampFormat.RELATIVE_TIME)}`;
-    if (hosts.length && 1 + players.length >= config.min_players) {
-        content = `✅ ┃ Next deployment starting ${formatDiscordTime(DateTime.fromMillis(nextDeploymentTime), DiscordTimestampFormat.RELATIVE_TIME)}`;
+    if (groups.length) {
+        content = `✅ ┃ Next ${groups.length} deployments starting ${formatDiscordTime(DateTime.fromMillis(nextDeploymentTime), DiscordTimestampFormat.RELATIVE_TIME)}`;
     }
 
     const embed = new EmbedBuilder()
