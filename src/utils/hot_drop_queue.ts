@@ -58,6 +58,10 @@ export class HotDropQueue {
         return this._strikeModeEnabled;
     }
 
+    isStrikeModeEnabled() {
+        return this._strikeModeEnabled;
+    }
+
     private async _startNewGames() {
         try {
             await startQueuedGameImpl(this._client, this._strikeModeEnabled);

@@ -143,11 +143,12 @@ async function _startHotDropGame(group: HotDropGroup, departureChannel: TextChan
     const vcChannelName = !strikeMode ? `🔊| HOTDROP ${randomCode} ${group.host.displayName}` : `🔊| ${group.host.displayName}'s Strike Group!`;
     const vc = await VoiceChannelManager.get().create(departureChannel.guild, strikeMode, vcChannelName, group.host.id, playerIds);
 
-    const playerEmbed = _buildPlayerSelectedForDeploymentEmbed(randomCode, group.host.displayName, vc.id);
-    const hostEmbed = _buildHostSquadReadForDeploymentEmbed(randomCode, playerIds, vc.id);
-
-    await Promise.all(group.players.map(p => sendDmToUser(p.user, { embeds: [playerEmbed] })));
-    await sendDmToUser(group.host.user, { embeds: [hostEmbed] });
+    if (!strikeMode) {
+        const playerEmbed = _buildPlayerSelectedForDeploymentEmbed(randomCode, group.host.displayName, vc.id);
+        const hostEmbed = _buildHostSquadReadForDeploymentEmbed(randomCode, playerIds, vc.id);
+        await Promise.all(group.players.map(p => sendDmToUser(p.user, { embeds: [playerEmbed] })));
+        await sendDmToUser(group.host.user, { embeds: [hostEmbed] });
+    }
 
     debug(`Sending departure message: ${randomCode}; Host: ${group.host.displayName}; Players: ${playerIds.join(', ')};`);
     let messageContent: string = null;

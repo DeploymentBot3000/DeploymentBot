@@ -24,7 +24,9 @@ export const QueueJoinButton = new Button({
             return;
         }
 
-        await sendDmToUser(interaction.user, 'You joined the Hot Drop Queue');
+        if (!HotDropQueue.getHotDropQueue().isStrikeModeEnabled()) {
+            await sendDmToUser(interaction.user, 'You joined the Hot Drop Queue');
+        }
 
         success(`User: ${formatMemberForLog(interaction.member)} joined the hot drop queue as a participant`);
     }

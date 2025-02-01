@@ -33,7 +33,9 @@ export const QueueLeaveButton = new Button({
             return;
         }
 
-        await sendDmToUser(interaction.user, 'You left the Hot Drop Queue');
+        if (!HotDropQueue.getHotDropQueue().isStrikeModeEnabled()) {
+            await sendDmToUser(interaction.user, 'You left the Hot Drop Queue');
+        }
 
         success(`User: ${formatMemberForLog(interaction.member)} left the hot drop queue`);
     }
