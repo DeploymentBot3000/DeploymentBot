@@ -74,6 +74,14 @@ export async function showModal(interaction: ButtonInteraction | StringSelectMen
             await sendErrorToLogChannel(new Error(`Failed to show modal: ${interaction.id}`), interaction.client);
             return;
         }
+        // We are also seeing some of these error in the edit deployment flow.
+        // They might go away with the recent rewrite.
+        // Special casing them in case they don't, so they don't print the entire
+        // interaction object and provide more recognizable error.
+        if ((e as Error).message.includes('Interaction has already been acknowledged')) {
+            await sendErrorToLogChannel(new Error(`Interaction has already been acknowledged in showModal: ${interaction.id}`), interaction.client);
+            return;
+        }
         throw e;
     }
 }
