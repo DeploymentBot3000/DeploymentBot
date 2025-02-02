@@ -80,7 +80,7 @@ async function onNewDeploymentModalSubmit(interaction: ModalSubmitInteraction<'c
         await sendDmToUser(interaction.user, `You created a new deployment: ${deployment.title}.\nScheduled for: ${formatDiscordTime(deployment.startTime)} (${deployment.startTime.toISO()}).\n${link}`);
 
         await editReplyWithSuccess(interaction, 'Deployment created successfully');
-        success(`User: ${formatMemberForLog(interaction.member)} created Deployment: ${formatDeployment(deployment)}`);
+        success(`User: ${formatMemberForLog(interaction.member)} created Deployment: ${formatDeployment(deployment)}`, 'Deployment');
     } catch (e: any) {
         await editReplyWithError(interaction, 'Failed to create deployment');
         throw e;

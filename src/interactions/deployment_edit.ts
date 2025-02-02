@@ -149,7 +149,7 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
         }
 
         await editReplyWithSuccess(interaction, 'Deployment edited successfully');
-        success(`User: ${formatMemberForLog(interaction.member)} edited Deployment: ${formatDeployment(oldDetails)} to Deployment: ${formatDeployment(newDetails)}`);
+        success(`User: ${formatMemberForLog(interaction.member)} edited Deployment: ${formatDeployment(oldDetails)} to Deployment: ${formatDeployment(newDetails)}`, 'Deployment');
     } catch (e: any) {
         await editReplyWithError(interaction, 'Failed to edit deployment');
         throw e;

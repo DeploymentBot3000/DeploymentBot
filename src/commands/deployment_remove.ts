@@ -75,7 +75,7 @@ export const DeploymentRemoveCommand = new Command({
             throw e;
         }
         await editReplyWithSuccess(interaction, 'Succesfuly removed player');
-        success(`User: ${formatMemberForLog(interaction.member)} removed User: ${formatUserForLog(targetUser)} from Deployment: ${formatDeployment(newDetails)}`, "Remove");
+        success(`User: ${formatMemberForLog(interaction.member)} removed User: ${formatUserForLog(targetUser)} from Deployment: ${formatDeployment(newDetails)}`, 'Deployment');
     }
 });
 

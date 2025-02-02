@@ -29,6 +29,6 @@ export const QueueHostButton = new Button({
             await sendDmToUser(interaction.user, 'You joined the Hot Drop Queue as a host');
         }
 
-        success(`User: ${formatMemberForLog(interaction.member)} joined the hot drop queue as a host`);
+        success(`User: ${formatMemberForLog(interaction.member)} joined the hot drop queue as a host`, 'Queue');
     }
 });

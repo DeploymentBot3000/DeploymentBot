@@ -42,7 +42,7 @@ export const DeploymentDeleteButton = new Button({
         await sendEmbedToLogChannel(embed, interaction.client);
 
         await editReplyWithSuccess(interaction, "Deployment deleted successfully");
-        success(`User: ${formatMemberForLog(interaction.member)} deleted Deployment: ${formatDeployment(oldDetails)}`);
+        success(`User: ${formatMemberForLog(interaction.member)} deleted Deployment: ${formatDeployment(oldDetails)}`, 'Deployment');
     }
 });
 

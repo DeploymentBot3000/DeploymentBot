@@ -33,6 +33,6 @@ export const DeploymentLeaveButton = new Button({
         }
 
         await editReplyWithSuccess(interaction, 'You left the deployment');
-        success(`User: ${formatMemberForLog(interaction.member)} left deployment: ${formatDeployment(newDetails)}`);
+        success(`User: ${formatMemberForLog(interaction.member)} left deployment: ${formatDeployment(newDetails)}`, 'Deployment');
     }
 });

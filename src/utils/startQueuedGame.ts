@@ -29,7 +29,7 @@ export async function startQueuedGameImpl(client: Client, strikeMode: boolean): 
     const players = queue.filter(q => !q.isHost);
     const rawGroups = groupPlayers(hosts.map(h => h.user), players.map(p => p.user), strikeMode);
     if (!rawGroups.length) {
-        verbose(`Not enough players for hot drop; Hosts: ${hosts.length}; Players: ${players.length};`, 'Queue System');
+        verbose(`Not enough players for hot drop; Hosts: ${hosts.length}; Players: ${players.length};`, 'Queue');
         return;
     }
 
@@ -160,5 +160,5 @@ async function _startHotDropGame(group: HotDropGroup, departureChannel: TextChan
 
     await Queue.delete({ user: In([group.host.id].concat(group.players.map(p => p.id))) });
     await _logHotDropStarted(departureChannel.client, { hostDisplayName: group.host.displayName, playerMembers: playerIds, vc });
-    success(`Created hot drop: ${randomCode}; Host: ${group.host.displayName}; Players: ${playerIds.join(', ')};`, 'Queue System');
+    success(`Created hot drop: ${randomCode}; Host: ${group.host.displayName}; Players: ${playerIds.join(', ')};`, 'Queue');
 }

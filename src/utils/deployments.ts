@@ -472,7 +472,7 @@ async function _startDeployments(client: Client, now: DateTime) {
             d.started = true;
             await d.save();
 
-            success(`Started Deployment: ${formatDeployment(deployment)}`);
+            success(`Started Deployment: ${formatDeployment(deployment)}`, 'Deployment');
         } catch (e: any) {
             await sendErrorToLogChannel(e, client);
         }
@@ -495,7 +495,7 @@ async function _deleteOldDeployments(client: Client, now: DateTime) {
         const d = await Deployment.findOne({ where: { id: deployment.id } });
         d.deleted = true;
         await d.save();
-        success(`Deleted Deployment: ${formatDeployment(deployment)}`);
+        success(`Deleted Deployment: ${formatDeployment(deployment)}`, 'Deployment');
     }
 }
 
