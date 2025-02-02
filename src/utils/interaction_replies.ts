@@ -1,7 +1,7 @@
 import { AnySelectMenuInteraction, ButtonInteraction, ChatInputCommandInteraction, ModalBuilder, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
 import { buildErrorEmbed, buildSuccessEmbed } from "../embeds/embed.js";
 import { sendErrorToLogChannel } from "./log_channel.js";
-import { debug } from "./logger.js";
+import { debug, error } from "./logger.js";
 
 type _SupportedInteractions = ModalSubmitInteraction | ButtonInteraction | AnySelectMenuInteraction | ChatInputCommandInteraction;
 
@@ -46,6 +46,7 @@ export async function deferReply(interaction: _SupportedInteractions) {
         return true;
     } catch (e: any) {
         if ((e as Error).message.includes('Unknown interaction')) {
+            error(e);
             await sendErrorToLogChannel(new Error(`Failed to defer reply: ${interaction.id}`), interaction.client);
             return false;
         }
@@ -59,6 +60,7 @@ export async function deferUpdate(interaction: ButtonInteraction) {
         return true;
     } catch (e: any) {
         if ((e as Error).message.includes('Unknown interaction')) {
+            error(e);
             await sendErrorToLogChannel(new Error(`Failed to defer update: ${interaction.id}`), interaction.client);
             return false;
         }
@@ -71,6 +73,7 @@ export async function showModal(interaction: ButtonInteraction | StringSelectMen
         await interaction.showModal(modal);
     } catch (e: any) {
         if ((e as Error).message.includes('Unknown interaction')) {
+            error(e);
             await sendErrorToLogChannel(new Error(`Failed to show modal: ${interaction.id}`), interaction.client);
             return;
         }
@@ -79,6 +82,7 @@ export async function showModal(interaction: ButtonInteraction | StringSelectMen
         // Special casing them in case they don't, so they don't print the entire
         // interaction object and provide more recognizable error.
         if ((e as Error).message.includes('Interaction has already been acknowledged')) {
+            error(e);
             await sendErrorToLogChannel(new Error(`Interaction has already been acknowledged in showModal: ${interaction.id}`), interaction.client);
             return;
         }
