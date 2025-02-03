@@ -2,7 +2,7 @@ import { Client, GuildMember, Snowflake, TextChannel, VoiceChannel } from "disco
 import { In } from "typeorm";
 import { config } from "../config.js";
 import { buildSuccessEmbed } from "../embeds/embed.js";
-import { buildHotDropStartedEmbed, QueueDeploymentEmbedOptions } from "../embeds/queue.js";
+import { buildHotDropStartedEmbed } from "../embeds/queue.js";
 import Queue from "../tables/Queue.js";
 import { sendDmToUser } from "./dm.js";
 import { sendEmbedToLogChannel, sendErrorToLogChannel } from "./log_channel.js";
@@ -80,8 +80,8 @@ Host and assigned divers, please join ASAP.
 -------------------------------------------`;
 }
 
-async function _logHotDropStarted(client: Client, options: QueueDeploymentEmbedOptions) {
-    await sendEmbedToLogChannel(buildHotDropStartedEmbed(options), client).catch(e => {
+async function _logHotDropStarted(client: Client, host: GuildMember, players: GuildMember[], vc: VoiceChannel) {
+    await sendEmbedToLogChannel(buildHotDropStartedEmbed(host, players, vc), client).catch(e => {
         error('Failed to send embed to log channel');
         error(e);
     });
@@ -159,6 +159,6 @@ async function _startHotDropGame(group: HotDropGroup, departureChannel: TextChan
     await departureChannel.send({ content: messageContent });
 
     await Queue.delete({ user: In([group.host.id].concat(group.players.map(p => p.id))) });
-    await _logHotDropStarted(departureChannel.client, { hostDisplayName: group.host.displayName, playerMembers: playerIds, vc });
+    await _logHotDropStarted(departureChannel.client, group.host, group.players, vc);
     success(`Created hot drop: ${randomCode}; Host: ${group.host.displayName}; Players: ${playerIds.join(', ')};`, 'Queue');
 }

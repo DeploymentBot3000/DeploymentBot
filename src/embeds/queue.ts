@@ -1,4 +1,4 @@
-import { APIEmbedField, EmbedBuilder, VoiceChannel } from "discord.js";
+import { APIEmbedField, EmbedBuilder, GuildMember, VoiceChannel } from "discord.js";
 import { DateTime } from "luxon";
 import { MAX_FIELD_VALUE_LENGTH } from "../discord_constants.js";
 import { groupPlayers } from "../utils/startQueuedGame.js";
@@ -73,40 +73,28 @@ export function buildQueueEventEmbed(options: QueueEventEmbedOptions): EmbedBuil
     return embed;
 }
 
-export type QueueDeploymentEmbedOptions = {
-    hostDisplayName: string,
-    playerMembers: any[],
-    vc: VoiceChannel,
-};
-
-export function buildHotDropStartedEmbed(options: QueueDeploymentEmbedOptions) {
+export function buildHotDropStartedEmbed(host: GuildMember, players: GuildMember[], vc: VoiceChannel) {
     return new EmbedBuilder({
         color: 0x00FF00,
         title: 'Queue Deployment',
         fields: [
             {
-                name: '👑 Host',
-                value: options.hostDisplayName,
-                inline: false
+                name: 'Host',
+                value: `${host.displayName} ||<@${host.id}>||`,
+                inline: true
             },
             {
-                name: '👥 Players',
-                value: options.playerMembers
-                    .filter(member => member !== null)
-                    .map(member => `• ${member.nickname || member.user.username}`)
-                    .join('\n') || 'No players found',
-                inline: false
+                name: 'Players',
+                value: players.map(member => `${member.displayName} ||<@${member.id}>||`).join('\n') || '` - `',
+                inline: true
             },
             {
-                name: '🎙️ Voice Channel',
-                value: `<#${options.vc.id}>`,
+                name: 'Voice Channel',
+                value: `${vc.name} ||<#${vc.id}>||`,
                 inline: false
             }
         ],
         timestamp: new Date().toISOString(),
-        footer: {
-            text: `Channel ID: ${options.vc.id}`
-        }
     });
 }
 
