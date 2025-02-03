@@ -222,13 +222,16 @@ async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime,
     // Delete the previous timer if it is already set since we want to use the latest arguments.
     if (_kHotDropEmbedUpdateTimer) {
         clearTimeout(_kHotDropEmbedUpdateTimer);
+        _kHotDropEmbedUpdateTimer = null;
     }
 
     const now = DateTime.now();
     const nextPanelUpdate = _kLastHotDropPanelUpdate.plus(_kHotDropPanelUpdateInterval);
     const timeToNextPanelUpdate = nextPanelUpdate.diff(now);
 
-    if (timeToNextPanelUpdate.toMillis() > 0) {
+    // Only do async updates in strike mode when we have a lot of people signing up all at once.
+    // During normal hot drop operation, updating synchronously provides a better experience to the user.
+    if (strikeModeEnabled && timeToNextPanelUpdate.toMillis() > 0) {
         debug(`Deferring hot drop panel update to ${nextPanelUpdate.toISO()} which is in ${timeToNextPanelUpdate.shiftTo('second').toHuman()}`);
         _kHotDropEmbedUpdateTimer = setTimeout(_updateHotDropEmbedInternal.bind(null, client, nextDeploymentTime, strikeModeEnabled), timeToNextPanelUpdate.toMillis());
     } else {
