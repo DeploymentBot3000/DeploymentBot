@@ -1,4 +1,4 @@
-import { Client, GuildMember, GuildTextBasedChannel, PermissionsBitField } from "discord.js";
+import { Client, GuildMember, GuildTextBasedChannel, Message, PermissionsBitField } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import { EntityManager } from "typeorm";
 import { config } from "../config.js";
@@ -240,7 +240,7 @@ async function _updateHotDropEmbed(client: Client, nextDeploymentTime: DateTime,
 async function _updateHotDropEmbedInternal(client: Client, nextDeploymentTime: DateTime, strikeModeEnabled: boolean) {
     const queueMessages = await QueueStatusMsg.find();
     if (queueMessages.length == 0) {
-        return null;
+        return;
     }
     const queueMessage = queueMessages[0];
     const channel = await client.channels.fetch(queueMessage.channel) as GuildTextBasedChannel;
@@ -251,7 +251,16 @@ async function _updateHotDropEmbedInternal(client: Client, nextDeploymentTime: D
         | PermissionsBitField.Flags.ReadMessageHistory
     ));
 
-    const message = await channel.messages.fetch(queueMessage.message);
+
+    // If the panel is deleted then the bot fails to start up and there is no way to recreate the panel.
+    // Instead of throwing an exception here, send the error to the log.
+    let message: Message | null;
+    try {
+        message = await channel.messages.fetch(queueMessage.message);
+    } catch (e: any) {
+        await sendErrorToLogChannel(e, client);
+        return;
+    }
 
     const currentQueue = await Queue.find();
     const hosts = await Promise.all(currentQueue.filter(q => q.isHost).map(async host => {
@@ -268,7 +277,7 @@ async function _updateHotDropEmbedInternal(client: Client, nextDeploymentTime: D
 
     await message.edit({ embeds: [embed] });
     verbose(`Hot Drop Embed updated: ${message.id}; Next deployment time: ${nextDeploymentTime.toISO()}; Hosts: ${hosts.length}; Players: ${players.length}`, 'Queue');
-    return message;
+    return;
 }
 
 async function _logQueueAction(client: Client, options: QueueEventEmbedOptions) {
