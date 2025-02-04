@@ -62,7 +62,6 @@ export function getDeploymentModalValues(fields: ModalSubmitFields) {
     const details: DeploymentDetails = {
         id: null,
         channel: null,
-        message: null,
         title: detailsRaw.title,
         difficulty: detailsRaw.difficulty,
         description: detailsRaw.description,

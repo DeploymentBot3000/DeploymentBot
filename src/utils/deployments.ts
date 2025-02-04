@@ -12,6 +12,7 @@ import LatestInput from "../tables/LatestInput.js";
 import Signups from "../tables/Signups.js";
 import { sendErrorToLogChannel } from "./log_channel.js";
 import { debug, success, verbose, warn } from "./logger.js";
+import { deleteMessage, editMessage, fetchMessage } from "./message.js";
 import { formatDiscordTime } from "./time.js";
 
 export enum DeploymentRole {
@@ -56,7 +57,9 @@ export interface DeploymentDetails {
     difficulty: string,
     description: string,
     channel: TextChannel,
-    message: Message<true>,
+    // message is optional becuase the message might be deleted from discord
+    // manually and we will fail to fetch it.
+    message?: Message<true>,
     startTime: DateTime,
     endTime: DateTime,
     host: DeploymentMember,
@@ -65,7 +68,7 @@ export interface DeploymentDetails {
 }
 
 export function formatDeployment(deployment: DeploymentDetails) {
-    return `${deployment.id}; Title: ${deployment.title}; Message: ${deployment.message.id};`
+    return `${deployment.id}; Title: ${deployment.title}; Message: ${deployment.message?.id};`
         + ` Host: ${deployment.host.guildMember.id}; startTime: ${deployment.startTime.toISO()};`
         + ` Signups: ${deployment.signups.map(v => v.guildMember.id).join(',')};`
         + ` Backups: ${deployment.backups.map(v => v.guildMember.id).join(',')}`;
@@ -177,7 +180,7 @@ export class DeploymentManager {
             console.log(e);
             if (details.message) {
                 await sendErrorToLogChannel(new Error('Deleting signup message for partially created deployment'), this._client);
-                await details.message.delete().catch((e: any) => sendErrorToLogChannel(e, this._client));
+                await deleteMessage(details.message);
             }
             throw e;
         }
@@ -445,12 +448,12 @@ async function _startDeployments(client: Client, now: DateTime) {
 
     for (const deployment of deployments) {
         if (!deployment.message) {
-            warn(`Missing deployment message for deployment: ${formatDeployment(deployment)}`);
+            warn(`Skipping start for missing message; Deployment: ${formatDeployment(deployment)}`, 'Deployment');
             continue;
         }
         try {
             const embed = buildDeploymentEmbed(deployment, Colors.Red, /*started=*/true);
-            await deployment.message.edit({ content: "", embeds: [embed], components: [] });
+            await editMessage(deployment.message, { content: "", embeds: [embed], components: [] });
 
             const logEmbed = new EmbedBuilder()
                 .setColor("Yellow")
@@ -490,7 +493,7 @@ async function _deleteOldDeployments(client: Client, now: DateTime) {
 
     for (const deployment of deployments) {
         if (deployment.message) {
-            await deployment.message.delete().catch((e: any) => sendErrorToLogChannel(e, client));
+            await deleteMessage(deployment.message);
         }
         const d = await Deployment.findOne({ where: { id: deployment.id } });
         d.deleted = true;
@@ -560,7 +563,7 @@ export async function deploymentToDetails(client: Client, deployment: Deployment
     if (!(channel instanceof TextChannel)) {
         throw new Error(`Invalid channel type: ${channel}`);
     }
-    const message = channel.messages.fetch(deployment.message);
+    const message = fetchMessage(channel.messages, deployment.message);
     const host = _getDeploymentHost(channel.guild, deployment.user, signups);
     const signupsMembers = Promise.all(signups.map(s => _getDeploymentMember(channel.guild, s)));
     const backupMembers = Promise.all(backups.map(b => _getDeploymentMember(channel.guild, b)));

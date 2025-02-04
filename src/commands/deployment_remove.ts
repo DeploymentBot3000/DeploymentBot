@@ -9,6 +9,7 @@ import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog, formatUserForLog } from "../utils/interaction_format.js";
 import { deferReply, editReplyWithError, editReplyWithSuccess } from "../utils/interaction_replies.js";
 import { action, success } from "../utils/logger.js";
+import { editMessage } from "../utils/message.js";
 
 export const DeploymentRemoveCommand = new Command({
     name: "remove",
@@ -86,7 +87,9 @@ async function _removePlayerFromDeployment(member: GuildMember, targetUser: User
     }
 
     const embed = buildDeploymentEmbed(newDetails, Colors.Green, /*started=*/false);
-    await newDetails.message.edit({ embeds: [embed] });
+    if (newDetails.message) {
+        await editMessage(newDetails.message, { embeds: [embed] });
+    }
 
     // Send DM to removed user
     await sendDmToUser(targetUser, {

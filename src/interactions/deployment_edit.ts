@@ -22,6 +22,7 @@ import { sendDmToUser } from "../utils/dm.js";
 import { formatMemberForLog } from "../utils/interaction_format.js";
 import { deferReply, editReplyWithError, editReplyWithSuccess, replyWithError, showModal } from "../utils/interaction_replies.js";
 import { debug, success } from "../utils/logger.js";
+import { editMessage } from "../utils/message.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 
 // We cannot delete the ephemeral select menu that lets the user select the fields
@@ -142,7 +143,7 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
         const { newDetails, oldDetails } = response;
 
         const embed = buildDeploymentEmbed(newDetails, Colors.Green, /*started=*/false);
-        await newDetails.message.edit({ embeds: [embed] });
+        await editMessage(newDetails.message, { embeds: [embed] });
 
         if (newDetails.startTime.diff(oldDetails.startTime, 'minutes').minutes > 0) {
             await _notifyStartTimeChange(oldDetails.signups.map(s => s.guildMember.user).concat(oldDetails.backups.map(b => b.guildMember.user)), oldDetails, newDetails);
@@ -164,7 +165,7 @@ async function _notifyStartTimeChange(users: User[], oldDetails: DeploymentDetai
 }
 
 function _buildStartTimeChangeNoticeEmbed(oldDetails: DeploymentDetails, newDetails: DeploymentDetails) {
-    const signupLink = `https://discord.com/channels/${newDetails.channel.guild.id}/${newDetails.channel.id}/${newDetails.message.id}`;
+    const signupLink = `https://discord.com/channels/${newDetails.channel.guild.id}/${newDetails.channel.id}/${newDetails.message?.id}`;
     return buildInfoEmbed()
         .setColor(Colors.Orange)
         .setTitle("Deployment Start Time changed!")
