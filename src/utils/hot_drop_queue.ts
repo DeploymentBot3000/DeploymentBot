@@ -270,7 +270,7 @@ async function _updateHotDropEmbedInternal(client: Client, nextDeploymentTime: D
     const embed = buildQueuePanelEmbed(nextDeploymentTime.toMillis(), hosts, players, strikeModeEnabled);
 
     await message.edit({ embeds: [embed] });
-    verbose(`Hot Drop Embed updated: ${message.id}; Next deployment time: ${nextDeploymentTime.toISO()}`, 'Queue');
+    verbose(`Hot Drop Embed updated: ${message.id}; Next deployment time: ${nextDeploymentTime.toISO()}; Waiting: ${hosts.length}+${players.length}`, 'Queue');
     return message;
 }
 
