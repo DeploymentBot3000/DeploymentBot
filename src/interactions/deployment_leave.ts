@@ -1,4 +1,4 @@
-import { ButtonInteraction, Colors } from "discord.js";
+import { ButtonInteraction } from "discord.js";
 import { Duration } from "luxon";
 import { Button } from "../buttons/button.js";
 import { config } from "../config.js";
@@ -23,7 +23,7 @@ export const DeploymentLeaveButton = new Button({
             return;
         }
 
-        const embed = buildDeploymentEmbed(newDetails, Colors.Green, /*started=*/false);
+        const embed = buildDeploymentEmbed(newDetails);
         try {
             await interaction.message.edit({ embeds: [embed] });
         } catch (e: any) {

@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, Colors, EmbedBuilder, Guild, GuildMember, Message, PermissionFlagsBits, Snowflake, StringSelectMenuBuilder, TextChannel, User } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, Guild, GuildMember, Message, PermissionFlagsBits, Snowflake, StringSelectMenuBuilder, TextChannel, User } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import cron from 'node-cron';
 import { EntityManager, FindManyOptions, In, LessThanOrEqual, Not } from "typeorm";
@@ -62,6 +62,8 @@ export interface DeploymentDetails {
     message?: Message<true>,
     startTime: DateTime,
     endTime: DateTime,
+    started: boolean,
+    noticeSent: boolean,
     host: DeploymentMember,
     signups: DeploymentMember[],
     backups: DeploymentMember[],
@@ -385,6 +387,11 @@ async function _sendDeploymentNotices(client: Client, now: DateTime) {
     for (const deployment of deployments) {
         try {
             await _sendDepartureMessage(departureChannel, deployment);
+
+            deployment.noticeSent = true;
+            const embed = buildDeploymentEmbed(deployment);
+            await editMessage(deployment.message, { embeds: [embed] });
+
             const d = await Deployment.findOne({ where: { id: deployment.id } });
             d.noticeSent = true;
             await d.save();
@@ -452,7 +459,8 @@ async function _startDeployments(client: Client, now: DateTime) {
             continue;
         }
         try {
-            const embed = buildDeploymentEmbed(deployment, Colors.Red, /*started=*/true);
+            deployment.started = true;
+            const embed = buildDeploymentEmbed(deployment);
             await editMessage(deployment.message, { content: "", embeds: [embed], components: [] });
 
             const logEmbed = new EmbedBuilder()
@@ -503,7 +511,7 @@ async function _deleteOldDeployments(client: Client, now: DateTime) {
 }
 
 async function _sendDeploymentSignupMessage(deployment: DeploymentDetails) {
-    const embed = buildDeploymentEmbed(deployment, Colors.Green, /*started=*/false);
+    const embed = buildDeploymentEmbed(deployment);
     const rows = _buildDeploymentSignupRows();
 
     debug(`Sending signup message: ${deployment.id}; Host: ${deployment.host.guildMember.id}; signups: ${deployment.signups.map(s => s.guildMember.id).join(',')}; backups: ${deployment.backups.map(b => b.guildMember.id).join(',')};`);
@@ -577,6 +585,8 @@ export async function deploymentToDetails(client: Client, deployment: Deployment
         message: await message,
         startTime: DateTime.fromMillis(Number(deployment.startTime)),
         endTime: DateTime.fromMillis(Number(deployment.endTime)),
+        started: deployment.started,
+        noticeSent: deployment.noticeSent,
         host: await host,
         signups: await signupsMembers,
         backups: await backupMembers,

@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, AutocompleteInteraction, ChatInputCommandInteraction, Colors, GuildMember, User } from "discord.js";
+import { ApplicationCommandOptionType, AutocompleteInteraction, ChatInputCommandInteraction, GuildMember, User } from "discord.js";
 import { Like } from "typeorm";
 import Command from "../classes/Command.js";
 import { buildDeploymentEmbed } from "../embeds/deployment.js";
@@ -86,7 +86,7 @@ async function _removePlayerFromDeployment(member: GuildMember, targetUser: User
         return newDetails;
     }
 
-    const embed = buildDeploymentEmbed(newDetails, Colors.Green, /*started=*/false);
+    const embed = buildDeploymentEmbed(newDetails);
     if (newDetails.message) {
         await editMessage(newDetails.message, { embeds: [embed] });
     }

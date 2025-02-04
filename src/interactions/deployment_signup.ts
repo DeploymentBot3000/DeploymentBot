@@ -1,4 +1,4 @@
-import { AnySelectMenuInteraction, Colors, StringSelectMenuInteraction } from "discord.js";
+import { AnySelectMenuInteraction, StringSelectMenuInteraction } from "discord.js";
 import { Duration } from "luxon";
 import SelectMenu from "../classes/SelectMenu.js";
 import { config } from "../config.js";
@@ -33,7 +33,7 @@ async function onSignupSelectMenuInteraction(interaction: StringSelectMenuIntera
         await editReplyWithError(interaction, newDetails.message);
         return;
     }
-    const embed = buildDeploymentEmbed(newDetails, Colors.Green, /*started=*/false);
+    const embed = buildDeploymentEmbed(newDetails);
     await interaction.message.edit({ embeds: [embed] });
     await editReplyWithSuccess(interaction, `You have signed up to deployment: ${newDetails.title} as: ${role}`);
     success(`User: ${formatMemberForLog(interaction.member)} joined Deployment: ${formatDeployment(newDetails)}`, 'Deployment');

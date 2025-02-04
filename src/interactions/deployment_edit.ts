@@ -142,7 +142,7 @@ async function onDeploymentEditModalSubmit(interaction: ModalSubmitInteraction<'
         }
         const { newDetails, oldDetails } = response;
 
-        const embed = buildDeploymentEmbed(newDetails, Colors.Green, /*started=*/false);
+        const embed = buildDeploymentEmbed(newDetails);
         await editMessage(newDetails.message, { embeds: [embed] });
 
         if (newDetails.startTime.diff(oldDetails.startTime, 'minutes').minutes > 0) {

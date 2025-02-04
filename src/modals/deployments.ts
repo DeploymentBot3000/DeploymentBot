@@ -67,6 +67,8 @@ export function getDeploymentModalValues(fields: ModalSubmitFields) {
         description: detailsRaw.description,
         startTime: null,
         endTime: null,
+        started: false,
+        noticeSent: false,
         host: null,
         signups: [],
         backups: [],

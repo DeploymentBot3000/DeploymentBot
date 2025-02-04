@@ -1,15 +1,22 @@
-import { ColorResolvable, EmbedBuilder } from "discord.js";
+import { ColorResolvable, Colors, EmbedBuilder } from "discord.js";
 import { config } from "../config.js";
 import { DeploymentDetails, formatRoleEmoji } from "../utils/deployments.js";
 import getGoogleCalendarLink from "../utils/getGoogleCalendarLink.js";
 import { DiscordTimestampFormat, formatDiscordTime } from "../utils/time.js";
 import { buildEmbed } from "./embed.js";
 
-export function buildDeploymentEmbed(details: DeploymentDetails, color: ColorResolvable, started: boolean) {
+export function buildDeploymentEmbed(details: DeploymentDetails) {
+    let color: ColorResolvable = Colors.Green;
+    if (details.started) {
+        color = Colors.Red;
+    } else if (details.noticeSent) {
+        color = Colors.Yellow;
+    }
+
     const googleCalendarLink = getGoogleCalendarLink(details.title, details.description, details.startTime.toMillis(), details.endTime.toMillis());
 
     return new EmbedBuilder()
-        .setTitle(`Operation: ${details.title}${started ? ' - Started' : ''}`)
+        .setTitle(`Operation: ${details.title}${details.started ? ' - Started' : ''}`)
         .addFields([
             {
                 name: "Deployment Details:",
