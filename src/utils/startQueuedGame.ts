@@ -114,6 +114,9 @@ function _buildHostSquadReadForDeploymentEmbed(randomCode: string, selectedPlaye
 export function groupPlayers(hosts: Snowflake[], players: Snowflake[], strikeMode: boolean) {
     const kMaxAssignedPlayers: number = config.max_players - 1;
 
+    // Make a copy of the argument since we are going to splice the array below.
+    players = [...players];
+
     const groups: { host: Snowflake, players: Snowflake[] }[] = [];
     hosts.forEach((host) => {
         let assignedPlayers: Snowflake[] = [];
