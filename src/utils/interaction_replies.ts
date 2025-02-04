@@ -12,6 +12,13 @@ export async function replyWithError(interaction: _SupportedInteractions, messag
     setTimeout(() => interaction.deleteReply().catch(() => { }), 45000);
 }
 
+export async function followUpWithError(interaction: _SupportedInteractions, message: string) {
+    debug(`followUpWithError: ${_truncateMessage(message)} to interaction: ${interaction.id}`);
+    const embed = buildErrorEmbed().setTitle('Error').setDescription(message);
+    await interaction.followUp({ embeds: [embed], ephemeral: true });
+    setTimeout(() => interaction.deleteReply().catch(() => { }), 45000);
+}
+
 export async function replyWithSuccess(interaction: _SupportedInteractions, message: string) {
     debug(`replyWithSuccess: ${_truncateMessage(message)} to interaction: ${interaction.id}`);
     const embed = buildSuccessEmbed().setTitle('Success').setDescription(message);
