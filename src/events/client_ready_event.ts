@@ -11,6 +11,8 @@ import { sendEmbedToLogChannel } from "../utils/log_channel.js";
 import { error, info, success } from "../utils/logger.js";
 import { getAllSlashCommands } from "../utils/slash_commands_registery.js";
 import { VoiceChannelManager } from "../utils/voice_channels.js";
+import { npm_package } from "../package.js";
+import { secrets } from "../config/secrets_loader.js";
 
 export async function discordClientReadyCallback(client: Client) {
 	try {
@@ -33,7 +35,7 @@ export async function discordClientReadyCallback(client: Client) {
 
 		await sendEmbedToLogChannel(buildSuccessEmbed()
 			.setColor(Colors.Green)
-			.setTitle("Bot Startup Complete!"), client);
+			.setTitle(`Bot Startup Complete!`).setDescription(`version: ${npm_package.version}\nbuild: ${secrets.env}`), client);
 		startActivityInterval(client);
 		success(`Bot startup complete`, "Startup");
 	} catch (e) {
