@@ -6,7 +6,6 @@ export const discord_server_config_prod = {
             "1310134571190452264",  // Officer
             "1310135497682714645",  // NCO
             "1310091934672490548",  // Specialist
-            "1310092233722167347",  // PFC
         ],
         denied_role_ids: [] as string[],
         lfg_role_id: "1311119756019109888",
