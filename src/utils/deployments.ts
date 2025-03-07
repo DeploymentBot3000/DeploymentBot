@@ -327,6 +327,8 @@ export class DeploymentManager {
             const deployment = await entityManager.findOne(Deployment, { where: { message: messageId } });
             if (!deployment) {
                 return new Error(`Can't find deployment for message: ${messageId}`);
+            } else if (deployment.noticeSent) {
+                return new Error(`Can't signup to deployment after the departure notice is sent`);
             } else if (deployment.started) {
                 return new Error(`Can't signup to deployment after it already started`);
             } else if (deployment.user == memberId && role == DeploymentRole.BACKUP) {
