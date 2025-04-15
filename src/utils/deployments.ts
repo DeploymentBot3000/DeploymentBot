@@ -636,7 +636,7 @@ async function _findDeployments(client: Client, options: FindManyOptions<Deploym
     });
     const details = await Promise.all(deployments.map(async d => {
         try {
-            return deploymentToDetails(client, d, signups.filter(s => s.deploymentId == d.id), backups.filter(s => s.deploymentId == d.id));
+            return await deploymentToDetails(client, d, signups.filter(s => s.deploymentId == d.id), backups.filter(s => s.deploymentId == d.id));
         } catch (e: any) {
             await sendErrorToLogChannel(e, client);
             return null;
