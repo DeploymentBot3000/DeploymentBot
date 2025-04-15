@@ -634,9 +634,15 @@ async function _findDeployments(client: Client, options: FindManyOptions<Deploym
         const backups = entityManager.find(Backups, { where: { deploymentId: In(deploymentIds) } });
         return { deployments, signups: await signups, backups: await backups };
     });
-    return await Promise.all(deployments.map(d => {
-        return deploymentToDetails(client, d, signups.filter(s => s.deploymentId == d.id), backups.filter(s => s.deploymentId == d.id));
+    const details = await Promise.all(deployments.map(async d => {
+        try {
+            return deploymentToDetails(client, d, signups.filter(s => s.deploymentId == d.id), backups.filter(s => s.deploymentId == d.id));
+        } catch (e: any) {
+            await sendErrorToLogChannel(e, client);
+            return null;
+        }
     }));
+    return details.filter(d => d != null);
 }
 
 
